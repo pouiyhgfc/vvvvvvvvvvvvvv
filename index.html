@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Routine Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body, #root { height: 100%; }
+  body { font-family: 'DM Sans', sans-serif; background: #f8f7f4; }
+  :root { --ff-head: 'Outfit', sans-serif; --ff-body: 'DM Sans', sans-serif; }
+  @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideDown { from{opacity:0;max-height:0} to{opacity:1;max-height:600px} }
+  input[type=range]{-webkit-appearance:none;height:6px;border-radius:3px;background:#e5e7eb;outline:none;width:100%}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#059669;cursor:pointer;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+  textarea,input[type=text]{font-family:var(--ff-body)}
+  button{font-family:var(--ff-body);cursor:pointer;border:none;outline:none}
+  .routine-item:active{transform:scale(0.98)}
+  @media(max-width:400px){.period-tabs{gap:3px!important}.period-tabs button{font-size:11px!important;padding:8px 4px!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+/* ─────── DEFAULT ROUTINES ─────── */
+const DEFAULT_ROUTINES = {
+  ochtend: [
+    { id:"o1", name:"Duah", icon:"🤲", area:"Quran/Hifd" },
+    { id:"o2", name:"Rekken, Touwtje springen, Boxen", icon:"🥊", area:"Fitness" },
+    { id:"o3", name:"Douchen", icon:"🚿", area:"Zelfzorg" },
+    { id:"o4", name:"Bidden", icon:"🕌", area:"Quran/Hifd" },
+    { id:"o5", name:"Hifd", icon:"📖", area:"Quran/Hifd" },
+    { id:"o6", name:"Pagina Quran lezen", icon:"📜", area:"Quran/Hifd" },
+    { id:"o7", name:"Easypeasy", icon:"✅", area:"Zelfzorg" },
+    { id:"o8", name:"Adhkar reciteren", icon:"📿", area:"Quran/Hifd" },
+    { id:"o9", name:"Arabisch leren", icon:"🇸🇦", area:"Talen" },
+    { id:"o10", name:"Chinees leren", icon:"🇨🇳", area:"Talen" },
+    { id:"o11", name:"Berbers leren", icon:"ⵣ", area:"Talen" },
+    { id:"o12", name:"Video kijken", icon:"🎬", area:"School" },
+  ],
+  middag: [
+    { id:"m1", name:"Schoonmaken", icon:"🧹", area:"Zelfzorg" },
+    { id:"m2", name:"Adhkar verrichten", icon:"📿", area:"Quran/Hifd" },
+    { id:"m3", name:"Berbers Anki", icon:"ⵣ", area:"Talen" },
+    { id:"m4", name:"Chinees revisen", icon:"🇨🇳", area:"Talen" },
+    { id:"m5", name:"Arabisch revisen & AI", icon:"🤖", area:"Talen" },
+    { id:"m6", name:"Hifd revisen/lezen", icon:"📖", area:"Quran/Hifd" },
+  ],
+  avond: [
+    { id:"a1", name:"Shake maken", icon:"🥤", area:"Fitness" },
+    { id:"a2", name:"Douche dingen", icon:"🚿", area:"Zelfzorg" },
+    { id:"a3", name:"Rekken", icon:"🧘", area:"Fitness" },
+    { id:"a4", name:"Blz Quran lezen", icon:"📜", area:"Quran/Hifd" },
+    { id:"a5", name:"Easypeasy", icon:"✅", area:"Zelfzorg" },
+    { id:"a6", name:"Duah lezen", icon:"🤲", area:"Quran/Hifd" },
+    { id:"a7", name:"Logboek", icon:"📓", area:"Zelfzorg" },
+    { id:"a8", name:"Slapen (10-11 uur)", icon:"😴", area:"Zelfzorg" },
+  ],
+};
+
+const AREAS = ["Quran/Hifd","Talen","Fitness","Zelfzorg","School"];
+const AREA_STYLES = {
+  "Quran/Hifd":{bg:"#fef2f2",border:"#fecaca",text:"#b91c1c",tag:"#fee2e2"},
+  Talen:{bg:"#f5f3ff",border:"#ddd6fe",text:"#6d28d9",tag:"#ede9fe"},
+  Fitness:{bg:"#fff7ed",border:"#fed7aa",text:"#c2410c",tag:"#ffedd5"},
+  Zelfzorg:{bg:"#fdf2f8",border:"#fbcfe8",text:"#be185d",tag:"#fce7f3"},
+  School:{bg:"#fefce8",border:"#fef08a",text:"#a16207",tag:"#fef9c3"},
+};
+const PERIOD_COLORS = {ochtend:"#d97706",middag:"#2563eb",avond:"#7c3aed"};
+const PERIOD_LABELS = {ochtend:"🌅 Ochtend",middag:"🌤️ Middag",avond:"🌙 Avond"};
+const MOODS = [
+  {value:"Geweldig",emoji:"🔥"},{value:"Goed",emoji:"😊"},{value:"Oké",emoji:"😐"},
+  {value:"Moe",emoji:"😴"},{value:"Slecht",emoji:"😞"},
+];
+const DAYS_NL = ["Zondag","Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag"];
+const MONTHS_NL = ["Januari","Februari","Maart","April","Mei","Juni","Juli","Augustus","September","Oktober","November","December"];
+const EMOJI_LIST = ["🤲","🥊","🚿","🕌","📖","📜","✅","📿","🇸🇦","🇨🇳","ⵣ","🎬","🧹","🤖","🥤","🧘","📓","😴","💪","🧠","📚","🎯","💊","🏃","🍎","💧","🧪","📝","🎵","🌿","☕","🔔","⏰","🫀","🧃","🍳"];
+
+function dk(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function fmtDate(d){return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`}
+function isToday(d){const t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear()}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+
+/* ─────── STORAGE ─────── */
+function loadJSON(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback}catch{return fallback}}
+function saveJSON(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch{}}
+
+/* ─────── RING ─────── */
+function Ring({value,size=90,stroke=7,label,color="#059669"}){
+  const r=(size-stroke)/2,c=2*Math.PI*r,off=c-(value/100)*c;
+  return(
+    <div style={{position:"relative",width:size,height:size}}>
+      <svg width={size} height={size} style={{transform:"rotate(-90deg)"}}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={stroke}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+          strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round"
+          style={{transition:"stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)"}}/>
+      </svg>
+      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+        <span style={{fontSize:size*.26,fontWeight:800,color:"#1f2937",fontFamily:"var(--ff-head)"}}>{value}%</span>
+        {label&&<span style={{fontSize:10,color:"#6b7280",marginTop:1}}>{label}</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ─────── MAIN APP ─────── */
+function App(){
+  const [routines,setRoutines]=useState(()=>loadJSON("rt_routines",DEFAULT_ROUTINES));
+  const [date,setDate]=useState(new Date());
+  const [tab,setTab]=useState("ochtend");
+  const [day,setDay]=useState(()=>loadJSON(`rt_day_${dk(new Date())}`,{checked:{},energy:7,mood:"Goed",notes:""}));
+  const [view,setView]=useState("tracker");
+  const [pop,setPop]=useState(null);
+  const [showSettings,setShowSettings]=useState(false);
+  const [editingRoutine,setEditingRoutine]=useState(null);
+  const [addingTo,setAddingTo]=useState(null);
+  const [newR,setNewR]=useState({name:"",icon:"✅",area:"Zelfzorg"});
+
+  const key=dk(date);
+  const total=Object.values(routines).flat().length;
+
+  // Load day data when date changes
+  useEffect(()=>{
+    setDay(loadJSON(`rt_day_${key}`,{checked:{},energy:7,mood:"Goed",notes:""}));
+  },[key]);
+
+  // Save routines when changed
+  useEffect(()=>{saveJSON("rt_routines",routines)},[routines]);
+
+  const saveDay=(data)=>{setDay(data);saveJSON(`rt_day_${key}`,data)};
+
+  const toggle=(id)=>{
+    const next={...day,checked:{...day.checked,[id]:!day.checked[id]}};
+    saveDay(next);
+    if(!day.checked[id]){setPop(id);setTimeout(()=>setPop(null),500)}
+  };
+
+  const go=(n)=>{const d=new Date(date);d.setDate(d.getDate()+n);setDate(d)};
+
+  const checked=day.checked||{};
+  const totalDone=Object.values(checked).filter(Boolean).length;
+  const pctTotal=total>0?Math.round((totalDone/total)*100):0;
+  const pDone=(p)=>routines[p].filter(r=>checked[r.id]).length;
+  const pPct=(p)=>routines[p].length>0?Math.round((pDone(p)/routines[p].length)*100):0;
+
+  // Streak
+  const streak=(()=>{
+    let s=0;const d=new Date();
+    if(totalDone>=total*.5)s++;
+    d.setDate(d.getDate()-1);
+    for(let i=0;i<365;i++){
+      const data=loadJSON(`rt_day_${dk(d)}`,null);
+      if(!data?.checked||Object.values(data.checked).filter(Boolean).length<total*.5)break;
+      s++;d.setDate(d.getDate()-1);
+    }
+    return s;
+  })();
+
+  // Add routine
+  const addRoutine=(period)=>{
+    if(!newR.name.trim())return;
+    const r={id:uid(),name:newR.name.trim(),icon:newR.icon,area:newR.area};
+    setRoutines(prev=>({...prev,[period]:[...prev[period],r]}));
+    setNewR({name:"",icon:"✅",area:"Zelfzorg"});
+    setAddingTo(null);
+  };
+
+  // Delete routine
+  const deleteRoutine=(period,id)=>{
+    if(!confirm("Weet je zeker dat je deze routine wilt verwijderen?"))return;
+    setRoutines(prev=>({...prev,[period]:prev[period].filter(r=>r.id!==id)}));
+  };
+
+  // Rename routine
+  const renameRoutine=(period,id,newName,newIcon,newArea)=>{
+    setRoutines(prev=>({...prev,[period]:prev[period].map(r=>r.id===id?{...r,name:newName,icon:newIcon,area:newArea}:r)}));
+    setEditingRoutine(null);
+  };
+
+  // Move routine
+  const moveRoutine=(fromPeriod,id,direction)=>{
+    setRoutines(prev=>{
+      const list=[...prev[fromPeriod]];
+      const idx=list.findIndex(r=>r.id===id);
+      if(direction==="up"&&idx>0){[list[idx-1],list[idx]]=[list[idx],list[idx-1]]}
+      if(direction==="down"&&idx<list.length-1){[list[idx],list[idx+1]]=[list[idx+1],list[idx]]}
+      return{...prev,[fromPeriod]:list};
+    });
+  };
+
+  // Reset to defaults
+  const resetRoutines=()=>{
+    if(confirm("Alle routines terugzetten naar standaard? Je dagdata blijft bewaard.")){
+      setRoutines(DEFAULT_ROUTINES);
+    }
+  };
+
+  // All days for stats
+  const getAllDays=()=>{
+    const all={};
+    for(let i=0;i<365;i++){
+      const d=new Date();d.setDate(d.getDate()-i);
+      const data=loadJSON(`rt_day_${dk(d)}`,null);
+      if(data)all[dk(d)]=data;
+    }
+    return all;
+  };
+
+  return(
+    <div style={{maxWidth:540,margin:"0 auto",background:"#f8f7f4",minHeight:"100vh",paddingBottom:40}}>
+
+      {/* HEADER */}
+      <div style={{background:"linear-gradient(140deg,#064e3b 0%,#047857 100%)",padding:"22px 16px 16px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
+          <div style={{display:"flex",gap:10,alignItems:"center"}}>
+            <div style={{width:40,height:40,borderRadius:10,background:"rgba(255,255,255,.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>📋</div>
+            <div>
+              <h1 style={{fontFamily:"var(--ff-head)",fontSize:20,fontWeight:800,color:"white"}}>Routine Tracker</h1>
+              <p style={{fontSize:11,color:"rgba(255,255,255,.7)",marginTop:1}}>{fmtDate(date)}{isToday(date)?" — Vandaag":""}</p>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:5}}>
+            {[["tracker","📝"],["month","📅"],["stats","📊"],["settings","⚙️"]].map(([v,ic])=>(
+              <button key={v} onClick={()=>{v==="settings"?setShowSettings(!showSettings):setView(v);if(v!=="settings")setShowSettings(false)}}
+                style={{padding:"5px 9px",borderRadius:7,border:"1px solid rgba(255,255,255,.2)",
+                  background:(view===v&&v!=="settings")||(v==="settings"&&showSettings)?"white":"rgba(255,255,255,.08)",
+                  color:(view===v&&v!=="settings")||(v==="settings"&&showSettings)?"#064e3b":"white",
+                  fontSize:12,fontWeight:600,transition:"all .2s"}}>{ic}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* SETTINGS PANEL */}
+      {showSettings&&(
+        <div style={{background:"white",borderBottom:"1px solid #e8e5df",padding:16,animation:"fadeUp .2s ease"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <h2 style={{fontFamily:"var(--ff-head)",fontSize:17,fontWeight:700}}>⚙️ Routines Beheren</h2>
+            <button onClick={resetRoutines} style={{fontSize:11,color:"#dc2626",background:"#fef2f2",padding:"4px 10px",borderRadius:6,fontWeight:600}}>Reset naar standaard</button>
+          </div>
+
+          {Object.entries(PERIOD_LABELS).map(([period,label])=>(
+            <div key={period} style={{marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <h3 style={{fontSize:14,fontWeight:700,color:PERIOD_COLORS[period]}}>{label}</h3>
+                <button onClick={()=>setAddingTo(addingTo===period?null:period)}
+                  style={{fontSize:11,padding:"3px 10px",borderRadius:6,background:addingTo===period?"#dc2626":"#059669",color:"white",fontWeight:600}}>
+                  {addingTo===period?"✕ Annuleer":"+ Toevoegen"}
+                </button>
+              </div>
+
+              {/* Add form */}
+              {addingTo===period&&(
+                <div style={{background:"#f0fdf4",borderRadius:10,padding:12,marginBottom:8,animation:"fadeUp .2s ease"}}>
+                  <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
+                    <input type="text" value={newR.name} onChange={e=>setNewR(p=>({...p,name:e.target.value}))}
+                      placeholder="Routine naam..." style={{flex:1,minWidth:120,padding:"7px 10px",borderRadius:7,border:"1px solid #d1d5db",fontSize:13,outline:"none"}}/>
+                    <select value={newR.area} onChange={e=>setNewR(p=>({...p,area:e.target.value}))}
+                      style={{padding:"7px 8px",borderRadius:7,border:"1px solid #d1d5db",fontSize:12,background:"white"}}>
+                      {AREAS.map(a=><option key={a} value={a}>{a}</option>)}
+                    </select>
+                  </div>
+                  <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}>
+                    {EMOJI_LIST.map(e=>(
+                      <button key={e} onClick={()=>setNewR(p=>({...p,icon:e}))}
+                        style={{width:30,height:30,borderRadius:6,border:newR.icon===e?"2px solid #059669":"1px solid #e5e7eb",
+                          background:newR.icon===e?"#ecfdf5":"white",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>{e}</button>
+                    ))}
+                  </div>
+                  <button onClick={()=>addRoutine(period)}
+                    style={{width:"100%",padding:"8px",borderRadius:8,background:"#059669",color:"white",fontWeight:600,fontSize:13}}>
+                    ✓ Toevoegen aan {label}
+                  </button>
+                </div>
+              )}
+
+              {/* Routine list */}
+              {routines[period].map((r,i)=>{
+                const isEditing=editingRoutine===r.id;
+                const a=AREA_STYLES[r.area]||AREA_STYLES.Zelfzorg;
+                return(
+                  <div key={r.id} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",borderRadius:8,
+                    background:isEditing?"#f9fafb":"white",borderLeft:`3px solid ${a.border}`,marginBottom:3,boxShadow:"0 1px 2px rgba(0,0,0,.03)"}}>
+                    {isEditing?(
+                      <EditRow r={r} period={period} onSave={renameRoutine} onCancel={()=>setEditingRoutine(null)}/>
+                    ):(
+                      <>
+                        <span style={{fontSize:14}}>{r.icon}</span>
+                        <span style={{flex:1,fontSize:12,fontWeight:500,color:"#1f2937"}}>{r.name}</span>
+                        <span style={{fontSize:9,padding:"1px 6px",borderRadius:99,background:a.tag,color:a.text,fontWeight:600}}>{r.area}</span>
+                        <button onClick={()=>moveRoutine(period,r.id,"up")} style={{fontSize:10,color:"#9ca3af",background:"none",padding:"2px 4px"}} disabled={i===0}>▲</button>
+                        <button onClick={()=>moveRoutine(period,r.id,"down")} style={{fontSize:10,color:"#9ca3af",background:"none",padding:"2px 4px"}} disabled={i===routines[period].length-1}>▼</button>
+                        <button onClick={()=>setEditingRoutine(r.id)} style={{fontSize:10,color:"#3b82f6",background:"none",padding:"2px 4px"}}>✏️</button>
+                        <button onClick={()=>deleteRoutine(period,r.id)} style={{fontSize:10,color:"#dc2626",background:"none",padding:"2px 4px"}}>🗑️</button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* DATE NAV */}
+      {!showSettings&&(
+        <div style={{display:"flex",justifyContent:"center",gap:10,padding:"12px 16px",background:"white",borderBottom:"1px solid #e8e5df"}}>
+          <NavBtn onClick={()=>go(-1)}>◀</NavBtn>
+          <button onClick={()=>setDate(new Date())} style={{
+            padding:"5px 16px",borderRadius:8,border:isToday(date)?"2px solid #059669":"1px solid #e5e7eb",
+            background:isToday(date)?"#ecfdf5":"white",fontSize:13,fontWeight:600,
+            color:isToday(date)?"#059669":"#6b7280"}}>Vandaag</button>
+          <NavBtn onClick={()=>go(1)}>▶</NavBtn>
+        </div>
+      )}
+
+      {/* TRACKER */}
+      {view==="tracker"&&!showSettings&&(
+        <div style={{animation:"fadeUp .3s ease"}}>
+          {/* Stats bar */}
+          <div style={{display:"flex",alignItems:"center",gap:14,padding:"16px 12px",background:"white",margin:"10px 12px",borderRadius:14,boxShadow:"0 1px 4px rgba(0,0,0,.04)",flexWrap:"wrap"}}>
+            <Ring value={pctTotal} size={84} label="Totaal"/>
+            <div style={{flex:1,display:"flex",flexDirection:"column",gap:6,minWidth:150}}>
+              {Object.entries(PERIOD_LABELS).map(([k,label])=>(
+                <div key={k} style={{display:"flex",alignItems:"center",gap:5}}>
+                  <span style={{fontSize:11,minWidth:78,color:"#374151"}}>{label}</span>
+                  <div style={{flex:1,height:5,borderRadius:3,background:"#f3f4f6"}}>
+                    <div style={{height:"100%",borderRadius:3,width:`${pPct(k)}%`,background:PERIOD_COLORS[k],transition:"width .4s ease"}}/>
+                  </div>
+                  <span style={{fontSize:10,fontWeight:700,minWidth:26,textAlign:"right",color:"#6b7280"}}>{pDone(k)}/{routines[k].length}</span>
+                </div>
+              ))}
+              <div style={{display:"flex",alignItems:"center",gap:4,marginTop:1}}>
+                <span style={{fontSize:16}}>🔥</span>
+                <span style={{fontSize:12,fontWeight:700,color:"#059669"}}>{streak} dag{streak!==1?"en":""} streak</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="period-tabs" style={{display:"flex",gap:4,padding:"0 12px",marginBottom:5}}>
+            {Object.entries(PERIOD_LABELS).map(([k,label])=>{
+              const active=tab===k;const col=PERIOD_COLORS[k];
+              return(
+                <button key={k} onClick={()=>setTab(k)} style={{
+                  flex:1,padding:"8px 4px",borderRadius:9,
+                  border:active?`2px solid ${col}`:"2px solid transparent",
+                  background:active?"white":"#f0efeb",color:active?col:"#9ca3af",
+                  fontSize:12,fontWeight:700,transition:"all .2s",
+                  boxShadow:active?"0 2px 8px rgba(0,0,0,.06)":"none",
+                  display:"flex",flexDirection:"column",alignItems:"center",gap:1
+                }}>
+                  {label}
+                  <span style={{fontSize:10,fontWeight:600,opacity:.7}}>{pDone(k)}/{routines[k].length}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Routines */}
+          <div style={{padding:"0 12px",display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
+            {routines[tab].map((r,i)=>{
+              const done=!!checked[r.id];const a=AREA_STYLES[r.area]||AREA_STYLES.Zelfzorg;
+              return(
+                <div key={r.id} className="routine-item" onClick={()=>toggle(r.id)} style={{
+                  display:"flex",alignItems:"center",gap:9,padding:"10px 11px",borderRadius:11,
+                  borderLeft:`4px solid ${a.border}`,background:done?a.bg:"white",
+                  boxShadow:"0 1px 2px rgba(0,0,0,.03)",cursor:"pointer",transition:"all .15s",
+                  animation:`fadeUp .2s ease ${i*0.025}s both`,opacity:done?.8:1
+                }}>
+                  <div style={{
+                    width:22,height:22,borderRadius:6,border:`2px solid ${done?a.text:"#d1d5db"}`,
+                    background:done?a.text:"white",display:"flex",alignItems:"center",justifyContent:"center",
+                    flexShrink:0,transition:"all .2s",animation:pop===r.id?"pop .35s ease":"none"
+                  }}>
+                    {done&&<span style={{color:"white",fontSize:13,lineHeight:1}}>✓</span>}
+                  </div>
+                  <span style={{fontSize:15,flexShrink:0}}>{r.icon}</span>
+                  <span style={{flex:1,fontSize:13,fontWeight:500,color:done?"#9ca3af":"#1f2937",textDecoration:done?"line-through":"none"}}>{r.name}</span>
+                  <span style={{fontSize:9,padding:"2px 6px",borderRadius:99,background:a.tag,color:a.text,fontWeight:600,whiteSpace:"nowrap"}}>{r.area}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Energy & Mood */}
+          <div style={{display:"flex",gap:12,padding:12,background:"white",margin:"0 12px 8px",borderRadius:12,boxShadow:"0 1px 3px rgba(0,0,0,.04)",flexWrap:"wrap"}}>
+            <div style={{flex:1,minWidth:130}}>
+              <label style={{fontSize:11,fontWeight:600,color:"#374151",display:"block",marginBottom:5}}>⚡ Energie: {day.energy}/10</label>
+              <input type="range" min={1} max={10} value={day.energy} onChange={e=>{const v=+e.target.value;saveDay({...day,energy:v})}}/>
+            </div>
+            <div style={{flex:1,minWidth:190}}>
+              <label style={{fontSize:11,fontWeight:600,color:"#374151",display:"block",marginBottom:5}}>Hoe voel je je?</label>
+              <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                {MOODS.map(m=>(
+                  <button key={m.value} onClick={()=>saveDay({...day,mood:m.value})} style={{
+                    display:"flex",flexDirection:"column",alignItems:"center",gap:1,padding:"4px 7px",
+                    borderRadius:7,border:day.mood===m.value?"2px solid #059669":"1.5px solid #e5e7eb",
+                    background:day.mood===m.value?"#ecfdf5":"white",transition:"all .15s"
+                  }}>
+                    <span style={{fontSize:16}}>{m.emoji}</span>
+                    <span style={{fontSize:8,fontWeight:600,color:day.mood===m.value?"#059669":"#9ca3af"}}>{m.value}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div style={{padding:"0 12px 16px"}}>
+            <label style={{fontSize:11,fontWeight:600,color:"#374151",display:"block",marginBottom:3}}>📝 Notities</label>
+            <textarea value={day.notes||""} onChange={e=>saveDay({...day,notes:e.target.value})} placeholder="Reflecties over je dag..."
+              rows={2} style={{width:"100%",padding:"8px 10px",borderRadius:9,border:"1px solid #e5e7eb",fontSize:12,outline:"none",background:"white",resize:"vertical"}}/>
+          </div>
+        </div>
+      )}
+
+      {/* MONTH VIEW */}
+      {view==="month"&&!showSettings&&<MonthView date={date} setDate={setDate} setView={setView} routines={routines}/>}
+
+      {/* STATS VIEW */}
+      {view==="stats"&&!showSettings&&<StatsView routines={routines} getAllDays={getAllDays}/>}
+    </div>
+  );
+}
+
+/* ─── EDIT ROW ─── */
+function EditRow({r,period,onSave,onCancel}){
+  const [name,setName]=useState(r.name);
+  const [icon,setIcon]=useState(r.icon);
+  const [area,setArea]=useState(r.area);
+  const [showEmoji,setShowEmoji]=useState(false);
+  return(
+    <div style={{display:"flex",gap:4,alignItems:"center",flexWrap:"wrap",flex:1}}>
+      <button onClick={()=>setShowEmoji(!showEmoji)} style={{fontSize:16,background:"none",padding:2}}>{icon}</button>
+      <input type="text" value={name} onChange={e=>setName(e.target.value)}
+        style={{flex:1,minWidth:80,padding:"4px 6px",borderRadius:5,border:"1px solid #d1d5db",fontSize:12,outline:"none"}}/>
+      <select value={area} onChange={e=>setArea(e.target.value)} style={{padding:"4px",borderRadius:5,border:"1px solid #d1d5db",fontSize:10,background:"white"}}>
+        {AREAS.map(a=><option key={a} value={a}>{a}</option>)}
+      </select>
+      <button onClick={()=>onSave(period,r.id,name,icon,area)} style={{fontSize:10,color:"#059669",background:"#ecfdf5",padding:"3px 6px",borderRadius:4,fontWeight:600}}>✓</button>
+      <button onClick={onCancel} style={{fontSize:10,color:"#6b7280",background:"#f3f4f6",padding:"3px 6px",borderRadius:4}}>✕</button>
+      {showEmoji&&(
+        <div style={{display:"flex",gap:3,flexWrap:"wrap",width:"100%",marginTop:4}}>
+          {EMOJI_LIST.map(e=>(
+            <button key={e} onClick={()=>{setIcon(e);setShowEmoji(false)}}
+              style={{width:26,height:26,borderRadius:5,border:icon===e?"2px solid #059669":"1px solid #e5e7eb",background:"white",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>{e}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NavBtn({onClick,children}){
+  return <button onClick={onClick} style={{width:34,height:34,borderRadius:8,border:"1px solid #e5e7eb",background:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:600,color:"#374151"}}>{children}</button>;
+}
+
+/* ─── MONTH ─── */
+function MonthView({date,setDate,setView,routines}){
+  const y=date.getFullYear(),m=date.getMonth();
+  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  const fDow=first.getDay()===0?6:first.getDay()-1;
+  const total=Object.values(routines).flat().length;
+
+  const days=[];
+  for(let d=1;d<=last.getDate();d++){
+    const k=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const data=loadJSON(`rt_day_${k}`,null);
+    const done=data?.checked?Object.values(data.checked).filter(Boolean).length:0;
+    days.push({day:d,pct:total>0?Math.round((done/total)*100):0,done});
+  }
+
+  const color=(pct)=>pct===0?"#f0efeb":pct<30?"#fecaca":pct<60?"#fde68a":pct<80?"#bbf7d0":"#059669";
+  const today=new Date();
+
+  return(
+    <div style={{padding:"14px 12px 24px",animation:"fadeUp .3s ease"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+        <NavBtn onClick={()=>{const d=new Date(date);d.setMonth(d.getMonth()-1);setDate(d)}}>◀</NavBtn>
+        <h2 style={{fontFamily:"var(--ff-head)",fontSize:18,fontWeight:700}}>{MONTHS_NL[m]} {y}</h2>
+        <NavBtn onClick={()=>{const d=new Date(date);d.setMonth(d.getMonth()+1);setDate(d)}}>▶</NavBtn>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3,marginBottom:5}}>
+        {["Ma","Di","Wo","Do","Vr","Za","Zo"].map(d=>(
+          <div key={d} style={{textAlign:"center",fontSize:10,fontWeight:600,color:"#9ca3af",padding:2}}>{d}</div>
+        ))}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3}}>
+        {Array(fDow).fill(null).map((_,i)=><div key={`e${i}`}/>)}
+        {days.map(d=>{
+          const isT=d.day===today.getDate()&&m===today.getMonth()&&y===today.getFullYear();
+          return(
+            <div key={d.day} onClick={()=>{setDate(new Date(y,m,d.day));setView("tracker")}}
+              style={{textAlign:"center",padding:"6px 2px",borderRadius:7,background:color(d.pct),
+                cursor:"pointer",border:isT?"2px solid #059669":"2px solid transparent",transition:"all .15s"}}>
+              <div style={{fontSize:11,fontWeight:isT?800:500,color:d.pct>=80?"white":"#1f2937"}}>{d.day}</div>
+              {d.done>0&&<div style={{fontSize:8,color:d.pct>=80?"rgba(255,255,255,.85)":"#6b7280"}}>{d.pct}%</div>}
+            </div>
+          );
+        })}
+      </div>
+      <div style={{display:"flex",gap:6,marginTop:12,justifyContent:"center",flexWrap:"wrap"}}>
+        {[["#f0efeb","0%"],["#fecaca","<30%"],["#fde68a","<60%"],["#bbf7d0","<80%"],["#059669","80%+"]].map(([c,l])=>(
+          <div key={l} style={{display:"flex",alignItems:"center",gap:3}}>
+            <div style={{width:9,height:9,borderRadius:2,background:c}}/><span style={{fontSize:9,color:"#6b7280"}}>{l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── STATS ─── */
+function StatsView({routines,getAllDays}){
+  const allDays=getAllDays();
+  const entries=Object.entries(allDays).filter(([,v])=>v?.checked);
+  const total=Object.values(routines).flat().length;
+
+  const last7=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const data=allDays[dk(d)];
+    const done=data?.checked?Object.values(data.checked).filter(Boolean).length:0;
+    last7.push({d:DAYS_NL[d.getDay()].substring(0,2),pct:total>0?Math.round((done/total)*100):0});
+  }
+
+  const allR=Object.values(routines).flat();
+  const areaStats={};
+  allR.forEach(r=>{
+    if(!areaStats[r.area])areaStats[r.area]={total:0,done:0};
+    areaStats[r.area].total+=entries.length||1;
+    entries.forEach(([,data])=>{if(data.checked?.[r.id])areaStats[r.area].done++});
+  });
+
+  let bestPct=0;
+  entries.forEach(([,v])=>{
+    const pct=total>0?Math.round((Object.values(v.checked).filter(Boolean).length/total)*100):0;
+    if(pct>bestPct)bestPct=pct;
+  });
+
+  const skipCount={};
+  allR.forEach(r=>{skipCount[r.id]={name:r.name,icon:r.icon,skipped:0}});
+  entries.forEach(([,data])=>{allR.forEach(r=>{if(!data.checked?.[r.id])skipCount[r.id].skipped++})});
+  const mostSkipped=Object.values(skipCount).sort((a,b)=>b.skipped-a.skipped).slice(0,5);
+
+  return(
+    <div style={{padding:"14px 12px 24px",animation:"fadeUp .3s ease"}}>
+      <h2 style={{fontFamily:"var(--ff-head)",fontSize:18,fontWeight:700,marginBottom:14}}>📊 Statistieken</h2>
+
+      <div style={{background:"white",borderRadius:12,padding:12,marginBottom:8,boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
+        <h3 style={{fontFamily:"var(--ff-head)",fontSize:13,fontWeight:700,marginBottom:12}}>Afgelopen 7 dagen</h3>
+        <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-around",height:100,gap:4}}>
+          {last7.map((d,i)=>(
+            <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,flex:1}}>
+              <span style={{fontSize:9,fontWeight:700,color:"#059669"}}>{d.pct}%</span>
+              <div style={{width:"100%",maxWidth:26,height:Math.max(3,(d.pct/100)*70),background:"linear-gradient(to top,#059669,#34d399)",borderRadius:4,transition:"height .5s ease"}}/>
+              <span style={{fontSize:9,color:"#6b7280"}}>{d.d}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{background:"white",borderRadius:12,padding:12,marginBottom:8,boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
+        <h3 style={{fontFamily:"var(--ff-head)",fontSize:13,fontWeight:700,marginBottom:10}}>Per Focus Gebied</h3>
+        {Object.entries(areaStats).map(([area,s])=>{
+          const pct=s.total>0?Math.round((s.done/s.total)*100):0;
+          const st=AREA_STYLES[area]||AREA_STYLES.Zelfzorg;
+          return(
+            <div key={area} style={{marginBottom:9}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}>
+                <span style={{fontSize:11,fontWeight:600,color:st.text}}>{area}</span>
+                <span style={{fontSize:10,color:"#6b7280"}}>{pct}%</span>
+              </div>
+              <div style={{height:6,borderRadius:3,background:"#f3f4f6"}}>
+                <div style={{height:"100%",borderRadius:3,width:`${pct}%`,background:st.text,transition:"width .5s ease"}}/>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {entries.length>0&&(
+        <div style={{background:"white",borderRadius:12,padding:12,marginBottom:8,boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
+          <h3 style={{fontFamily:"var(--ff-head)",fontSize:13,fontWeight:700,marginBottom:8}}>⚠️ Meest overgeslagen</h3>
+          {mostSkipped.map((r,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 0",borderBottom:i<4?"1px solid #f3f4f6":"none"}}>
+              <span style={{fontSize:13}}>{r.icon}</span>
+              <span style={{flex:1,fontSize:11,color:"#374151"}}>{r.name}</span>
+              <span style={{fontSize:10,fontWeight:600,color:"#dc2626"}}>{r.skipped}x</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        <div style={{background:"white",borderRadius:12,padding:12,textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
+          <div style={{fontSize:24,marginBottom:2}}>📅</div>
+          <div style={{fontSize:20,fontWeight:800,color:"#059669",fontFamily:"var(--ff-head)"}}>{entries.length}</div>
+          <div style={{fontSize:10,color:"#6b7280"}}>Dagen gelogd</div>
+        </div>
+        <div style={{background:"white",borderRadius:12,padding:12,textAlign:"center",boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
+          <div style={{fontSize:24,marginBottom:2}}>🏆</div>
+          <div style={{fontSize:20,fontWeight:800,color:"#d97706",fontFamily:"var(--ff-head)"}}>{bestPct}%</div>
+          <div style={{fontSize:10,color:"#6b7280"}}>Beste dag</div>
+        </div>
+      </div>
+
+      {entries.length===0&&(
+        <div style={{textAlign:"center",padding:30,color:"#9ca3af"}}>
+          <p style={{fontSize:32,marginBottom:4}}>📭</p>
+          <p style={{fontSize:12}}>Nog geen data — begin met afvinken!</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById("root"));
+</script>
+</body>
+</html>
