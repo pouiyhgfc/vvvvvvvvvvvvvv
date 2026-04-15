@@ -132,6 +132,29 @@ function App(){
     setDay(loadJSON(`rt_day_${key}`,{checked:{},energy:7,mood:"Goed",notes:""}));
   },[key]);
 
+  // AUTO-UPDATE: jump to today when page becomes visible or on interval
+  useEffect(()=>{
+    const checkDate=()=>{
+      const now=new Date();
+      const todayKey=dk(now);
+      const currentKey=dk(date);
+      // Only auto-jump if user was viewing today (not browsing history)
+      if(currentKey!==todayKey){
+        const yesterday=new Date(now);yesterday.setDate(now.getDate()-1);
+        if(currentKey===dk(yesterday)){
+          // Was viewing "today" which is now yesterday → jump to real today
+          setDate(new Date());
+        }
+      }
+    };
+    const onVisible=()=>{if(document.visibilityState==="visible")checkDate()};
+    const onFocus=()=>checkDate();
+    document.addEventListener("visibilitychange",onVisible);
+    window.addEventListener("focus",onFocus);
+    const interval=setInterval(checkDate,60000); // check every minute
+    return()=>{document.removeEventListener("visibilitychange",onVisible);window.removeEventListener("focus",onFocus);clearInterval(interval)};
+  },[date]);
+
   // Save routines when changed
   useEffect(()=>{saveJSON("rt_routines",routines)},[routines]);
 
@@ -416,9 +439,13 @@ function App(){
 
           {/* Notes */}
           <div style={{padding:"0 12px 16px"}}>
-            <label style={{fontSize:11,fontWeight:600,color:"#374151",display:"block",marginBottom:3}}>📝 Notities</label>
-            <textarea value={day.notes||""} onChange={e=>saveDay({...day,notes:e.target.value})} placeholder="Reflecties over je dag..."
-              rows={2} style={{width:"100%",padding:"8px 10px",borderRadius:9,border:"1px solid #e5e7eb",fontSize:12,outline:"none",background:"white",resize:"vertical"}}/>
+            <div style={{background:"white",borderRadius:12,padding:14,boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
+              <label style={{fontSize:12,fontWeight:600,color:"#374151",display:"flex",alignItems:"center",gap:4,marginBottom:8}}>📝 Notities & Reflecties</label>
+              <textarea value={day.notes||""} onChange={e=>saveDay({...day,notes:e.target.value})} placeholder={"Hoe was je dag?\nWat ging goed? Wat kan beter?\nWaar ben je dankbaar voor?"}
+                rows={4} style={{width:"100%",padding:"12px 14px",borderRadius:10,border:"1.5px solid #e5e7eb",fontSize:13,lineHeight:1.6,outline:"none",background:"#fafaf9",resize:"vertical",minHeight:90,transition:"border-color .2s",color:"#1f2937"}}
+                onFocus={e=>e.target.style.borderColor="#059669"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
+              {day.notes&&<div style={{marginTop:6,fontSize:10,color:"#9ca3af",textAlign:"right"}}>{day.notes.length} tekens</div>}
+            </div>
           </div>
         </div>
       )}
