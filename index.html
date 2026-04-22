@@ -38,27 +38,27 @@ const DEFAULT_ROUTINES = {
     { id:"o4", name:"Bidden", icon:"🕌", area:"Quran/Hifd" },
     { id:"o5", name:"Hifd", icon:"📖", area:"Quran/Hifd" },
     { id:"o6", name:"Pagina Quran lezen", icon:"📜", area:"Quran/Hifd" },
-    { id:"o7", name:"Easypeasy", icon:"✅", area:"Zelfzorg" },
+    { id:"o7", name:"Ademhalingssessie", icon:"🌬️", area:"Zelfzorg" },
     { id:"o8", name:"Adhkar reciteren", icon:"📿", area:"Quran/Hifd" },
-    { id:"o9", name:"Arabisch leren", icon:"🇸🇦", area:"Talen" },
-    { id:"o10", name:"Chinees leren", icon:"🇨🇳", area:"Talen" },
-    { id:"o11", name:"Berbers leren", icon:"ⵣ", area:"Talen" },
-    { id:"o12", name:"Video kijken", icon:"🎬", area:"School" },
+    { id:"o9", name:"Frans Anki", icon:"🇫🇷", area:"Talen" },
+    { id:"o10", name:"Arabisch leren", icon:"🇸🇦", area:"Talen" },
+    { id:"o11", name:"Chinees leren", icon:"🇨🇳", area:"Talen" },
+    { id:"o12", name:"Berbers leren", icon:"ⵣ", area:"Talen" },
+    { id:"o13", name:"Video kijken", icon:"🎬", area:"School" },
   ],
   middag: [
-    { id:"m1", name:"Schoonmaken", icon:"🧹", area:"Zelfzorg" },
-    { id:"m2", name:"Adhkar verrichten", icon:"📿", area:"Quran/Hifd" },
-    { id:"m3", name:"Berbers Anki", icon:"ⵣ", area:"Talen" },
-    { id:"m4", name:"Chinees revisen", icon:"🇨🇳", area:"Talen" },
-    { id:"m5", name:"Arabisch revisen & AI", icon:"🤖", area:"Talen" },
-    { id:"m6", name:"Hifd revisen/lezen", icon:"📖", area:"Quran/Hifd" },
+    { id:"m1", name:"Adhkar verrichten", icon:"📿", area:"Quran/Hifd" },
+    { id:"m2", name:"Arabisch met AI", icon:"🇸🇦", area:"Talen" },
+    { id:"m3", name:"Berbers met AI", icon:"ⵣ", area:"Talen" },
+    { id:"m4", name:"Chinees met AI", icon:"🇨🇳", area:"Talen" },
+    { id:"m5", name:"Hifd revisen/lezen", icon:"📖", area:"Quran/Hifd" },
   ],
   avond: [
     { id:"a1", name:"Shake maken", icon:"🥤", area:"Fitness" },
     { id:"a2", name:"Douche dingen", icon:"🚿", area:"Zelfzorg" },
     { id:"a3", name:"Rekken", icon:"🧘", area:"Fitness" },
     { id:"a4", name:"Blz Quran lezen", icon:"📜", area:"Quran/Hifd" },
-    { id:"a5", name:"Easypeasy", icon:"✅", area:"Zelfzorg" },
+    { id:"a5", name:"Ademhalingssessie", icon:"🌬️", area:"Zelfzorg" },
     { id:"a6", name:"Duah lezen", icon:"🤲", area:"Quran/Hifd" },
     { id:"a7", name:"Logboek", icon:"📓", area:"Zelfzorg" },
     { id:"a8", name:"Slapen (10-11 uur)", icon:"😴", area:"Zelfzorg" },
@@ -81,7 +81,13 @@ const MOODS = [
 ];
 const DAYS_NL = ["Zondag","Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag"];
 const MONTHS_NL = ["Januari","Februari","Maart","April","Mei","Juni","Juli","Augustus","September","Oktober","November","December"];
-const EMOJI_LIST = ["🤲","🥊","🚿","🕌","📖","📜","✅","📿","🇸🇦","🇨🇳","ⵣ","🎬","🧹","🤖","🥤","🧘","📓","😴","💪","🧠","📚","🎯","💊","🏃","🍎","💧","🧪","📝","🎵","🌿","☕","🔔","⏰","🫀","🧃","🍳"];
+const EMOJI_LIST = [
+  "🤲","🥊","🚿","🕌","📖","📜","✅","📿","🌬️","🧘","🧘‍♂️",
+  "🇸🇦","🇨🇳","🇫🇷","🇳🇱","🇬🇧","🇩🇪","🇪🇸","🇮🇹","🇯🇵","🇹🇷","ⵣ",
+  "🎬","🧹","🤖","🥤","📓","😴","💪","🧠","📚","🎯","💊","🏃","🍎","💧",
+  "🧪","📝","🎵","🌿","☕","🔔","⏰","🫀","🧃","🍳","🕋","🤝","🌙","☀️",
+  "⭐","❤️","🔥","🧿","📱","💻","🎨","🖋️","🎓","🏋️","🚶","🛌","🥗","🫐"
+];
 
 function dk(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function fmtDate(d){return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`}
@@ -174,14 +180,21 @@ function App(){
   const pDone=(p)=>routines[p].filter(r=>checked[r.id]).length;
   const pPct=(p)=>routines[p].length>0?Math.round((pDone(p)/routines[p].length)*100):0;
 
-  // Streak
+  // Streak — telt dagen waarop >=50% van dat moment was afgevinkt (huidige total als benchmark)
   const streak=(()=>{
+    const threshold=Math.max(1,Math.ceil(total*.5));
     let s=0;const d=new Date();
-    if(totalDone>=total*.5)s++;
+    const todayCount=Object.values(checked).filter(Boolean).length;
+    if(isToday(date)&&todayCount>=threshold)s++;
+    else if(!isToday(date)){
+      const t=loadJSON(`rt_day_${dk(new Date())}`,null);
+      if(t?.checked&&Object.values(t.checked).filter(Boolean).length>=threshold)s++;
+    }
     d.setDate(d.getDate()-1);
     for(let i=0;i<365;i++){
       const data=loadJSON(`rt_day_${dk(d)}`,null);
-      if(!data?.checked||Object.values(data.checked).filter(Boolean).length<total*.5)break;
+      const done=data?.checked?Object.values(data.checked).filter(Boolean).length:0;
+      if(done<threshold)break;
       s++;d.setDate(d.getDate()-1);
     }
     return s;
@@ -237,6 +250,109 @@ function App(){
     return all;
   };
 
+  // ─── IMPORT / EXPORT ───
+  const exportData=()=>{
+    const allDays={};
+    // Scan alle localStorage keys die beginnen met rt_day_
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith("rt_day_")){
+        const data=loadJSON(k,null);
+        if(data)allDays[k.replace("rt_day_","")]=data;
+      }
+    }
+    const payload={
+      version:2,
+      exportedAt:new Date().toISOString(),
+      routines,
+      days:allDays
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=`routine-backup-${dk(new Date())}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const importData=(file)=>{
+    const reader=new FileReader();
+    reader.onload=(e)=>{
+      try{
+        const data=JSON.parse(e.target.result);
+        if(!data.routines||!data.days){alert("❌ Ongeldig backup bestand.");return}
+        const mode=confirm(
+          "OK = Samenvoegen (bestaande data blijft, nieuwe wordt toegevoegd/overschreven)\n"+
+          "Annuleer = Volledig vervangen (alles wissen en importeren)"
+        );
+        if(!mode){
+          // Volledig vervangen: wis alle rt_day_ en rt_routines
+          const keysToDelete=[];
+          for(let i=0;i<localStorage.length;i++){
+            const k=localStorage.key(i);
+            if(k&&(k.startsWith("rt_day_")||k==="rt_routines"))keysToDelete.push(k);
+          }
+          keysToDelete.forEach(k=>localStorage.removeItem(k));
+        }
+        // Schrijf routines
+        saveJSON("rt_routines",data.routines);
+        setRoutines(data.routines);
+        // Schrijf dagen
+        Object.entries(data.days).forEach(([dateKey,dayData])=>{
+          saveJSON(`rt_day_${dateKey}`,dayData);
+        });
+        // Herlaad huidige dag
+        setDay(loadJSON(`rt_day_${key}`,{checked:{},energy:7,mood:"Goed",notes:""}));
+        alert(`✓ Import gelukt! ${Object.keys(data.days).length} dagen geïmporteerd.`);
+      }catch(err){
+        alert("❌ Fout bij importeren: "+err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const clearAllDays=()=>{
+    if(!confirm("⚠️ ALLE dagdata wissen? Dit kan niet ongedaan worden gemaakt!\n\nExporteer eerst een backup!"))return;
+    if(!confirm("Weet je het écht zeker?"))return;
+    const keysToDelete=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith("rt_day_"))keysToDelete.push(k);
+    }
+    keysToDelete.forEach(k=>localStorage.removeItem(k));
+    setDay({checked:{},energy:7,mood:"Goed",notes:""});
+    alert(`✓ ${keysToDelete.length} dagen gewist.`);
+  };
+
+  const clearEverything=()=>{
+    if(!confirm("⚠️⚠️ ALLES wissen (routines + dagdata)? Exporteer eerst een backup!"))return;
+    if(!confirm("Dit is DEFINITIEF. Doorgaan?"))return;
+    const keysToDelete=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&(k.startsWith("rt_day_")||k==="rt_routines"))keysToDelete.push(k);
+    }
+    keysToDelete.forEach(k=>localStorage.removeItem(k));
+    setRoutines(DEFAULT_ROUTINES);
+    setDay({checked:{},energy:7,mood:"Goed",notes:""});
+    alert("✓ Alles gewist. App is gereset.");
+  };
+
+  // Data-overzicht
+  const dataInfo=(()=>{
+    let dayCount=0,bytes=0;
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&(k.startsWith("rt_day_")||k==="rt_routines")){
+        const v=localStorage.getItem(k)||"";
+        bytes+=k.length+v.length;
+        if(k.startsWith("rt_day_"))dayCount++;
+      }
+    }
+    return{dayCount,kb:(bytes/1024).toFixed(1)};
+  })();
+
   return(
     <div style={{maxWidth:540,margin:"0 auto",background:"#f8f7f4",minHeight:"100vh",paddingBottom:40}}>
 
@@ -265,9 +381,26 @@ function App(){
       {/* SETTINGS PANEL */}
       {showSettings&&(
         <div style={{background:"white",borderBottom:"1px solid #e8e5df",padding:16,animation:"fadeUp .2s ease"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-            <h2 style={{fontFamily:"var(--ff-head)",fontSize:17,fontWeight:700}}>⚙️ Routines Beheren</h2>
-            <button onClick={resetRoutines} style={{fontSize:11,color:"#dc2626",background:"#fef2f2",padding:"4px 10px",borderRadius:6,fontWeight:600}}>Reset naar standaard</button>
+          <h2 style={{fontFamily:"var(--ff-head)",fontSize:17,fontWeight:700,marginBottom:12}}>⚙️ Instellingen</h2>
+
+          {/* DATA / BACKUP */}
+          <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:12,marginBottom:14}}>
+            <h3 style={{fontSize:13,fontWeight:700,color:"#065f46",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>💾 Backup & Data</h3>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
+              <button onClick={exportData} style={{padding:"8px",borderRadius:7,background:"#059669",color:"white",fontSize:12,fontWeight:600}}>📤 Exporteer</button>
+              <label style={{padding:"8px",borderRadius:7,background:"#0369a1",color:"white",fontSize:12,fontWeight:600,textAlign:"center",cursor:"pointer"}}>
+                📥 Importeer
+                <input type="file" accept="application/json,.json" onChange={e=>{if(e.target.files?.[0]){importData(e.target.files[0]);e.target.value=""}}} style={{display:"none"}}/>
+              </label>
+            </div>
+            <div style={{fontSize:10,color:"#065f46",lineHeight:1.5}}>
+              <div>📊 <b>{dataInfo.dayCount}</b> dagen gelogd · <b>{total}</b> routines · <b>{dataInfo.kb} KB</b> opgeslagen</div>
+              <div style={{marginTop:3,opacity:.8}}>Alles staat lokaal op dit apparaat. Niemand kan meekijken.</div>
+            </div>
+          </div>
+
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <h3 style={{fontFamily:"var(--ff-head)",fontSize:14,fontWeight:700}}>📋 Routines Beheren</h3>
           </div>
 
           {Object.entries(PERIOD_LABELS).map(([period,label])=>(
@@ -291,7 +424,7 @@ function App(){
                       {AREAS.map(a=><option key={a} value={a}>{a}</option>)}
                     </select>
                   </div>
-                  <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}>
+                  <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8,maxHeight:140,overflowY:"auto",padding:4,background:"white",borderRadius:6,border:"1px solid #e5e7eb"}}>
                     {EMOJI_LIST.map(e=>(
                       <button key={e} onClick={()=>setNewR(p=>({...p,icon:e}))}
                         style={{width:30,height:30,borderRadius:6,border:newR.icon===e?"2px solid #059669":"1px solid #e5e7eb",
@@ -319,10 +452,10 @@ function App(){
                         <span style={{fontSize:14}}>{r.icon}</span>
                         <span style={{flex:1,fontSize:12,fontWeight:500,color:"#1f2937"}}>{r.name}</span>
                         <span style={{fontSize:9,padding:"1px 6px",borderRadius:99,background:a.tag,color:a.text,fontWeight:600}}>{r.area}</span>
-                        <button onClick={()=>moveRoutine(period,r.id,"up")} style={{fontSize:10,color:"#9ca3af",background:"none",padding:"2px 4px"}} disabled={i===0}>▲</button>
-                        <button onClick={()=>moveRoutine(period,r.id,"down")} style={{fontSize:10,color:"#9ca3af",background:"none",padding:"2px 4px"}} disabled={i===routines[period].length-1}>▼</button>
-                        <button onClick={()=>setEditingRoutine(r.id)} style={{fontSize:10,color:"#3b82f6",background:"none",padding:"2px 4px"}}>✏️</button>
-                        <button onClick={()=>deleteRoutine(period,r.id)} style={{fontSize:10,color:"#dc2626",background:"none",padding:"2px 4px"}}>🗑️</button>
+                        <button onClick={()=>moveRoutine(period,r.id,"up")} disabled={i===0} style={{fontSize:11,color:i===0?"#d1d5db":"#374151",background:i===0?"#f9fafb":"#f3f4f6",padding:"4px 7px",borderRadius:5,fontWeight:700}}>▲</button>
+                        <button onClick={()=>moveRoutine(period,r.id,"down")} disabled={i===routines[period].length-1} style={{fontSize:11,color:i===routines[period].length-1?"#d1d5db":"#374151",background:i===routines[period].length-1?"#f9fafb":"#f3f4f6",padding:"4px 7px",borderRadius:5,fontWeight:700}}>▼</button>
+                        <button onClick={()=>setEditingRoutine(r.id)} style={{fontSize:12,background:"#eff6ff",padding:"4px 6px",borderRadius:5}}>✏️</button>
+                        <button onClick={()=>deleteRoutine(period,r.id)} style={{fontSize:12,background:"#fef2f2",padding:"4px 6px",borderRadius:5}}>🗑️</button>
                       </>
                     )}
                   </div>
@@ -330,6 +463,22 @@ function App(){
               })}
             </div>
           ))}
+
+          {/* DANGER ZONE */}
+          <div style={{background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:12,marginTop:14}}>
+            <h3 style={{fontSize:13,fontWeight:700,color:"#991b1b",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>⚠️ Gevarenzone</h3>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              <button onClick={resetRoutines} style={{padding:"8px",borderRadius:7,background:"white",border:"1px solid #fca5a5",color:"#b91c1c",fontSize:11,fontWeight:600,textAlign:"left"}}>
+                🔄 Reset routines naar standaard <span style={{opacity:.7,fontWeight:400}}>(dagdata blijft)</span>
+              </button>
+              <button onClick={clearAllDays} style={{padding:"8px",borderRadius:7,background:"white",border:"1px solid #fca5a5",color:"#b91c1c",fontSize:11,fontWeight:600,textAlign:"left"}}>
+                🗑️ Wis alle dagdata <span style={{opacity:.7,fontWeight:400}}>(routines blijven)</span>
+              </button>
+              <button onClick={clearEverything} style={{padding:"8px",borderRadius:7,background:"#dc2626",border:"1px solid #dc2626",color:"white",fontSize:11,fontWeight:700,textAlign:"left"}}>
+                💥 Wis ALLES (reset naar fabrieksinstellingen)
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -476,7 +625,7 @@ function EditRow({r,period,onSave,onCancel}){
       <button onClick={()=>onSave(period,r.id,name,icon,area)} style={{fontSize:10,color:"#059669",background:"#ecfdf5",padding:"3px 6px",borderRadius:4,fontWeight:600}}>✓</button>
       <button onClick={onCancel} style={{fontSize:10,color:"#6b7280",background:"#f3f4f6",padding:"3px 6px",borderRadius:4}}>✕</button>
       {showEmoji&&(
-        <div style={{display:"flex",gap:3,flexWrap:"wrap",width:"100%",marginTop:4}}>
+        <div style={{display:"flex",gap:3,flexWrap:"wrap",width:"100%",marginTop:4,maxHeight:120,overflowY:"auto",padding:3,background:"#fafafa",borderRadius:5,border:"1px solid #e5e7eb"}}>
           {EMOJI_LIST.map(e=>(
             <button key={e} onClick={()=>{setIcon(e);setShowEmoji(false)}}
               style={{width:26,height:26,borderRadius:5,border:icon===e?"2px solid #059669":"1px solid #e5e7eb",background:"white",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>{e}</button>
