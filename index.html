@@ -18,16 +18,17 @@
   @keyframes slideDown { from{opacity:0;max-height:0} to{opacity:1;max-height:600px} }
   input[type=range]{-webkit-appearance:none;height:6px;border-radius:3px;background:#e5e7eb;outline:none;width:100%}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#059669;cursor:pointer;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-  textarea,input[type=text]{font-family:var(--ff-body)}
+  textarea,input[type=text],input[type=time]{font-family:var(--ff-body)}
   button{font-family:var(--ff-body);cursor:pointer;border:none;outline:none}
   .routine-item:active{transform:scale(0.98)}
+  .cal-hour-cell:hover{background:rgba(5,150,105,.06)!important}
   @media(max-width:400px){.period-tabs{gap:3px!important}.period-tabs button{font-size:11px!important;padding:8px 4px!important}}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useCallback, useRef } = React;
+const { useState, useEffect, useRef } = React;
 
 /* ─────── DEFAULT ROUTINES ─────── */
 const DEFAULT_ROUTINES = {
@@ -65,6 +66,16 @@ const DEFAULT_ROUTINES = {
   ],
 };
 
+/* ─── WEEKPLANNER TEMPLATES ─── */
+const DEFAULT_CAL_TEMPLATES = [
+  {id:"ct1",title:"Hifd",icon:"📖",color:"#dc2626"},
+  {id:"ct2",title:"Rekken / Boxen",icon:"🥊",color:"#d97706"},
+  {id:"ct3",title:"Arabisch",icon:"🇸🇦",color:"#7c3aed"},
+  {id:"ct4",title:"Quran lezen",icon:"📜",color:"#059669"},
+  {id:"ct5",title:"Frans Anki",icon:"🇫🇷",color:"#2563eb"},
+  {id:"ct6",title:"School",icon:"🎬",color:"#0891b2"},
+];
+
 const AREAS = ["Quran/Hifd","Talen","Fitness","Zelfzorg","School"];
 const AREA_STYLES = {
   "Quran/Hifd":{bg:"#fef2f2",border:"#fecaca",text:"#b91c1c",tag:"#fee2e2"},
@@ -88,11 +99,24 @@ const EMOJI_LIST = [
   "🧪","📝","🎵","🌿","☕","🔔","⏰","🫀","🧃","🍳","🕋","🤝","🌙","☀️",
   "⭐","❤️","🔥","🧿","📱","💻","🎨","🖋️","🎓","🏋️","🚶","🛌","🥗","🫐"
 ];
+const EVENT_COLORS = ["#059669","#2563eb","#7c3aed","#dc2626","#d97706","#be185d","#0891b2","#65a30d"];
+const WEEK_DAYS_SHORT = ["Ma","Di","Wo","Do","Vr","Za","Zo"];
+const CAL_HOUR_H = 56;
+const CAL_START_H = 6;
+const CAL_END_H = 23;
 
 function dk(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function fmtDate(d){return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`}
 function isToday(d){const t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear()}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function getMonday(d){
+  const date=new Date(d);
+  const day=date.getDay();
+  const diff=day===0?-6:1-day;
+  date.setDate(date.getDate()+diff);
+  date.setHours(0,0,0,0);
+  return date;
+}
 
 /* ─────── STORAGE ─────── */
 function loadJSON(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback}catch{return fallback}}
@@ -129,40 +153,39 @@ function App(){
   const [editingRoutine,setEditingRoutine]=useState(null);
   const [addingTo,setAddingTo]=useState(null);
   const [newR,setNewR]=useState({name:"",icon:"✅",area:"Zelfzorg"});
+  const [calTemplates,setCalTemplates]=useState(()=>loadJSON("rt_cal_templates",DEFAULT_CAL_TEMPLATES));
+  const [calEvents,setCalEvents]=useState(()=>loadJSON("rt_cal_events",[]));
+  const [calTplForm,setCalTplForm]=useState(false);
+  const [calTplShowEmoji,setCalTplShowEmoji]=useState(false);
+  const [newCalTpl,setNewCalTpl]=useState({title:"",icon:"✅",color:"#059669"});
 
   const key=dk(date);
   const total=Object.values(routines).flat().length;
 
-  // Load day data when date changes
   useEffect(()=>{
     setDay(loadJSON(`rt_day_${key}`,{checked:{},energy:7,mood:"Goed",notes:""}));
   },[key]);
 
-  // AUTO-UPDATE: jump to today when page becomes visible or on interval
   useEffect(()=>{
     const checkDate=()=>{
       const now=new Date();
       const todayKey=dk(now);
       const currentKey=dk(date);
-      // Only auto-jump if user was viewing today (not browsing history)
       if(currentKey!==todayKey){
         const yesterday=new Date(now);yesterday.setDate(now.getDate()-1);
-        if(currentKey===dk(yesterday)){
-          // Was viewing "today" which is now yesterday → jump to real today
-          setDate(new Date());
-        }
+        if(currentKey===dk(yesterday)) setDate(new Date());
       }
     };
     const onVisible=()=>{if(document.visibilityState==="visible")checkDate()};
-    const onFocus=()=>checkDate();
     document.addEventListener("visibilitychange",onVisible);
-    window.addEventListener("focus",onFocus);
-    const interval=setInterval(checkDate,60000); // check every minute
-    return()=>{document.removeEventListener("visibilitychange",onVisible);window.removeEventListener("focus",onFocus);clearInterval(interval)};
+    window.addEventListener("focus",checkDate);
+    const interval=setInterval(checkDate,60000);
+    return()=>{document.removeEventListener("visibilitychange",onVisible);window.removeEventListener("focus",checkDate);clearInterval(interval)};
   },[date]);
 
-  // Save routines when changed
   useEffect(()=>{saveJSON("rt_routines",routines)},[routines]);
+  useEffect(()=>{saveJSON("rt_cal_templates",calTemplates)},[calTemplates]);
+  useEffect(()=>{saveJSON("rt_cal_events",calEvents)},[calEvents]);
 
   const saveDay=(data)=>{setDay(data);saveJSON(`rt_day_${key}`,data)};
 
@@ -180,7 +203,6 @@ function App(){
   const pDone=(p)=>routines[p].filter(r=>checked[r.id]).length;
   const pPct=(p)=>routines[p].length>0?Math.round((pDone(p)/routines[p].length)*100):0;
 
-  // Streak — telt dagen waarop >=50% van dat moment was afgevinkt (huidige total als benchmark)
   const streak=(()=>{
     const threshold=Math.max(1,Math.ceil(total*.5));
     let s=0;const d=new Date();
@@ -200,7 +222,6 @@ function App(){
     return s;
   })();
 
-  // Add routine
   const addRoutine=(period)=>{
     if(!newR.name.trim())return;
     const r={id:uid(),name:newR.name.trim(),icon:newR.icon,area:newR.area};
@@ -209,19 +230,16 @@ function App(){
     setAddingTo(null);
   };
 
-  // Delete routine
   const deleteRoutine=(period,id)=>{
     if(!confirm("Weet je zeker dat je deze routine wilt verwijderen?"))return;
     setRoutines(prev=>({...prev,[period]:prev[period].filter(r=>r.id!==id)}));
   };
 
-  // Rename routine
   const renameRoutine=(period,id,newName,newIcon,newArea)=>{
     setRoutines(prev=>({...prev,[period]:prev[period].map(r=>r.id===id?{...r,name:newName,icon:newIcon,area:newArea}:r)}));
     setEditingRoutine(null);
   };
 
-  // Move routine
   const moveRoutine=(fromPeriod,id,direction)=>{
     setRoutines(prev=>{
       const list=[...prev[fromPeriod]];
@@ -232,14 +250,12 @@ function App(){
     });
   };
 
-  // Reset to defaults
   const resetRoutines=()=>{
     if(confirm("Alle routines terugzetten naar standaard? Je dagdata blijft bewaard.")){
       setRoutines(DEFAULT_ROUTINES);
     }
   };
 
-  // All days for stats
   const getAllDays=()=>{
     const all={};
     for(let i=0;i<365;i++){
@@ -250,10 +266,8 @@ function App(){
     return all;
   };
 
-  // ─── IMPORT / EXPORT ───
   const exportData=()=>{
     const allDays={};
-    // Scan alle localStorage keys die beginnen met rt_day_
     for(let i=0;i<localStorage.length;i++){
       const k=localStorage.key(i);
       if(k&&k.startsWith("rt_day_")){
@@ -261,17 +275,11 @@ function App(){
         if(data)allDays[k.replace("rt_day_","")]=data;
       }
     }
-    const payload={
-      version:2,
-      exportedAt:new Date().toISOString(),
-      routines,
-      days:allDays
-    };
+    const payload={version:3,exportedAt:new Date().toISOString(),routines,calTemplates,calEvents,days:allDays};
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
-    a.href=url;
-    a.download=`routine-backup-${dk(new Date())}.json`;
+    a.href=url;a.download=`routine-backup-${dk(new Date())}.json`;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
@@ -283,75 +291,64 @@ function App(){
         const data=JSON.parse(e.target.result);
         if(!data.routines||!data.days){alert("❌ Ongeldig backup bestand.");return}
         const mode=confirm(
-          "OK = Samenvoegen (bestaande data blijft, nieuwe wordt toegevoegd/overschreven)\n"+
-          "Annuleer = Volledig vervangen (alles wissen en importeren)"
+          "OK = Samenvoegen\nAnnuleer = Volledig vervangen"
         );
         if(!mode){
-          // Volledig vervangen: wis alle rt_day_ en rt_routines
           const keysToDelete=[];
           for(let i=0;i<localStorage.length;i++){
             const k=localStorage.key(i);
-            if(k&&(k.startsWith("rt_day_")||k==="rt_routines"))keysToDelete.push(k);
+            if(k&&(k.startsWith("rt_day_")||["rt_routines","rt_cal_templates","rt_cal_events"].includes(k)))keysToDelete.push(k);
           }
           keysToDelete.forEach(k=>localStorage.removeItem(k));
         }
-        // Schrijf routines
-        saveJSON("rt_routines",data.routines);
-        setRoutines(data.routines);
-        // Schrijf dagen
-        Object.entries(data.days).forEach(([dateKey,dayData])=>{
-          saveJSON(`rt_day_${dateKey}`,dayData);
-        });
-        // Herlaad huidige dag
+        saveJSON("rt_routines",data.routines);setRoutines(data.routines);
+        if(data.calTemplates){saveJSON("rt_cal_templates",data.calTemplates);setCalTemplates(data.calTemplates)}
+        if(data.calEvents){saveJSON("rt_cal_events",data.calEvents);setCalEvents(data.calEvents)}
+        Object.entries(data.days).forEach(([dateKey,dayData])=>{saveJSON(`rt_day_${dateKey}`,dayData)});
         setDay(loadJSON(`rt_day_${key}`,{checked:{},energy:7,mood:"Goed",notes:""}));
         alert(`✓ Import gelukt! ${Object.keys(data.days).length} dagen geïmporteerd.`);
-      }catch(err){
-        alert("❌ Fout bij importeren: "+err.message);
-      }
+      }catch(err){alert("❌ Fout bij importeren: "+err.message)}
     };
     reader.readAsText(file);
   };
 
   const clearAllDays=()=>{
-    if(!confirm("⚠️ ALLE dagdata wissen? Dit kan niet ongedaan worden gemaakt!\n\nExporteer eerst een backup!"))return;
+    if(!confirm("⚠️ ALLE dagdata wissen?\n\nExporteer eerst een backup!"))return;
     if(!confirm("Weet je het écht zeker?"))return;
     const keysToDelete=[];
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k&&k.startsWith("rt_day_"))keysToDelete.push(k);
-    }
+    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("rt_day_"))keysToDelete.push(k)}
     keysToDelete.forEach(k=>localStorage.removeItem(k));
     setDay({checked:{},energy:7,mood:"Goed",notes:""});
     alert(`✓ ${keysToDelete.length} dagen gewist.`);
   };
 
   const clearEverything=()=>{
-    if(!confirm("⚠️⚠️ ALLES wissen (routines + dagdata)? Exporteer eerst een backup!"))return;
+    if(!confirm("⚠️⚠️ ALLES wissen? Exporteer eerst een backup!"))return;
     if(!confirm("Dit is DEFINITIEF. Doorgaan?"))return;
     const keysToDelete=[];
     for(let i=0;i<localStorage.length;i++){
       const k=localStorage.key(i);
-      if(k&&(k.startsWith("rt_day_")||k==="rt_routines"))keysToDelete.push(k);
+      if(k&&(k.startsWith("rt_day_")||["rt_routines","rt_cal_templates","rt_cal_events"].includes(k)))keysToDelete.push(k);
     }
     keysToDelete.forEach(k=>localStorage.removeItem(k));
-    setRoutines(DEFAULT_ROUTINES);
+    setRoutines(DEFAULT_ROUTINES);setCalTemplates(DEFAULT_CAL_TEMPLATES);setCalEvents([]);
     setDay({checked:{},energy:7,mood:"Goed",notes:""});
     alert("✓ Alles gewist. App is gereset.");
   };
 
-  // Data-overzicht
   const dataInfo=(()=>{
     let dayCount=0,bytes=0;
     for(let i=0;i<localStorage.length;i++){
       const k=localStorage.key(i);
-      if(k&&(k.startsWith("rt_day_")||k==="rt_routines")){
-        const v=localStorage.getItem(k)||"";
-        bytes+=k.length+v.length;
+      if(k&&(k.startsWith("rt_day_")||["rt_routines","rt_cal_templates","rt_cal_events"].includes(k))){
+        const v=localStorage.getItem(k)||"";bytes+=k.length+v.length;
         if(k.startsWith("rt_day_"))dayCount++;
       }
     }
     return{dayCount,kb:(bytes/1024).toFixed(1)};
   })();
+
+  const isCurrentWeek = dk(getMonday(date))===dk(getMonday(new Date()));
 
   return(
     <div style={{maxWidth:540,margin:"0 auto",background:"#f8f7f4",minHeight:"100vh",paddingBottom:40}}>
@@ -366,10 +363,10 @@ function App(){
               <p style={{fontSize:11,color:"rgba(255,255,255,.7)",marginTop:1}}>{fmtDate(date)}{isToday(date)?" — Vandaag":""}</p>
             </div>
           </div>
-          <div style={{display:"flex",gap:5}}>
-            {[["tracker","📝"],["month","📅"],["stats","📊"],["settings","⚙️"]].map(([v,ic])=>(
+          <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
+            {[["tracker","📝"],["week","📆"],["month","📅"],["stats","📊"],["settings","⚙️"]].map(([v,ic])=>(
               <button key={v} onClick={()=>{v==="settings"?setShowSettings(!showSettings):setView(v);if(v!=="settings")setShowSettings(false)}}
-                style={{padding:"5px 9px",borderRadius:7,border:"1px solid rgba(255,255,255,.2)",
+                style={{padding:"5px 8px",borderRadius:7,border:"1px solid rgba(255,255,255,.2)",
                   background:(view===v&&v!=="settings")||(v==="settings"&&showSettings)?"white":"rgba(255,255,255,.08)",
                   color:(view===v&&v!=="settings")||(v==="settings"&&showSettings)?"#064e3b":"white",
                   fontSize:12,fontWeight:600,transition:"all .2s"}}>{ic}</button>
@@ -383,9 +380,9 @@ function App(){
         <div style={{background:"white",borderBottom:"1px solid #e8e5df",padding:16,animation:"fadeUp .2s ease"}}>
           <h2 style={{fontFamily:"var(--ff-head)",fontSize:17,fontWeight:700,marginBottom:12}}>⚙️ Instellingen</h2>
 
-          {/* DATA / BACKUP */}
+          {/* BACKUP */}
           <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:12,marginBottom:14}}>
-            <h3 style={{fontSize:13,fontWeight:700,color:"#065f46",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>💾 Backup & Data</h3>
+            <h3 style={{fontSize:13,fontWeight:700,color:"#065f46",marginBottom:8}}>💾 Backup & Data</h3>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
               <button onClick={exportData} style={{padding:"8px",borderRadius:7,background:"#059669",color:"white",fontSize:12,fontWeight:600}}>📤 Exporteer</button>
               <label style={{padding:"8px",borderRadius:7,background:"#0369a1",color:"white",fontSize:12,fontWeight:600,textAlign:"center",cursor:"pointer"}}>
@@ -393,12 +390,77 @@ function App(){
                 <input type="file" accept="application/json,.json" onChange={e=>{if(e.target.files?.[0]){importData(e.target.files[0]);e.target.value=""}}} style={{display:"none"}}/>
               </label>
             </div>
-            <div style={{fontSize:10,color:"#065f46",lineHeight:1.5}}>
-              <div>📊 <b>{dataInfo.dayCount}</b> dagen gelogd · <b>{total}</b> routines · <b>{dataInfo.kb} KB</b> opgeslagen</div>
-              <div style={{marginTop:3,opacity:.8}}>Alles staat lokaal op dit apparaat. Niemand kan meekijken.</div>
+            <div style={{fontSize:10,color:"#065f46",lineHeight:1.6}}>
+              <div>📊 <b>{dataInfo.dayCount}</b> dagen · <b>{total}</b> routines · <b>{calTemplates.length}</b> templates · <b>{dataInfo.kb} KB</b></div>
+              <div style={{opacity:.8}}>Alles staat lokaal op dit apparaat. Niemand kan meekijken.</div>
             </div>
           </div>
 
+          {/* WEEKPLANNER TEMPLATES */}
+          <div style={{marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <h3 style={{fontFamily:"var(--ff-head)",fontSize:14,fontWeight:700}}>📅 Weekplanner Templates</h3>
+              <button onClick={()=>{setCalTplForm(!calTplForm);setCalTplShowEmoji(false)}}
+                style={{fontSize:11,padding:"3px 10px",borderRadius:6,background:calTplForm?"#dc2626":"#059669",color:"white",fontWeight:600}}>
+                {calTplForm?"✕ Annuleer":"+ Nieuw"}
+              </button>
+            </div>
+            <p style={{fontSize:11,color:"#6b7280",marginBottom:10,lineHeight:1.5}}>
+              Snelkeuze-activiteiten voor de weekkalender. Alleen naam + icoon + kleur — de tijd stel je in op de kalender zelf.
+            </p>
+
+            {calTplForm&&(
+              <div style={{background:"#f0fdf4",borderRadius:10,padding:12,marginBottom:10,animation:"fadeUp .2s ease"}}>
+                <div style={{display:"flex",gap:6,marginBottom:8,alignItems:"center"}}>
+                  <button onClick={()=>setCalTplShowEmoji(!calTplShowEmoji)}
+                    style={{width:36,height:36,borderRadius:7,border:"1.5px solid #d1d5db",background:"white",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{newCalTpl.icon}</button>
+                  <input type="text" value={newCalTpl.title} onChange={e=>setNewCalTpl(p=>({...p,title:e.target.value}))}
+                    placeholder="Template naam..." style={{flex:1,padding:"7px 10px",borderRadius:7,border:"1px solid #d1d5db",fontSize:13,outline:"none"}}/>
+                </div>
+                {calTplShowEmoji&&(
+                  <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:8,maxHeight:100,overflowY:"auto",padding:4,background:"white",borderRadius:6,border:"1px solid #e5e7eb"}}>
+                    {EMOJI_LIST.map(e=>(
+                      <button key={e} onClick={()=>{setNewCalTpl(p=>({...p,icon:e}));setCalTplShowEmoji(false)}}
+                        style={{width:26,height:26,borderRadius:5,border:newCalTpl.icon===e?"2px solid #059669":"1px solid #e5e7eb",background:"white",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>{e}</button>
+                    ))}
+                  </div>
+                )}
+                <div style={{marginBottom:10}}>
+                  <div style={{fontSize:11,fontWeight:600,color:"#374151",marginBottom:5}}>Kleur</div>
+                  <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                    {EVENT_COLORS.map(c=>(
+                      <button key={c} onClick={()=>setNewCalTpl(p=>({...p,color:c}))}
+                        style={{width:24,height:24,borderRadius:12,background:c,border:newCalTpl.color===c?"3px solid #1f2937":"2px solid transparent",flexShrink:0}}/>
+                    ))}
+                  </div>
+                </div>
+                <button onClick={()=>{
+                  if(!newCalTpl.title.trim())return;
+                  setCalTemplates(prev=>[...prev,{id:uid(),title:newCalTpl.title.trim(),icon:newCalTpl.icon,color:newCalTpl.color}]);
+                  setNewCalTpl({title:"",icon:"✅",color:"#059669"});
+                  setCalTplForm(false);setCalTplShowEmoji(false);
+                }} style={{width:"100%",padding:"8px",borderRadius:8,background:"#059669",color:"white",fontWeight:600,fontSize:13}}>
+                  ✓ Template Toevoegen
+                </button>
+              </div>
+            )}
+
+            {calTemplates.length===0&&!calTplForm&&(
+              <div style={{textAlign:"center",padding:"14px 0",color:"#9ca3af",fontSize:12}}>Nog geen templates.</div>
+            )}
+            {calTemplates.map(t=>(
+              <div key={t.id} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:8,
+                background:"white",borderLeft:`3px solid ${t.color}`,marginBottom:4,boxShadow:"0 1px 2px rgba(0,0,0,.04)"}}>
+                <span style={{fontSize:15}}>{t.icon}</span>
+                <span style={{flex:1,fontSize:12,fontWeight:600,color:"#1f2937"}}>{t.title}</span>
+                <div style={{width:12,height:12,borderRadius:6,background:t.color,flexShrink:0}}/>
+                <button onClick={()=>setCalTemplates(prev=>prev.filter(x=>x.id!==t.id))}
+                  style={{fontSize:12,background:"#fef2f2",padding:"4px 6px",borderRadius:5}}>🗑️</button>
+              </div>
+            ))}
+          </div>
+
+          {/* ROUTINES */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
             <h3 style={{fontFamily:"var(--ff-head)",fontSize:14,fontWeight:700}}>📋 Routines Beheren</h3>
           </div>
@@ -412,8 +474,6 @@ function App(){
                   {addingTo===period?"✕ Annuleer":"+ Toevoegen"}
                 </button>
               </div>
-
-              {/* Add form */}
               {addingTo===period&&(
                 <div style={{background:"#f0fdf4",borderRadius:10,padding:12,marginBottom:8,animation:"fadeUp .2s ease"}}>
                   <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
@@ -437,8 +497,6 @@ function App(){
                   </button>
                 </div>
               )}
-
-              {/* Routine list */}
               {routines[period].map((r,i)=>{
                 const isEditing=editingRoutine===r.id;
                 const a=AREA_STYLES[r.area]||AREA_STYLES.Zelfzorg;
@@ -465,8 +523,8 @@ function App(){
           ))}
 
           {/* DANGER ZONE */}
-          <div style={{background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:12,marginTop:14}}>
-            <h3 style={{fontSize:13,fontWeight:700,color:"#991b1b",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>⚠️ Gevarenzone</h3>
+          <div style={{background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:12,marginTop:4}}>
+            <h3 style={{fontSize:13,fontWeight:700,color:"#991b1b",marginBottom:8}}>⚠️ Gevarenzone</h3>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               <button onClick={resetRoutines} style={{padding:"8px",borderRadius:7,background:"white",border:"1px solid #fca5a5",color:"#b91c1c",fontSize:11,fontWeight:600,textAlign:"left"}}>
                 🔄 Reset routines naar standaard <span style={{opacity:.7,fontWeight:400}}>(dagdata blijft)</span>
@@ -485,19 +543,22 @@ function App(){
       {/* DATE NAV */}
       {!showSettings&&(
         <div style={{display:"flex",justifyContent:"center",gap:10,padding:"12px 16px",background:"white",borderBottom:"1px solid #e8e5df"}}>
-          <NavBtn onClick={()=>go(-1)}>◀</NavBtn>
+          <NavBtn onClick={()=>go(view==="week"?-7:-1)}>◀</NavBtn>
           <button onClick={()=>setDate(new Date())} style={{
-            padding:"5px 16px",borderRadius:8,border:isToday(date)?"2px solid #059669":"1px solid #e5e7eb",
-            background:isToday(date)?"#ecfdf5":"white",fontSize:13,fontWeight:600,
-            color:isToday(date)?"#059669":"#6b7280"}}>Vandaag</button>
-          <NavBtn onClick={()=>go(1)}>▶</NavBtn>
+            padding:"5px 16px",borderRadius:8,
+            border:(view==="week"?isCurrentWeek:isToday(date))?"2px solid #059669":"1px solid #e5e7eb",
+            background:(view==="week"?isCurrentWeek:isToday(date))?"#ecfdf5":"white",
+            fontSize:13,fontWeight:600,
+            color:(view==="week"?isCurrentWeek:isToday(date))?"#059669":"#6b7280"}}>
+            {view==="week"?"Deze week":"Vandaag"}
+          </button>
+          <NavBtn onClick={()=>go(view==="week"?7:1)}>▶</NavBtn>
         </div>
       )}
 
       {/* TRACKER */}
       {view==="tracker"&&!showSettings&&(
         <div style={{animation:"fadeUp .3s ease"}}>
-          {/* Stats bar */}
           <div style={{display:"flex",alignItems:"center",gap:14,padding:"16px 12px",background:"white",margin:"10px 12px",borderRadius:14,boxShadow:"0 1px 4px rgba(0,0,0,.04)",flexWrap:"wrap"}}>
             <Ring value={pctTotal} size={84} label="Totaal"/>
             <div style={{flex:1,display:"flex",flexDirection:"column",gap:6,minWidth:150}}>
@@ -517,7 +578,6 @@ function App(){
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="period-tabs" style={{display:"flex",gap:4,padding:"0 12px",marginBottom:5}}>
             {Object.entries(PERIOD_LABELS).map(([k,label])=>{
               const active=tab===k;const col=PERIOD_COLORS[k];
@@ -537,7 +597,6 @@ function App(){
             })}
           </div>
 
-          {/* Routines */}
           <div style={{padding:"0 12px",display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
             {routines[tab].map((r,i)=>{
               const done=!!checked[r.id];const a=AREA_STYLES[r.area]||AREA_STYLES.Zelfzorg;
@@ -563,7 +622,6 @@ function App(){
             })}
           </div>
 
-          {/* Energy & Mood */}
           <div style={{display:"flex",gap:12,padding:12,background:"white",margin:"0 12px 8px",borderRadius:12,boxShadow:"0 1px 3px rgba(0,0,0,.04)",flexWrap:"wrap"}}>
             <div style={{flex:1,minWidth:130}}>
               <label style={{fontSize:11,fontWeight:600,color:"#374151",display:"block",marginBottom:5}}>⚡ Energie: {day.energy}/10</label>
@@ -586,17 +644,22 @@ function App(){
             </div>
           </div>
 
-          {/* Notes */}
           <div style={{padding:"0 12px 16px"}}>
             <div style={{background:"white",borderRadius:12,padding:14,boxShadow:"0 1px 3px rgba(0,0,0,.04)"}}>
               <label style={{fontSize:12,fontWeight:600,color:"#374151",display:"flex",alignItems:"center",gap:4,marginBottom:8}}>📝 Notities & Reflecties</label>
-              <textarea value={day.notes||""} onChange={e=>saveDay({...day,notes:e.target.value})} placeholder={"Hoe was je dag?\nWat ging goed? Wat kan beter?\nWaar ben je dankbaar voor?"}
+              <textarea value={day.notes||""} onChange={e=>saveDay({...day,notes:e.target.value})}
+                placeholder={"Hoe was je dag?\nWat ging goed? Wat kan beter?\nWaar ben je dankbaar voor?"}
                 rows={4} style={{width:"100%",padding:"12px 14px",borderRadius:10,border:"1.5px solid #e5e7eb",fontSize:13,lineHeight:1.6,outline:"none",background:"#fafaf9",resize:"vertical",minHeight:90,transition:"border-color .2s",color:"#1f2937"}}
                 onFocus={e=>e.target.style.borderColor="#059669"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
               {day.notes&&<div style={{marginTop:6,fontSize:10,color:"#9ca3af",textAlign:"right"}}>{day.notes.length} tekens</div>}
             </div>
           </div>
         </div>
+      )}
+
+      {/* WEEK VIEW */}
+      {view==="week"&&!showSettings&&(
+        <WeekView date={date} calTemplates={calTemplates} calEvents={calEvents} setCalEvents={setCalEvents}/>
       )}
 
       {/* MONTH VIEW */}
@@ -638,6 +701,267 @@ function EditRow({r,period,onSave,onCancel}){
 
 function NavBtn({onClick,children}){
   return <button onClick={onClick} style={{width:34,height:34,borderRadius:8,border:"1px solid #e5e7eb",background:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:600,color:"#374151"}}>{children}</button>;
+}
+
+/* ─── WEEK VIEW ─── */
+function WeekView({date,calTemplates,calEvents,setCalEvents}){
+  const [modal,setModal]=useState(null);
+
+  const wStart=getMonday(date);
+  const weekDays=Array.from({length:7},(_,i)=>{
+    const d=new Date(wStart);d.setDate(wStart.getDate()+i);return d;
+  });
+  const HOURS=Array.from({length:CAL_END_H-CAL_START_H},(_,i)=>CAL_START_H+i);
+  const gridH=(CAL_END_H-CAL_START_H)*CAL_HOUR_H;
+
+  const eventsForDay=(d)=>calEvents.filter(e=>e.date===dk(d));
+
+  const timeToY=(time)=>{
+    const[h,m]=time.split(":").map(Number);
+    return ((h-CAL_START_H)+m/60)*CAL_HOUR_H;
+  };
+  const blockH=(start,end)=>{
+    const[sh,sm]=start.split(":").map(Number);
+    const[eh,em]=end.split(":").map(Number);
+    const mins=(eh*60+em)-(sh*60+sm);
+    return Math.max(22,(mins/60)*CAL_HOUR_H);
+  };
+
+  const addEvent=(ev)=>{setCalEvents(prev=>[...prev,{...ev,id:uid()}]);setModal(null)};
+  const updateEvent=(ev)=>{setCalEvents(prev=>prev.map(e=>e.id===ev.id?ev:e));setModal(null)};
+  const deleteEvent=(id)=>{setCalEvents(prev=>prev.filter(e=>e.id!==id));setModal(null)};
+
+  const we=new Date(wStart);we.setDate(wStart.getDate()+6);
+  const weekLabel=`${wStart.getDate()} ${MONTHS_NL[wStart.getMonth()].substring(0,3)} – ${we.getDate()} ${MONTHS_NL[we.getMonth()].substring(0,3)} ${we.getFullYear()}`;
+
+  return(
+    <div style={{animation:"fadeUp .3s ease"}}>
+      {/* Week label */}
+      <div style={{padding:"8px 16px 4px",fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:.3}}>{weekLabel}</div>
+
+      {/* Calendar grid wrapper */}
+      <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+        <div style={{minWidth:360}}>
+
+          {/* Sticky day header */}
+          <div style={{display:"flex",background:"white",borderBottom:"2px solid #e8e5df",position:"sticky",top:0,zIndex:10}}>
+            <div style={{width:42,flexShrink:0}}/>
+            {weekDays.map((d,i)=>{
+              const today=isToday(d);
+              return(
+                <div key={i} style={{flex:1,padding:"6px 2px",textAlign:"center",borderLeft:"1px solid #f0efeb"}}>
+                  <div style={{fontSize:10,fontWeight:600,color:"#9ca3af",lineHeight:1}}>{WEEK_DAYS_SHORT[i]}</div>
+                  <div style={{
+                    width:24,height:24,borderRadius:12,margin:"3px auto 0",
+                    background:today?"#059669":"transparent",
+                    display:"flex",alignItems:"center",justifyContent:"center"
+                  }}>
+                    <span style={{fontSize:12,fontWeight:700,color:today?"white":"#1f2937"}}>{d.getDate()}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Grid body */}
+          <div style={{position:"relative",height:gridH,background:"white"}}>
+
+            {/* Hour labels */}
+            {HOURS.map(h=>(
+              <div key={h} style={{
+                position:"absolute",top:(h-CAL_START_H)*CAL_HOUR_H,
+                left:0,width:42,height:CAL_HOUR_H,
+                paddingRight:5,paddingTop:2,
+                fontSize:9,color:"#b0b7c3",textAlign:"right",
+                borderTop:"1px solid #f0efeb",
+                userSelect:"none"
+              }}>
+                {String(h).padStart(2,"0")}:00
+              </div>
+            ))}
+
+            {/* Day columns (clickable + events) */}
+            <div style={{position:"absolute",left:42,right:0,top:0,bottom:0,display:"flex"}}>
+              {weekDays.map((d,di)=>(
+                <div key={di} style={{flex:1,position:"relative",borderLeft:"1px solid #f0efeb"}}>
+                  {/* Hour click cells */}
+                  {HOURS.map(h=>(
+                    <div key={h}
+                      className="cal-hour-cell"
+                      onClick={()=>setModal({mode:"add",date:d,hour:h})}
+                      style={{
+                        position:"absolute",
+                        top:(h-CAL_START_H)*CAL_HOUR_H,
+                        left:0,right:0,
+                        height:CAL_HOUR_H,
+                        borderTop:"1px solid #f0efeb",
+                        cursor:"pointer",
+                        transition:"background .1s"
+                      }}
+                    />
+                  ))}
+                  {/* Events */}
+                  {eventsForDay(d).map(ev=>{
+                    const top=timeToY(ev.startTime);
+                    const height=blockH(ev.startTime,ev.endTime);
+                    const c=ev.color||"#059669";
+                    return(
+                      <div key={ev.id}
+                        onClick={e=>{e.stopPropagation();setModal({mode:"edit",event:ev})}}
+                        style={{
+                          position:"absolute",
+                          top,left:2,right:2,height,
+                          borderRadius:5,
+                          background:c+"20",
+                          borderLeft:`3px solid ${c}`,
+                          padding:"2px 4px",
+                          overflow:"hidden",
+                          cursor:"pointer",
+                          zIndex:2,
+                          boxShadow:`0 1px 4px ${c}30`,
+                        }}>
+                        <div style={{fontSize:10,fontWeight:700,color:c,lineHeight:1.2,display:"flex",gap:2,alignItems:"center"}}>
+                          <span style={{flexShrink:0}}>{ev.icon}</span>
+                          <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.title}</span>
+                        </div>
+                        {height>38&&<div style={{fontSize:9,color:c,opacity:.75,marginTop:1,whiteSpace:"nowrap"}}>{ev.startTime}–{ev.endTime}</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {modal&&(
+        <EventModal
+          modal={modal}
+          templates={calTemplates}
+          onSave={modal.mode==="add"?addEvent:updateEvent}
+          onDelete={deleteEvent}
+          onClose={()=>setModal(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─── EVENT MODAL ─── */
+function EventModal({modal,templates,onSave,onDelete,onClose}){
+  const isEdit=modal.mode==="edit";
+  const ev=isEdit?modal.event:null;
+  const h0=isEdit?null:modal.hour;
+
+  const [title,setTitle]=useState(ev?.title||"");
+  const [icon,setIcon]=useState(ev?.icon||"✅");
+  const [startTime,setStartTime]=useState(ev?.startTime||(h0!=null?`${String(h0).padStart(2,"0")}:00`:"09:00"));
+  const [endTime,setEndTime]=useState(ev?.endTime||(h0!=null?`${String(Math.min(h0+1,22)).padStart(2,"0")}:00`:"10:00"));
+  const [color,setColor]=useState(ev?.color||"#059669");
+  const [showEmoji,setShowEmoji]=useState(false);
+
+  const dateStr=isEdit?ev.date:dk(modal.date);
+  const dayLabel=isEdit?fmtDate(new Date(ev.date+"T00:00")):fmtDate(modal.date);
+
+  const applyTpl=(t)=>{setTitle(t.title);setIcon(t.icon);setColor(t.color)};
+
+  const submit=()=>{
+    if(!title.trim())return;
+    onSave({...(isEdit?{id:ev.id}:{}),date:dateStr,title:title.trim(),icon,startTime,endTime,color});
+  };
+
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
+      onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+      <div style={{background:"white",borderRadius:"16px 16px 0 0",padding:20,width:"100%",maxWidth:540,maxHeight:"92vh",overflowY:"auto",animation:"fadeUp .25s ease"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+          <h3 style={{fontFamily:"var(--ff-head)",fontSize:16,fontWeight:700}}>{isEdit?"Event bewerken":"Nieuw event"}</h3>
+          <button onClick={onClose} style={{fontSize:20,color:"#9ca3af",background:"none",padding:4,lineHeight:1}}>✕</button>
+        </div>
+        <div style={{fontSize:11,color:"#9ca3af",marginBottom:12}}>{dayLabel}</div>
+
+        {/* Template quick pick */}
+        {!isEdit&&templates.length>0&&(
+          <div style={{marginBottom:14}}>
+            <div style={{fontSize:11,fontWeight:600,color:"#374151",marginBottom:6}}>Snel invullen via template:</div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              {templates.map(t=>(
+                <button key={t.id} onClick={()=>applyTpl(t)}
+                  style={{display:"flex",alignItems:"center",gap:4,padding:"5px 10px",borderRadius:99,
+                    background:t.color+"18",border:`1.5px solid ${title===t.title?t.color:t.color+"55"}`,
+                    fontSize:12,fontWeight:600,color:t.color,transition:"border-color .15s"}}>
+                  {t.icon} {t.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Icon + Title */}
+        <div style={{display:"flex",gap:8,marginBottom:10,alignItems:"center"}}>
+          <button onClick={()=>setShowEmoji(!showEmoji)}
+            style={{width:42,height:42,borderRadius:9,border:"1.5px solid #e5e7eb",background:"#fafafa",fontSize:22,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            {icon}
+          </button>
+          <input type="text" value={title} onChange={e=>setTitle(e.target.value)} placeholder="Naam activiteit..."
+            style={{flex:1,padding:"10px 12px",borderRadius:8,border:"1.5px solid #e5e7eb",fontSize:13,outline:"none"}}
+            onFocus={e=>e.target.style.borderColor="#059669"} onBlur={e=>e.target.style.borderColor="#e5e7eb"}/>
+        </div>
+
+        {showEmoji&&(
+          <div style={{display:"flex",gap:3,flexWrap:"wrap",marginBottom:10,maxHeight:110,overflowY:"auto",padding:4,background:"#fafafa",borderRadius:7,border:"1px solid #e5e7eb"}}>
+            {EMOJI_LIST.map(e=>(
+              <button key={e} onClick={()=>{setIcon(e);setShowEmoji(false)}}
+                style={{width:28,height:28,borderRadius:5,border:icon===e?"2px solid #059669":"1px solid #e5e7eb",background:"white",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>{e}</button>
+            ))}
+          </div>
+        )}
+
+        {/* Times */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+          <div>
+            <label style={{fontSize:11,fontWeight:600,color:"#374151",display:"block",marginBottom:4}}>Starttijd</label>
+            <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)}
+              style={{width:"100%",padding:"9px 10px",borderRadius:8,border:"1.5px solid #e5e7eb",fontSize:14,outline:"none"}}/>
+          </div>
+          <div>
+            <label style={{fontSize:11,fontWeight:600,color:"#374151",display:"block",marginBottom:4}}>Eindtijd</label>
+            <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)}
+              style={{width:"100%",padding:"9px 10px",borderRadius:8,border:"1.5px solid #e5e7eb",fontSize:14,outline:"none"}}/>
+          </div>
+        </div>
+
+        {/* Color */}
+        <div style={{marginBottom:18}}>
+          <div style={{fontSize:11,fontWeight:600,color:"#374151",marginBottom:7}}>Kleur</div>
+          <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+            {EVENT_COLORS.map(c=>(
+              <button key={c} onClick={()=>setColor(c)}
+                style={{width:28,height:28,borderRadius:14,background:c,
+                  border:color===c?"3px solid #1f2937":"2.5px solid transparent",
+                  boxShadow:color===c?"0 0 0 2px white inset":"none",flexShrink:0,transition:"all .15s"}}/>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{display:"flex",gap:8}}>
+          {isEdit&&(
+            <button onClick={()=>{if(confirm("Event verwijderen?"))onDelete(ev.id)}}
+              style={{padding:"11px 14px",borderRadius:9,background:"#fef2f2",border:"1px solid #fecaca",color:"#dc2626",fontSize:14,fontWeight:600}}>
+              🗑️
+            </button>
+          )}
+          <button onClick={submit}
+            style={{flex:1,padding:"11px",borderRadius:9,background:"#059669",color:"white",fontSize:14,fontWeight:700,
+              opacity:title.trim()?"1":".5",transition:"opacity .15s"}}>
+            {isEdit?"💾 Opslaan":"✓ Toevoegen"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /* ─── MONTH ─── */
