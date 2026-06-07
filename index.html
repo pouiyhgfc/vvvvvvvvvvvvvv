@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Routine Tracker</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#064e3b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Routine">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -102,8 +112,8 @@ const EMOJI_LIST = [
 const EVENT_COLORS = ["#059669","#2563eb","#7c3aed","#dc2626","#d97706","#be185d","#0891b2","#65a30d"];
 const WEEK_DAYS_SHORT = ["Ma","Di","Wo","Do","Vr","Za","Zo"];
 const CAL_HOUR_H = 56;
-const CAL_START_H = 6;
-const CAL_END_H = 23;
+const CAL_START_H = 3;
+const CAL_END_H = 24;
 
 function dk(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function fmtDate(d){return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`}
@@ -158,6 +168,9 @@ function App(){
   const [calTplForm,setCalTplForm]=useState(false);
   const [calTplShowEmoji,setCalTplShowEmoji]=useState(false);
   const [newCalTpl,setNewCalTpl]=useState({title:"",icon:"✅",color:"#059669"});
+  const [weekScheduleTemplates,setWeekScheduleTemplates]=useState(()=>loadJSON("rt_week_schedule_tpls",[]));
+  const [savingWeekTpl,setSavingWeekTpl]=useState(false);
+  const [newWeekTplName,setNewWeekTplName]=useState("");
 
   const key=dk(date);
   const total=Object.values(routines).flat().length;
@@ -186,6 +199,7 @@ function App(){
   useEffect(()=>{saveJSON("rt_routines",routines)},[routines]);
   useEffect(()=>{saveJSON("rt_cal_templates",calTemplates)},[calTemplates]);
   useEffect(()=>{saveJSON("rt_cal_events",calEvents)},[calEvents]);
+  useEffect(()=>{saveJSON("rt_week_schedule_tpls",weekScheduleTemplates)},[weekScheduleTemplates]);
 
   const saveDay=(data)=>{setDay(data);saveJSON(`rt_day_${key}`,data)};
 
@@ -275,11 +289,31 @@ function App(){
         if(data)allDays[k.replace("rt_day_","")]=data;
       }
     }
-    const payload={version:3,exportedAt:new Date().toISOString(),routines,calTemplates,calEvents,days:allDays};
+    const payload={version:3,exportedAt:new Date().toISOString(),routines,calTemplates,calEvents,weekScheduleTemplates,days:allDays};
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
     a.href=url;a.download=`routine-backup-${dk(new Date())}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportRoutines=()=>{
+    const payload={version:1,exportedAt:new Date().toISOString(),type:"routines",routines};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download=`routines-${dk(new Date())}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportWeekplanning=()=>{
+    const payload={version:1,exportedAt:new Date().toISOString(),type:"weekplanning",calTemplates,calEvents,weekScheduleTemplates};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download=`weekplanning-${dk(new Date())}.json`;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
@@ -289,21 +323,35 @@ function App(){
     reader.onload=(e)=>{
       try{
         const data=JSON.parse(e.target.result);
+        const type=data.type||"full";
+        if(!data.routines&&!data.days&&!data.calEvents&&!data.weekScheduleTemplates){alert("❌ Ongeldig backup bestand.");return}
+
+        if(type==="routines"){
+          if(!data.routines){alert("❌ Geen routines gevonden in dit bestand.");return}
+          saveJSON("rt_routines",data.routines);setRoutines(data.routines);
+          alert("✓ Routines geïmporteerd.");return;
+        }
+        if(type==="weekplanning"){
+          if(data.calTemplates){saveJSON("rt_cal_templates",data.calTemplates);setCalTemplates(data.calTemplates)}
+          if(data.calEvents){saveJSON("rt_cal_events",data.calEvents);setCalEvents(data.calEvents)}
+          if(data.weekScheduleTemplates){saveJSON("rt_week_schedule_tpls",data.weekScheduleTemplates);setWeekScheduleTemplates(data.weekScheduleTemplates)}
+          alert("✓ Weekplanning geïmporteerd.");return;
+        }
+
         if(!data.routines||!data.days){alert("❌ Ongeldig backup bestand.");return}
-        const mode=confirm(
-          "OK = Samenvoegen\nAnnuleer = Volledig vervangen"
-        );
+        const mode=confirm("OK = Samenvoegen\nAnnuleer = Volledig vervangen");
         if(!mode){
           const keysToDelete=[];
           for(let i=0;i<localStorage.length;i++){
             const k=localStorage.key(i);
-            if(k&&(k.startsWith("rt_day_")||["rt_routines","rt_cal_templates","rt_cal_events"].includes(k)))keysToDelete.push(k);
+            if(k&&(k.startsWith("rt_day_")||["rt_routines","rt_cal_templates","rt_cal_events","rt_week_schedule_tpls"].includes(k)))keysToDelete.push(k);
           }
           keysToDelete.forEach(k=>localStorage.removeItem(k));
         }
         saveJSON("rt_routines",data.routines);setRoutines(data.routines);
         if(data.calTemplates){saveJSON("rt_cal_templates",data.calTemplates);setCalTemplates(data.calTemplates)}
         if(data.calEvents){saveJSON("rt_cal_events",data.calEvents);setCalEvents(data.calEvents)}
+        if(data.weekScheduleTemplates){saveJSON("rt_week_schedule_tpls",data.weekScheduleTemplates);setWeekScheduleTemplates(data.weekScheduleTemplates)}
         Object.entries(data.days).forEach(([dateKey,dayData])=>{saveJSON(`rt_day_${dateKey}`,dayData)});
         setDay(loadJSON(`rt_day_${key}`,{checked:{},energy:7,mood:"Goed",notes:""}));
         alert(`✓ Import gelukt! ${Object.keys(data.days).length} dagen geïmporteerd.`);
@@ -328,10 +376,10 @@ function App(){
     const keysToDelete=[];
     for(let i=0;i<localStorage.length;i++){
       const k=localStorage.key(i);
-      if(k&&(k.startsWith("rt_day_")||["rt_routines","rt_cal_templates","rt_cal_events"].includes(k)))keysToDelete.push(k);
+      if(k&&(k.startsWith("rt_day_")||["rt_routines","rt_cal_templates","rt_cal_events","rt_week_schedule_tpls"].includes(k)))keysToDelete.push(k);
     }
     keysToDelete.forEach(k=>localStorage.removeItem(k));
-    setRoutines(DEFAULT_ROUTINES);setCalTemplates(DEFAULT_CAL_TEMPLATES);setCalEvents([]);
+    setRoutines(DEFAULT_ROUTINES);setCalTemplates(DEFAULT_CAL_TEMPLATES);setCalEvents([]);setWeekScheduleTemplates([]);
     setDay({checked:{},energy:7,mood:"Goed",notes:""});
     alert("✓ Alles gewist. App is gereset.");
   };
@@ -340,7 +388,7 @@ function App(){
     let dayCount=0,bytes=0;
     for(let i=0;i<localStorage.length;i++){
       const k=localStorage.key(i);
-      if(k&&(k.startsWith("rt_day_")||["rt_routines","rt_cal_templates","rt_cal_events"].includes(k))){
+      if(k&&(k.startsWith("rt_day_")||["rt_routines","rt_cal_templates","rt_cal_events","rt_week_schedule_tpls"].includes(k))){
         const v=localStorage.getItem(k)||"";bytes+=k.length+v.length;
         if(k.startsWith("rt_day_"))dayCount++;
       }
@@ -383,15 +431,25 @@ function App(){
           {/* BACKUP */}
           <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:12,marginBottom:14}}>
             <h3 style={{fontSize:13,fontWeight:700,color:"#065f46",marginBottom:8}}>💾 Backup & Data</h3>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
-              <button onClick={exportData} style={{padding:"8px",borderRadius:7,background:"#059669",color:"white",fontSize:12,fontWeight:600}}>📤 Exporteer</button>
-              <label style={{padding:"8px",borderRadius:7,background:"#0369a1",color:"white",fontSize:12,fontWeight:600,textAlign:"center",cursor:"pointer"}}>
-                📥 Importeer
-                <input type="file" accept="application/json,.json" onChange={e=>{if(e.target.files?.[0]){importData(e.target.files[0]);e.target.value=""}}} style={{display:"none"}}/>
-              </label>
+            <div style={{marginBottom:6}}>
+              <div style={{fontSize:10,fontWeight:600,color:"#374151",marginBottom:4}}>Alles in één</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
+                <button onClick={exportData} style={{padding:"8px",borderRadius:7,background:"#059669",color:"white",fontSize:12,fontWeight:600}}>📤 Exporteer alles</button>
+                <label style={{padding:"8px",borderRadius:7,background:"#0369a1",color:"white",fontSize:12,fontWeight:600,textAlign:"center",cursor:"pointer"}}>
+                  📥 Importeer
+                  <input type="file" accept="application/json,.json" onChange={e=>{if(e.target.files?.[0]){importData(e.target.files[0]);e.target.value=""}}} style={{display:"none"}}/>
+                </label>
+              </div>
+            </div>
+            <div style={{borderTop:"1px solid #bbf7d0",paddingTop:8,marginBottom:8}}>
+              <div style={{fontSize:10,fontWeight:600,color:"#374151",marginBottom:4}}>Losse export</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                <button onClick={exportRoutines} style={{padding:"7px 8px",borderRadius:7,background:"#d97706",color:"white",fontSize:11,fontWeight:600}}>📋 Export Routines</button>
+                <button onClick={exportWeekplanning} style={{padding:"7px 8px",borderRadius:7,background:"#7c3aed",color:"white",fontSize:11,fontWeight:600}}>📆 Export Weekplanning</button>
+              </div>
             </div>
             <div style={{fontSize:10,color:"#065f46",lineHeight:1.6}}>
-              <div>📊 <b>{dataInfo.dayCount}</b> dagen · <b>{total}</b> routines · <b>{calTemplates.length}</b> templates · <b>{dataInfo.kb} KB</b></div>
+              <div>📊 <b>{dataInfo.dayCount}</b> dagen · <b>{total}</b> routines · <b>{calTemplates.length}</b> templates · <b>{weekScheduleTemplates.length}</b> weekschema's · <b>{dataInfo.kb} KB</b></div>
               <div style={{opacity:.8}}>Alles staat lokaal op dit apparaat. Niemand kan meekijken.</div>
             </div>
           </div>
@@ -456,6 +514,68 @@ function App(){
                 <div style={{width:12,height:12,borderRadius:6,background:t.color,flexShrink:0}}/>
                 <button onClick={()=>setCalTemplates(prev=>prev.filter(x=>x.id!==t.id))}
                   style={{fontSize:12,background:"#fef2f2",padding:"4px 6px",borderRadius:5}}>🗑️</button>
+              </div>
+            ))}
+          </div>
+
+          {/* WEEKSCHEMA TEMPLATES */}
+          <div style={{marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <h3 style={{fontFamily:"var(--ff-head)",fontSize:14,fontWeight:700}}>📅 Weekschema Templates</h3>
+              <button onClick={()=>{setSavingWeekTpl(!savingWeekTpl);setNewWeekTplName("")}}
+                style={{fontSize:11,padding:"3px 10px",borderRadius:6,background:savingWeekTpl?"#dc2626":"#059669",color:"white",fontWeight:600}}>
+                {savingWeekTpl?"✕ Annuleer":"💾 Huidig opslaan"}
+              </button>
+            </div>
+            <p style={{fontSize:11,color:"#6b7280",marginBottom:10,lineHeight:1.5}}>
+              Sla je huidige weekplanning op als template en laad hem later in voor elke week.
+            </p>
+            {savingWeekTpl&&(
+              <div style={{background:"#f0fdf4",borderRadius:10,padding:12,marginBottom:10,animation:"fadeUp .2s ease"}}>
+                <input type="text" value={newWeekTplName} onChange={e=>setNewWeekTplName(e.target.value)}
+                  placeholder="Naam voor dit weekschema..." style={{width:"100%",padding:"8px 10px",borderRadius:7,border:"1px solid #d1d5db",fontSize:13,outline:"none",marginBottom:8}}/>
+                <p style={{fontSize:10,color:"#6b7280",marginBottom:8}}>Slaat alle events van de huidige week op ({calEvents.filter(e=>dk(getMonday(date))<=e.date&&e.date<=dk(new Date(getMonday(date).getTime()+6*86400000))).length} events).</p>
+                <button onClick={()=>{
+                  if(!newWeekTplName.trim())return;
+                  const mon=getMonday(date);
+                  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+                  const monStr=dk(mon),sunStr=dk(sun);
+                  const weekEvents=calEvents.filter(e=>e.date>=monStr&&e.date<=sunStr);
+                  const dayOffset=(ev)=>{const d=new Date(ev.date+"T00:00");return Math.round((d-mon)/86400000)};
+                  const tplEvents=weekEvents.map(ev=>({...ev,id:uid(),dayOffset:dayOffset(ev)}));
+                  setWeekScheduleTemplates(prev=>[...prev,{id:uid(),name:newWeekTplName.trim(),createdAt:new Date().toISOString(),events:tplEvents}]);
+                  setSavingWeekTpl(false);setNewWeekTplName("");
+                }} style={{width:"100%",padding:"8px",borderRadius:8,background:"#059669",color:"white",fontWeight:600,fontSize:13}}>
+                  💾 Opslaan als template
+                </button>
+              </div>
+            )}
+            {weekScheduleTemplates.length===0&&!savingWeekTpl&&(
+              <div style={{textAlign:"center",padding:"14px 0",color:"#9ca3af",fontSize:12}}>Nog geen weekschema templates.</div>
+            )}
+            {weekScheduleTemplates.map(tpl=>(
+              <div key={tpl.id} style={{background:"white",borderRadius:8,padding:"10px 12px",marginBottom:6,boxShadow:"0 1px 2px rgba(0,0,0,.04)",border:"1px solid #e5e7eb"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                  <span style={{fontSize:14}}>📅</span>
+                  <span style={{flex:1,fontSize:13,fontWeight:600,color:"#1f2937"}}>{tpl.name}</span>
+                  <span style={{fontSize:9,color:"#9ca3af"}}>{tpl.events.length} events</span>
+                </div>
+                <div style={{display:"flex",gap:6}}>
+                  <button onClick={()=>{
+                    if(!confirm(`Template "${tpl.name}" inladen voor deze week?\n\nBestaande events van deze week worden NIET gewist — de template wordt toegevoegd.`))return;
+                    const newEvs=applyWeekTemplate(tpl,getMonday(date));
+                    setCalEvents(prev=>[...prev,...newEvs]);
+                    alert(`✓ ${newEvs.length} events toegevoegd voor deze week.`);
+                  }} style={{flex:1,padding:"6px 8px",borderRadius:6,background:"#059669",color:"white",fontSize:11,fontWeight:600}}>
+                    ▶ Inladen deze week
+                  </button>
+                  <button onClick={()=>{
+                    if(!confirm(`Template "${tpl.name}" verwijderen?`))return;
+                    setWeekScheduleTemplates(prev=>prev.filter(t=>t.id!==tpl.id));
+                  }} style={{padding:"6px 8px",borderRadius:6,background:"#fef2f2",border:"1px solid #fecaca",color:"#dc2626",fontSize:11,fontWeight:600}}>
+                    🗑️
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -659,7 +779,7 @@ function App(){
 
       {/* WEEK VIEW */}
       {view==="week"&&!showSettings&&(
-        <WeekView date={date} calTemplates={calTemplates} calEvents={calEvents} setCalEvents={setCalEvents}/>
+        <WeekView date={date} calTemplates={calTemplates} calEvents={calEvents} setCalEvents={setCalEvents} weekScheduleTemplates={weekScheduleTemplates}/>
       )}
 
       {/* MONTH VIEW */}
@@ -699,13 +819,22 @@ function EditRow({r,period,onSave,onCancel}){
   );
 }
 
+function applyWeekTemplate(tpl, targetMonday){
+  return tpl.events.map(ev=>{
+    const d=new Date(targetMonday);
+    d.setDate(targetMonday.getDate()+Math.max(0,Math.min(6,ev.dayOffset||0)));
+    return{...ev,id:uid(),date:dk(d)};
+  });
+}
+
 function NavBtn({onClick,children}){
   return <button onClick={onClick} style={{width:34,height:34,borderRadius:8,border:"1px solid #e5e7eb",background:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:600,color:"#374151"}}>{children}</button>;
 }
 
 /* ─── WEEK VIEW ─── */
-function WeekView({date,calTemplates,calEvents,setCalEvents}){
+function WeekView({date,calTemplates,calEvents,setCalEvents,weekScheduleTemplates}){
   const [modal,setModal]=useState(null);
+  const [showTplPicker,setShowTplPicker]=useState(false);
 
   const wStart=getMonday(date);
   const weekDays=Array.from({length:7},(_,i)=>{
@@ -718,11 +847,13 @@ function WeekView({date,calTemplates,calEvents,setCalEvents}){
 
   const timeToY=(time)=>{
     const[h,m]=time.split(":").map(Number);
-    return ((h-CAL_START_H)+m/60)*CAL_HOUR_H;
+    const hh=h===0?24:h;
+    return Math.max(0,((hh-CAL_START_H)+m/60)*CAL_HOUR_H);
   };
   const blockH=(start,end)=>{
     const[sh,sm]=start.split(":").map(Number);
-    const[eh,em]=end.split(":").map(Number);
+    let[eh,em]=end.split(":").map(Number);
+    if(eh===0)eh=24;
     const mins=(eh*60+em)-(sh*60+sm);
     return Math.max(22,(mins/60)*CAL_HOUR_H);
   };
@@ -736,8 +867,36 @@ function WeekView({date,calTemplates,calEvents,setCalEvents}){
 
   return(
     <div style={{animation:"fadeUp .3s ease"}}>
-      {/* Week label */}
-      <div style={{padding:"8px 16px 4px",fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:.3}}>{weekLabel}</div>
+      {/* Week label + template loader */}
+      <div style={{padding:"8px 16px 4px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:.3}}>{weekLabel}</div>
+        {weekScheduleTemplates&&weekScheduleTemplates.length>0&&(
+          <button onClick={()=>setShowTplPicker(!showTplPicker)}
+            style={{fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:6,background:showTplPicker?"#dc2626":"#7c3aed",color:"white",border:"none",cursor:"pointer"}}>
+            {showTplPicker?"✕ Sluiten":"📅 Template laden"}
+          </button>
+        )}
+      </div>
+      {showTplPicker&&weekScheduleTemplates&&weekScheduleTemplates.length>0&&(
+        <div style={{margin:"0 12px 8px",background:"#f5f3ff",border:"1px solid #ddd6fe",borderRadius:10,padding:10,animation:"fadeUp .2s ease"}}>
+          <div style={{fontSize:11,fontWeight:600,color:"#6d28d9",marginBottom:7}}>Kies een weekschema:</div>
+          {weekScheduleTemplates.map(tpl=>(
+            <div key={tpl.id} style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
+              <span style={{flex:1,fontSize:12,fontWeight:600,color:"#1f2937"}}>{tpl.name}</span>
+              <span style={{fontSize:9,color:"#9ca3af"}}>{tpl.events.length} ev.</span>
+              <button onClick={()=>{
+                if(!confirm(`"${tpl.name}" inladen voor deze week?\nBestaande events blijven staan.`))return;
+                const newEvs=applyWeekTemplate(tpl,getMonday(date));
+                setCalEvents(prev=>[...prev,...newEvs]);
+                setShowTplPicker(false);
+                alert(`✓ ${newEvs.length} events toegevoegd.`);
+              }} style={{padding:"4px 9px",borderRadius:5,background:"#7c3aed",color:"white",fontSize:10,fontWeight:600,border:"none",cursor:"pointer"}}>
+                ▶ Laden
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Calendar grid wrapper */}
       <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
@@ -857,7 +1016,7 @@ function EventModal({modal,templates,onSave,onDelete,onClose}){
   const [title,setTitle]=useState(ev?.title||"");
   const [icon,setIcon]=useState(ev?.icon||"✅");
   const [startTime,setStartTime]=useState(ev?.startTime||(h0!=null?`${String(h0).padStart(2,"0")}:00`:"09:00"));
-  const [endTime,setEndTime]=useState(ev?.endTime||(h0!=null?`${String(Math.min(h0+1,22)).padStart(2,"0")}:00`:"10:00"));
+  const [endTime,setEndTime]=useState(ev?.endTime||(h0!=null?(h0>=23?"23:59":`${String(h0+1).padStart(2,"0")}:00`):"10:00"));
   const [color,setColor]=useState(ev?.color||"#059669");
   const [showEmoji,setShowEmoji]=useState(false);
 
@@ -1125,6 +1284,13 @@ function StatsView({routines,getAllDays}){
 }
 
 ReactDOM.render(<App/>, document.getElementById("root"));
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
