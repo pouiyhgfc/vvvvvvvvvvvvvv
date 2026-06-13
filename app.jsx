@@ -48,13 +48,14 @@ const DEFAULT_CAL_TEMPLATES = [
 ];
 
 const AREAS = ["Quran/Hifd","Talen","Fitness","Zelfzorg","School"];
-const AREA_STYLES = {
-  "Quran/Hifd":{bg:"#fef2f2",border:"#fecaca",text:"#b91c1c",tag:"#fee2e2"},
-  Talen:{bg:"#f5f3ff",border:"#ddd6fe",text:"#6d28d9",tag:"#ede9fe"},
-  Fitness:{bg:"#fff7ed",border:"#fed7aa",text:"#c2410c",tag:"#ffedd5"},
-  Zelfzorg:{bg:"#fdf2f8",border:"#fbcfe8",text:"#be185d",tag:"#fce7f3"},
-  School:{bg:"#fefce8",border:"#fef08a",text:"#a16207",tag:"#fef9c3"},
+/* Accent per focusgebied — bg/tag worden met transparantie over de kaart gelegd,
+   zodat ze automatisch goed werken in zowel licht als donker thema. */
+const AREA_ACCENTS = {
+  "Quran/Hifd":"#dc2626", Talen:"#7c3aed", Fitness:"#ea580c", Zelfzorg:"#db2777", School:"#ca8a04",
 };
+const AREA_STYLES = Object.fromEntries(Object.entries(AREA_ACCENTS).map(([k,c])=>(
+  [k,{accent:c,border:c,text:c,bg:c+"1c",tag:c+"2b"}]
+)));
 const PERIOD_COLORS = {ochtend:"#d97706",middag:"#2563eb",avond:"#7c3aed"};
 const PERIOD_LABELS = {ochtend:"🌅 Ochtend",middag:"🌤️ Middag",avond:"🌙 Avond"};
 const MOODS = [
@@ -96,6 +97,7 @@ function getMonday(d){
 /* ─────── STORAGE ─────── */
 function loadJSON(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback}catch{return fallback}}
 function saveJSON(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch{}}
+function buzz(ms=10){try{navigator.vibrate&&navigator.vibrate(ms)}catch{}}
 
 /* ─────── RING ─────── */
 function Ring({value,size=90,stroke=7,label,color="#059669"}){
@@ -252,7 +254,7 @@ function App(){
   const toggle=(id)=>{
     const next={...day,checked:{...day.checked,[id]:!day.checked[id]}};
     saveDay(next);
-    if(!day.checked[id]){setPop(id);setTimeout(()=>setPop(null),500)}
+    if(!day.checked[id]){buzz(8);setPop(id);setTimeout(()=>setPop(null),500)}
   };
 
   const go=(n)=>{const d=new Date(date);d.setDate(d.getDate()+n);setDate(d)};
@@ -284,6 +286,7 @@ function App(){
 
   const addRoutine=(period)=>{
     if(!newR.name.trim())return;
+    buzz();
     const r={id:uid(),name:newR.name.trim(),icon:newR.icon,area:newR.area,desc:(newR.desc||"").trim()};
     setRoutines(prev=>({...prev,[period]:[...prev[period],r]}));
     setNewR({name:"",icon:"✅",area:"Zelfzorg",desc:""});
@@ -302,6 +305,14 @@ function App(){
 
   const reorderRoutine=(period,from,to)=>{
     setRoutines(prev=>({...prev,[period]:arrMove(prev[period],from,to)}));
+  };
+
+  const addCalTpl=()=>{
+    if(!newCalTpl.title.trim())return;
+    buzz();
+    setCalTemplates(prev=>[...prev,{id:uid(),title:newCalTpl.title.trim(),icon:newCalTpl.icon,color:newCalTpl.color,desc:(newCalTpl.desc||"").trim()}]);
+    setNewCalTpl({title:"",icon:"✅",color:"#059669",desc:""});
+    setCalTplForm(false);setCalTplShowEmoji(false);
   };
 
   const toggleNotifications=async()=>{
@@ -582,7 +593,8 @@ function App(){
                 <div style={{display:"flex",gap:6,marginBottom:8,alignItems:"center"}}>
                   <button onClick={()=>setCalTplShowEmoji(!calTplShowEmoji)}
                     style={{width:36,height:36,borderRadius:7,border:"1.5px solid var(--border)",background:"var(--card)",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{newCalTpl.icon}</button>
-                  <input type="text" value={newCalTpl.title} onChange={e=>setNewCalTpl(p=>({...p,title:e.target.value}))}
+                  <input type="text" value={newCalTpl.title} autoFocus onChange={e=>setNewCalTpl(p=>({...p,title:e.target.value}))}
+                    onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addCalTpl()}}}
                     placeholder="Template naam..." style={{flex:1,padding:"7px 10px",borderRadius:7,border:"1px solid var(--border)",fontSize:13,outline:"none"}}/>
                 </div>
                 <input type="text" value={newCalTpl.desc||""} onChange={e=>setNewCalTpl(p=>({...p,desc:e.target.value}))}
@@ -594,19 +606,22 @@ function App(){
                 )}
                 <div style={{marginBottom:10}}>
                   <div style={{fontSize:11,fontWeight:600,color:"var(--text)",marginBottom:5}}>Kleur</div>
-                  <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                  <div style={{display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
                     {EVENT_COLORS.map(c=>(
                       <button key={c} onClick={()=>setNewCalTpl(p=>({...p,color:c}))}
-                        style={{width:24,height:24,borderRadius:12,background:c,border:newCalTpl.color===c?"3px solid var(--text)":"2px solid transparent",flexShrink:0}}/>
+                        style={{width:24,height:24,borderRadius:12,background:c,border:newCalTpl.color.toLowerCase()===c?"3px solid var(--text)":"2px solid transparent",flexShrink:0}}/>
                     ))}
+                    <label style={{width:24,height:24,borderRadius:12,flexShrink:0,cursor:"pointer",position:"relative",overflow:"hidden",
+                      border:EVENT_COLORS.includes(newCalTpl.color.toLowerCase())?"1.5px dashed var(--border)":"3px solid var(--text)",
+                      background:EVENT_COLORS.includes(newCalTpl.color.toLowerCase())?"conic-gradient(red,orange,yellow,lime,aqua,blue,magenta,red)":newCalTpl.color,
+                      display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      {EVENT_COLORS.includes(newCalTpl.color.toLowerCase())&&<span style={{fontSize:11}}>🎨</span>}
+                      <input type="color" value={newCalTpl.color} onChange={e=>setNewCalTpl(p=>({...p,color:e.target.value}))}
+                        style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",border:"none",padding:0}}/>
+                    </label>
                   </div>
                 </div>
-                <button onClick={()=>{
-                  if(!newCalTpl.title.trim())return;
-                  setCalTemplates(prev=>[...prev,{id:uid(),title:newCalTpl.title.trim(),icon:newCalTpl.icon,color:newCalTpl.color,desc:(newCalTpl.desc||"").trim()}]);
-                  setNewCalTpl({title:"",icon:"✅",color:"#059669",desc:""});
-                  setCalTplForm(false);setCalTplShowEmoji(false);
-                }} style={{width:"100%",padding:"8px",borderRadius:8,background:"#059669",color:"white",fontWeight:600,fontSize:13}}>
+                <button onClick={addCalTpl} style={{width:"100%",padding:"8px",borderRadius:8,background:"#059669",color:"white",fontWeight:600,fontSize:13}}>
                   ✓ Template Toevoegen
                 </button>
               </div>
@@ -705,7 +720,8 @@ function App(){
               {addingTo===period&&(
                 <div style={{background:"var(--accent-bg)",borderRadius:10,padding:12,marginBottom:8,animation:"fadeUp .2s ease"}}>
                   <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
-                    <input type="text" value={newR.name} onChange={e=>setNewR(p=>({...p,name:e.target.value}))}
+                    <input type="text" value={newR.name} autoFocus onChange={e=>setNewR(p=>({...p,name:e.target.value}))}
+                      onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addRoutine(period)}}}
                       placeholder="Routine naam..." style={{flex:1,minWidth:120,padding:"7px 10px",borderRadius:7,border:"1px solid var(--border)",fontSize:13,outline:"none"}}/>
                     <select value={newR.area} onChange={e=>setNewR(p=>({...p,area:e.target.value}))}
                       style={{padding:"7px 8px",borderRadius:7,border:"1px solid var(--border)",fontSize:12,background:"var(--card)"}}>
@@ -961,7 +977,7 @@ function SortableRoutineList({period,items,editingId,setEditingId,onSave,onDelet
                   {r.desc&&<div style={{fontSize:10,color:"var(--text-muted)",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.desc}</div>}
                 </div>
                 <span style={{fontSize:9,padding:"1px 6px",borderRadius:99,background:a.tag,color:a.text,fontWeight:600,flexShrink:0}}>{r.area}</span>
-                <button onClick={()=>setEditingId(r.id)} style={{fontSize:12,background:"#eff6ff",padding:"4px 6px",borderRadius:5}}>✏️</button>
+                <button onClick={()=>setEditingId(r.id)} style={{fontSize:12,background:"var(--card2)",border:"1px solid var(--border)",padding:"4px 6px",borderRadius:5}}>✏️</button>
                 <button onClick={()=>onDelete(period,r.id)} style={{fontSize:12,background:"var(--danger-bg)",padding:"4px 6px",borderRadius:5}}>🗑️</button>
               </>
             )}
@@ -1362,8 +1378,18 @@ function EventModal({modal,templates,onSave,onDelete,onClose}){
 
   const submit=()=>{
     if(!title.trim())return;
+    buzz();
     onSave({...(isEdit?{id:ev.id,exDates:ev.exDates||[]}:{}),date:dateStr,title:title.trim(),icon,startTime,endTime,color,desc:desc.trim(),repeat});
   };
+
+  const curDur=Math.max(0,tMin(endTime)-tMin(startTime));
+  const onStart=(v)=>{
+    const dur=curDur>0?curDur:60;
+    setStartTime(v);
+    setEndTime(minT(Math.min(24*60-1,tMin(v)+dur)));
+  };
+  const setDur=(mins)=>setEndTime(minT(Math.min(24*60-1,tMin(startTime)+mins)));
+  const DURS=[[15,"15m"],[30,"30m"],[45,"45m"],[60,"1u"],[90,"1½u"],[120,"2u"]];
 
   const handleDelete=()=>{
     if(isEdit&&ev.repeat&&ev.repeat!=="none"){
@@ -1408,7 +1434,8 @@ function EventModal({modal,templates,onSave,onDelete,onClose}){
             style={{width:42,height:42,borderRadius:9,border:"1.5px solid var(--border)",background:"var(--input-bg)",fontSize:22,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
             {icon}
           </button>
-          <input type="text" value={title} onChange={e=>setTitle(e.target.value)} placeholder="Naam activiteit..."
+          <input type="text" value={title} autoFocus={!isEdit} onChange={e=>setTitle(e.target.value)} placeholder="Naam activiteit..."
+            onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();submit()}}}
             style={{flex:1,padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:13,outline:"none"}}
             onFocus={e=>e.target.style.borderColor="#059669"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
         </div>
@@ -1428,10 +1455,10 @@ function EventModal({modal,templates,onSave,onDelete,onClose}){
         </div>
 
         {/* Times */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:8}}>
           <div>
             <label style={{fontSize:11,fontWeight:600,color:"var(--text)",display:"block",marginBottom:4}}>Starttijd</label>
-            <input type="time" value={startTime} onChange={e=>setStartTime(e.target.value)}
+            <input type="time" value={startTime} onChange={e=>onStart(e.target.value)}
               style={{width:"100%",padding:"9px 10px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,outline:"none"}}/>
           </div>
           <div>
@@ -1439,6 +1466,17 @@ function EventModal({modal,templates,onSave,onDelete,onClose}){
             <input type="time" value={endTime} onChange={e=>setEndTime(e.target.value)}
               style={{width:"100%",padding:"9px 10px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,outline:"none"}}/>
           </div>
+        </div>
+        {/* Duur-snelkeuze */}
+        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:14}}>
+          {DURS.map(([m,l])=>(
+            <button key={m} onClick={()=>setDur(m)}
+              style={{flex:"1 1 0",minWidth:42,padding:"6px 4px",borderRadius:7,fontSize:11,fontWeight:600,
+                border:curDur===m?"2px solid #059669":"1.5px solid var(--border)",
+                background:curDur===m?"var(--sel-bg)":"var(--card)",color:curDur===m?"var(--accent-text)":"var(--text-muted)"}}>
+              {l}
+            </button>
+          ))}
         </div>
 
         {/* Herhaling */}
@@ -1461,13 +1499,22 @@ function EventModal({modal,templates,onSave,onDelete,onClose}){
         {/* Color */}
         <div style={{marginBottom:18}}>
           <div style={{fontSize:11,fontWeight:600,color:"var(--text)",marginBottom:7}}>Kleur</div>
-          <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+          <div style={{display:"flex",gap:7,flexWrap:"wrap",alignItems:"center"}}>
             {EVENT_COLORS.map(c=>(
               <button key={c} onClick={()=>setColor(c)}
                 style={{width:28,height:28,borderRadius:14,background:c,
-                  border:color===c?"3px solid var(--text)":"2.5px solid transparent",
-                  boxShadow:color===c?"0 0 0 2px white inset":"none",flexShrink:0,transition:"all .15s"}}/>
+                  border:color.toLowerCase()===c?"3px solid var(--text)":"2.5px solid transparent",
+                  boxShadow:color.toLowerCase()===c?"0 0 0 2px var(--card) inset":"none",flexShrink:0,transition:"all .15s"}}/>
             ))}
+            {/* oneindige kleurkiezer */}
+            <label style={{width:28,height:28,borderRadius:14,flexShrink:0,cursor:"pointer",position:"relative",
+              border:EVENT_COLORS.includes(color.toLowerCase())?"1.5px dashed var(--border)":"3px solid var(--text)",
+              background:EVENT_COLORS.includes(color.toLowerCase())?"conic-gradient(red,orange,yellow,lime,aqua,blue,magenta,red)":color,
+              display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,overflow:"hidden"}}>
+              {EVENT_COLORS.includes(color.toLowerCase())&&<span style={{fontSize:13,filter:"drop-shadow(0 0 1px rgba(0,0,0,.4))"}}>🎨</span>}
+              <input type="color" value={color} onChange={e=>setColor(e.target.value)}
+                style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",border:"none",padding:0}}/>
+            </label>
           </div>
         </div>
 
