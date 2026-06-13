@@ -47,15 +47,16 @@ const DEFAULT_CAL_TEMPLATES = [
   {id:"ct6",title:"School",icon:"🎬",color:"#0891b2"},
 ];
 
-const AREAS = ["Quran/Hifd","Talen","Fitness","Zelfzorg","School"];
-/* Accent per focusgebied — bg/tag worden met transparantie over de kaart gelegd,
-   zodat ze automatisch goed werken in zowel licht als donker thema. */
-const AREA_ACCENTS = {
-  "Quran/Hifd":"#dc2626", Talen:"#7c3aed", Fitness:"#ea580c", Zelfzorg:"#db2777", School:"#ca8a04",
-};
-const AREA_STYLES = Object.fromEntries(Object.entries(AREA_ACCENTS).map(([k,c])=>(
-  [k,{accent:c,border:c,text:c,bg:c+"1c",tag:c+"2b"}]
-)));
+/* Focusgebieden zijn aanpasbaar (naam + kleur), opgeslagen onder rt_areas.
+   bg/tag worden met transparantie over de kaart gelegd, zodat ze automatisch
+   goed werken in zowel licht als donker thema. */
+const DEFAULT_AREAS = [
+  {name:"Quran/Hifd",color:"#dc2626"},{name:"Talen",color:"#7c3aed"},
+  {name:"Fitness",color:"#ea580c"},{name:"Zelfzorg",color:"#db2777"},{name:"School",color:"#ca8a04"},
+];
+function areaStyleFromColor(c){return{accent:c,border:c,text:c,bg:c+"1c",tag:c+"2b"}}
+const FALLBACK_AREA_STYLE={accent:"#9ca3af",border:"#9ca3af",text:"#9ca3af",bg:"#9ca3af1c",tag:"#9ca3af2b"};
+function buildAreaStyles(areas){const m={};(areas||[]).forEach(a=>{m[a.name]=areaStyleFromColor(a.color)});return m}
 const PERIOD_COLORS = {ochtend:"#d97706",middag:"#2563eb",avond:"#7c3aed"};
 const PERIOD_LABELS = {ochtend:"🌅 Ochtend",middag:"🌤️ Middag",avond:"🌙 Avond"};
 const MOODS = [
@@ -126,6 +127,7 @@ function App(){
   const [notifPerm,setNotifPerm]=useState(typeof Notification!=="undefined"?Notification.permission:"unsupported");
   const [openPeriods,setOpenPeriods]=useState({ochtend:true,middag:true,avond:true});
   const [routines,setRoutines]=useState(()=>loadJSON("rt_routines",DEFAULT_ROUTINES));
+  const [areas,setAreas]=useState(()=>{const a=loadJSON("rt_areas",null);return Array.isArray(a)&&a.length?a:DEFAULT_AREAS});
   const [date,setDate]=useState(new Date());
   const [tab,setTab]=useState("ochtend");
   const [day,setDay]=useState(()=>loadJSON(`rt_day_${dk(new Date())}`,{checked:{},energy:7,mood:"Goed",notes:""}));
@@ -173,6 +175,9 @@ function App(){
   useEffect(()=>{saveJSON("rt_cal_events",calEvents)},[calEvents]);
   useEffect(()=>{saveJSON("rt_week_schedule_tpls",weekScheduleTemplates)},[weekScheduleTemplates]);
   useEffect(()=>{saveJSON("rt_settings",settings)},[settings]);
+  useEffect(()=>{saveJSON("rt_areas",areas)},[areas]);
+  const areaStyles=React.useMemo(()=>buildAreaStyles(areas),[areas]);
+  const areaNames=areas.map(a=>a.name);
   useEffect(()=>{document.documentElement.dataset.theme=settings.theme;
     const meta=document.querySelector('meta[name="theme-color"]');
     if(meta)meta.setAttribute("content",settings.theme==="dark"?"#0f1311":"#064e3b");
@@ -287,7 +292,8 @@ function App(){
   const addRoutine=(period)=>{
     if(!newR.name.trim())return;
     buzz();
-    const r={id:uid(),name:newR.name.trim(),icon:newR.icon,area:newR.area,desc:(newR.desc||"").trim()};
+    const area=areaNames.includes(newR.area)?newR.area:(areas[0]?.name||newR.area);
+    const r={id:uid(),name:newR.name.trim(),icon:newR.icon,area,desc:(newR.desc||"").trim()};
     setRoutines(prev=>({...prev,[period]:[...prev[period],r]}));
     setNewR({name:"",icon:"✅",area:"Zelfzorg",desc:""});
     setAddingTo(null);
@@ -313,6 +319,20 @@ function App(){
     setCalTemplates(prev=>[...prev,{id:uid(),title:newCalTpl.title.trim(),icon:newCalTpl.icon,color:newCalTpl.color,desc:(newCalTpl.desc||"").trim()}]);
     setNewCalTpl({title:"",icon:"✅",color:"#059669",desc:""});
     setCalTplForm(false);setCalTplShowEmoji(false);
+  };
+
+  /* ── Focusgebieden beheren ── */
+  const updateArea=(i,patch)=>setAreas(prev=>prev.map((a,idx)=>idx===i?{...a,...patch}:a));
+  const renameArea=(i,newName)=>{
+    const old=areas[i]?.name;
+    setAreas(prev=>prev.map((a,idx)=>idx===i?{...a,name:newName}:a));
+    if(old&&old!==newName)setRoutines(prev=>{const n={};for(const k in prev)n[k]=prev[k].map(r=>r.area===old?{...r,area:newName}:r);return n});
+  };
+  const addArea=()=>{buzz();setAreas(prev=>[...prev,{name:"Nieuw gebied",color:EVENT_COLORS[prev.length%EVENT_COLORS.length]}])};
+  const deleteArea=(i)=>{
+    if(areas.length<=1){alert("Je hebt minimaal één focusgebied nodig.");return}
+    if(!confirm(`Gebied "${areas[i].name}" verwijderen? Routines met dit gebied houden de naam maar krijgen een neutrale kleur.`))return;
+    setAreas(prev=>prev.filter((_,idx)=>idx!==i));
   };
 
   const toggleNotifications=async()=>{
@@ -354,7 +374,7 @@ function App(){
         if(data)allDays[k.replace("rt_day_","")]=data;
       }
     }
-    const payload={version:4,exportedAt:new Date().toISOString(),routines,calTemplates,calEvents,weekScheduleTemplates,settings,days:allDays};
+    const payload={version:5,exportedAt:new Date().toISOString(),routines,areas,calTemplates,calEvents,weekScheduleTemplates,settings,days:allDays};
     const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
@@ -418,6 +438,7 @@ function App(){
         if(data.calEvents){saveJSON("rt_cal_events",data.calEvents);setCalEvents(data.calEvents)}
         if(data.weekScheduleTemplates){saveJSON("rt_week_schedule_tpls",data.weekScheduleTemplates);setWeekScheduleTemplates(data.weekScheduleTemplates)}
         if(data.settings){const merged={...DEFAULT_SETTINGS,...data.settings};saveJSON("rt_settings",merged);setSettings(merged)}
+        if(Array.isArray(data.areas)&&data.areas.length){saveJSON("rt_areas",data.areas);setAreas(data.areas)}
         Object.entries(data.days).forEach(([dateKey,dayData])=>{saveJSON(`rt_day_${dateKey}`,dayData)});
         setDay(loadJSON(`rt_day_${key}`,{checked:{},energy:7,mood:"Goed",notes:""}));
         alert(`✓ Import gelukt! ${Object.keys(data.days).length} dagen geïmporteerd.`);
@@ -442,10 +463,10 @@ function App(){
     const keysToDelete=[];
     for(let i=0;i<localStorage.length;i++){
       const k=localStorage.key(i);
-      if(k&&(k.startsWith("rt_day_")||k.startsWith("rt_notified_")||["rt_routines","rt_cal_templates","rt_cal_events","rt_week_schedule_tpls","rt_settings"].includes(k)))keysToDelete.push(k);
+      if(k&&(k.startsWith("rt_day_")||k.startsWith("rt_notified_")||["rt_routines","rt_areas","rt_cal_templates","rt_cal_events","rt_week_schedule_tpls","rt_settings"].includes(k)))keysToDelete.push(k);
     }
     keysToDelete.forEach(k=>localStorage.removeItem(k));
-    setRoutines(DEFAULT_ROUTINES);setCalTemplates(DEFAULT_CAL_TEMPLATES);setCalEvents([]);setWeekScheduleTemplates([]);setSettings({...DEFAULT_SETTINGS});
+    setRoutines(DEFAULT_ROUTINES);setAreas(DEFAULT_AREAS);setCalTemplates(DEFAULT_CAL_TEMPLATES);setCalEvents([]);setWeekScheduleTemplates([]);setSettings({...DEFAULT_SETTINGS});
     setDay({checked:{},energy:7,mood:"Goed",notes:""});
     alert("✓ Alles gewist. App is gereset.");
   };
@@ -547,6 +568,28 @@ function App(){
                 Minimaal {Math.max(1,Math.ceil(total*(settings.streakPct/100)))} van {total} routines afvinken telt als een voltooide dag voor je streak.
               </div>
             </div>
+          </div>
+
+          {/* FOCUSGEBIEDEN */}
+          <div style={{background:"var(--card2)",border:"1px solid var(--border)",borderRadius:10,padding:12,marginBottom:14}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <h3 style={{fontFamily:"var(--ff-head)",fontSize:14,fontWeight:700}}>🎯 Focusgebieden</h3>
+              <button onClick={addArea} style={{fontSize:11,padding:"3px 10px",borderRadius:6,background:"#059669",color:"white",fontWeight:600}}>+ Gebied</button>
+            </div>
+            <p style={{fontSize:11,color:"var(--text-muted)",marginBottom:10,lineHeight:1.5}}>
+              Pas naam en kleur aan, of voeg eigen gebieden toe. De kleur wordt gebruikt voor routines in dit gebied (kalender-events hebben een eigen kleur).
+            </p>
+            {areas.map((ar,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 9px",borderRadius:8,background:"var(--card)",borderLeft:`4px solid ${ar.color}`,marginBottom:5,boxShadow:"0 1px 2px var(--shadow)"}}>
+                <label style={{width:26,height:26,borderRadius:13,flexShrink:0,cursor:"pointer",position:"relative",overflow:"hidden",background:ar.color,border:"2px solid var(--card)",boxShadow:"0 0 0 1px var(--border)"}}>
+                  <input type="color" value={ar.color} onChange={e=>updateArea(i,{color:e.target.value})}
+                    style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",border:"none",padding:0}}/>
+                </label>
+                <input type="text" value={ar.name} onChange={e=>renameArea(i,e.target.value)}
+                  style={{flex:1,minWidth:0,padding:"5px 8px",borderRadius:6,border:"1px solid var(--border)",fontSize:12,fontWeight:600,outline:"none"}}/>
+                <button onClick={()=>deleteArea(i)} style={{fontSize:12,background:"var(--danger-bg)",border:"1px solid var(--danger-border)",padding:"4px 6px",borderRadius:5}}>🗑️</button>
+              </div>
+            ))}
           </div>
 
           {/* BACKUP */}
@@ -670,31 +713,15 @@ function App(){
             {weekScheduleTemplates.length===0&&!savingWeekTpl&&(
               <div style={{textAlign:"center",padding:"14px 0",color:"var(--text-faint)",fontSize:12}}>Nog geen weekschema templates.</div>
             )}
-            {weekScheduleTemplates.map(tpl=>(
-              <div key={tpl.id} style={{background:"var(--card)",borderRadius:8,padding:"10px 12px",marginBottom:6,boxShadow:"0 1px 2px var(--shadow)",border:"1px solid var(--border)"}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
-                  <span style={{fontSize:14}}>📅</span>
-                  <span style={{flex:1,fontSize:13,fontWeight:600,color:"var(--text)"}}>{tpl.name}</span>
-                  <span style={{fontSize:9,color:"var(--text-faint)"}}>{tpl.events.length} events</span>
-                </div>
-                <div style={{display:"flex",gap:6}}>
-                  <button onClick={()=>{
-                    if(!confirm(`Template "${tpl.name}" inladen voor deze week?\n\nBestaande events van deze week worden NIET gewist — de template wordt toegevoegd.`))return;
-                    const newEvs=applyWeekTemplate(tpl,getMonday(date));
-                    setCalEvents(prev=>[...prev,...newEvs]);
-                    alert(`✓ ${newEvs.length} events toegevoegd voor deze week.`);
-                  }} style={{flex:1,padding:"6px 8px",borderRadius:6,background:"#059669",color:"white",fontSize:11,fontWeight:600}}>
-                    ▶ Inladen deze week
-                  </button>
-                  <button onClick={()=>{
-                    if(!confirm(`Template "${tpl.name}" verwijderen?`))return;
-                    setWeekScheduleTemplates(prev=>prev.filter(t=>t.id!==tpl.id));
-                  }} style={{padding:"6px 8px",borderRadius:6,background:"var(--danger-bg)",border:"1px solid var(--danger-border)",color:"#dc2626",fontSize:11,fontWeight:600}}>
-                    🗑️
-                  </button>
-                </div>
-              </div>
-            ))}
+            <SortableWeekTplList items={weekScheduleTemplates}
+              onReorder={(from,to)=>setWeekScheduleTemplates(prev=>arrMove(prev,from,to))}
+              onLoad={(tpl)=>{
+                if(!confirm(`Template "${tpl.name}" inladen voor deze week?\n\nBestaande events van deze week worden NIET gewist — de template wordt toegevoegd.`))return;
+                const newEvs=applyWeekTemplate(tpl,getMonday(date));
+                setCalEvents(prev=>[...prev,...newEvs]);
+                alert(`✓ ${newEvs.length} events toegevoegd voor deze week.`);
+              }}
+              onDelete={(tpl)=>{if(confirm(`Template "${tpl.name}" verwijderen?`))setWeekScheduleTemplates(prev=>prev.filter(t=>t.id!==tpl.id))}}/>
           </div>
 
           {/* ROUTINES */}
@@ -723,9 +750,9 @@ function App(){
                     <input type="text" value={newR.name} autoFocus onChange={e=>setNewR(p=>({...p,name:e.target.value}))}
                       onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addRoutine(period)}}}
                       placeholder="Routine naam..." style={{flex:1,minWidth:120,padding:"7px 10px",borderRadius:7,border:"1px solid var(--border)",fontSize:13,outline:"none"}}/>
-                    <select value={newR.area} onChange={e=>setNewR(p=>({...p,area:e.target.value}))}
+                    <select value={areaNames.includes(newR.area)?newR.area:(areaNames[0]||"")} onChange={e=>setNewR(p=>({...p,area:e.target.value}))}
                       style={{padding:"7px 8px",borderRadius:7,border:"1px solid var(--border)",fontSize:12,background:"var(--card)"}}>
-                      {AREAS.map(a=><option key={a} value={a}>{a}</option>)}
+                      {areaNames.map(a=><option key={a} value={a}>{a}</option>)}
                     </select>
                   </div>
                   <input type="text" value={newR.desc||""} onChange={e=>setNewR(p=>({...p,desc:e.target.value}))}
@@ -742,7 +769,8 @@ function App(){
               <SortableRoutineList period={period} items={routines[period]}
                 editingId={editingRoutine} setEditingId={setEditingRoutine}
                 onSave={renameRoutine} onDelete={deleteRoutine}
-                onReorder={(from,to)=>reorderRoutine(period,from,to)}/>
+                onReorder={(from,to)=>reorderRoutine(period,from,to)}
+                areaStyles={areaStyles} areaNames={areaNames}/>
               </div>)}
             </div>
             );
@@ -826,7 +854,7 @@ function App(){
 
           <div style={{padding:"0 12px",display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
             {routines[tab].map((r,i)=>{
-              const done=!!checked[r.id];const a=AREA_STYLES[r.area]||AREA_STYLES.Zelfzorg;
+              const done=!!checked[r.id];const a=areaStyles[r.area]||FALLBACK_AREA_STYLE;
               return(
                 <div key={r.id} className="routine-item" onClick={()=>toggle(r.id)} style={{
                   display:"flex",alignItems:"center",gap:9,padding:"10px 11px",borderRadius:11,
@@ -896,13 +924,13 @@ function App(){
       {view==="month"&&!showSettings&&<MonthView date={date} setDate={setDate} setView={setView} routines={routines}/>}
 
       {/* STATS VIEW */}
-      {view==="stats"&&!showSettings&&<StatsView routines={routines} getAllDays={getAllDays}/>}
+      {view==="stats"&&!showSettings&&<StatsView routines={routines} getAllDays={getAllDays} areaStyles={areaStyles}/>}
     </div>
   );
 }
 
 /* ─── EDIT ROW ─── */
-function EditRow({r,period,onSave,onCancel}){
+function EditRow({r,period,onSave,onCancel,areaNames}){
   const [name,setName]=useState(r.name);
   const [icon,setIcon]=useState(r.icon);
   const [area,setArea]=useState(r.area);
@@ -914,7 +942,8 @@ function EditRow({r,period,onSave,onCancel}){
       <input type="text" value={name} onChange={e=>setName(e.target.value)}
         style={{flex:1,minWidth:80,padding:"4px 6px",borderRadius:5,border:"1px solid var(--border)",fontSize:12,outline:"none"}}/>
       <select value={area} onChange={e=>setArea(e.target.value)} style={{padding:"4px",borderRadius:5,border:"1px solid var(--border)",fontSize:10,background:"var(--card)"}}>
-        {AREAS.map(a=><option key={a} value={a}>{a}</option>)}
+        {(areaNames||[]).map(a=><option key={a} value={a}>{a}</option>)}
+        {area&&!(areaNames||[]).includes(area)&&<option value={area}>{area}</option>}
       </select>
       <button onClick={()=>onSave(period,r.id,name,icon,area,desc)} style={{fontSize:10,color:"#059669",background:"var(--sel-bg)",padding:"3px 6px",borderRadius:4,fontWeight:600}}>✓</button>
       <button onClick={onCancel} style={{fontSize:10,color:"var(--text-muted)",background:"var(--input-bg)",padding:"3px 6px",borderRadius:4}}>✕</button>
@@ -954,20 +983,49 @@ function SortableTemplateList({items,onReorder,onDelete}){
   );
 }
 
+/* ─── SORTEERBARE WEEKSCHEMA-TEMPLATES ─── */
+function SortableWeekTplList({items,onReorder,onLoad,onDelete}){
+  const {ref,dragId,onHandleDown}=useSortable(onReorder);
+  if(items.length===0)return null;
+  return(
+    <div ref={ref}>
+      {items.map((tpl)=>(
+        <div key={tpl.id} data-srow="1" data-sid={tpl.id} style={{background:"var(--card)",borderRadius:8,padding:"10px 12px",marginBottom:6,boxShadow:"0 1px 2px var(--shadow)",border:"1px solid var(--border)"}}
+          className={dragId===tpl.id?"dragging":""}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+            <DragHandle onPointerDown={(e)=>onHandleDown(e,items.indexOf(tpl),tpl.id)}/>
+            <span style={{fontSize:14}}>📅</span>
+            <span style={{flex:1,fontSize:13,fontWeight:600,color:"var(--text)"}}>{tpl.name}</span>
+            <span style={{fontSize:9,color:"var(--text-faint)"}}>{tpl.events.length} events</span>
+          </div>
+          <div style={{display:"flex",gap:6}}>
+            <button onClick={()=>onLoad(tpl)} style={{flex:1,padding:"6px 8px",borderRadius:6,background:"#059669",color:"white",fontSize:11,fontWeight:600}}>
+              ▶ Inladen deze week
+            </button>
+            <button onClick={()=>onDelete(tpl)} style={{padding:"6px 8px",borderRadius:6,background:"var(--danger-bg)",border:"1px solid var(--danger-border)",color:"#dc2626",fontSize:11,fontWeight:600}}>
+              🗑️
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ─── SORTEERBARE ROUTINE-LIJST ─── */
-function SortableRoutineList({period,items,editingId,setEditingId,onSave,onDelete,onReorder}){
+function SortableRoutineList({period,items,editingId,setEditingId,onSave,onDelete,onReorder,areaStyles,areaNames}){
   const {ref,dragId,onHandleDown}=useSortable(onReorder);
   return(
     <div ref={ref}>
       {items.map((r)=>{
         const isEditing=editingId===r.id;
-        const a=AREA_STYLES[r.area]||AREA_STYLES.Zelfzorg;
+        const a=(areaStyles&&areaStyles[r.area])||FALLBACK_AREA_STYLE;
         return(
           <div key={r.id} data-srow="1" data-sid={r.id} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 10px",borderRadius:8,
             background:isEditing?"var(--card2)":"var(--card)",borderLeft:`3px solid ${a.border}`,marginBottom:3,boxShadow:"0 1px 2px var(--shadow)"}}
             className={dragId===r.id?"dragging":""}>
             {isEditing?(
-              <EditRow r={r} period={period} onSave={onSave} onCancel={()=>setEditingId(null)}/>
+              <EditRow r={r} period={period} onSave={onSave} onCancel={()=>setEditingId(null)} areaNames={areaNames}/>
             ):(
               <>
                 <DragHandle onPointerDown={(e)=>onHandleDown(e,items.indexOf(r),r.id)}/>
@@ -1133,6 +1191,8 @@ function WeekView({date,calTemplates,calEvents,setCalEvents,weekScheduleTemplate
   const gridRef=useRef(null);
   const dragRef=useRef(null);
   const [drag,setDrag]=useState(null); // {id,dx,dy} tijdens slepen
+  const [nowT,setNowT]=useState(new Date());
+  useEffect(()=>{const iv=setInterval(()=>setNowT(new Date()),60000);return()=>clearInterval(iv)},[]);
 
   const wStart=getMonday(date);
   const weekDays=Array.from({length:7},(_,i)=>{
@@ -1336,6 +1396,12 @@ function WeekView({date,calTemplates,calEvents,setCalEvents,weekScheduleTemplate
                       </div>
                     );
                   })}
+                  {/* "Nu"-tijdlijn (alleen vandaag) */}
+                  {isToday(d)&&nowT.getHours()>=CAL_START_H&&(
+                    <div style={{position:"absolute",left:0,right:0,top:timeToY(`${String(nowT.getHours()).padStart(2,"0")}:${String(nowT.getMinutes()).padStart(2,"0")}`),height:0,borderTop:"2px solid #ef4444",zIndex:5,pointerEvents:"none"}}>
+                      <div style={{position:"absolute",left:-3,top:-4,width:8,height:8,borderRadius:4,background:"#ef4444",boxShadow:"0 0 0 2px var(--card)"}}/>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -1593,7 +1659,7 @@ function MonthView({date,setDate,setView,routines}){
 }
 
 /* ─── STATS ─── */
-function StatsView({routines,getAllDays}){
+function StatsView({routines,getAllDays,areaStyles}){
   const allDays=getAllDays();
   const entries=Object.entries(allDays).filter(([,v])=>v?.checked);
   const total=Object.values(routines).flat().length;
@@ -1646,7 +1712,7 @@ function StatsView({routines,getAllDays}){
         <h3 style={{fontFamily:"var(--ff-head)",fontSize:13,fontWeight:700,marginBottom:10}}>Per Focus Gebied</h3>
         {Object.entries(areaStats).map(([area,s])=>{
           const pct=s.total>0?Math.round((s.done/s.total)*100):0;
-          const st=AREA_STYLES[area]||AREA_STYLES.Zelfzorg;
+          const st=(areaStyles&&areaStyles[area])||FALLBACK_AREA_STYLE;
           return(
             <div key={area} style={{marginBottom:9}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}>
