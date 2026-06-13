@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>App-iconen genereren</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#f8f7f4;margin:0;padding:24px;text-align:center;color:#1f2937}
+  h1{font-size:18px}
+  p{font-size:13px;color:#6b7280;max-width:440px;margin:8px auto 20px}
+  canvas{margin:8px;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+  button{font-size:14px;font-weight:600;padding:11px 18px;border-radius:10px;border:none;background:#059669;color:#fff;cursor:pointer;margin:6px}
+</style>
+</head>
+<body>
+<h1>📋 App-iconen genereren</h1>
+<p>Klik op de knop om <b>icon-192.png</b> en <b>icon-512.png</b> te downloaden. Vervang daarna de twee oude bestanden in je projectmap met deze nieuwe.</p>
+<div>
+  <canvas id="c192" width="192" height="192"></canvas>
+  <canvas id="c512" width="512" height="512" style="width:192px;height:192px"></canvas>
+</div>
+<div>
+  <button onclick="downloadAll()">⬇️ Download beide iconen</button>
+</div>
+<script>
+function drawIcon(canvas){
+  const s=canvas.width, ctx=canvas.getContext("2d");
+  // achtergrond met gradient + afronding
+  const grad=ctx.createLinearGradient(0,0,s,s);
+  grad.addColorStop(0,"#064e3b"); grad.addColorStop(1,"#047857");
+  ctx.fillStyle=grad;
+  ctx.beginPath(); ctx.roundRect(0,0,s,s,s*0.23); ctx.fill();
+  // subtiel paneel
+  ctx.fillStyle="rgba(255,255,255,0.13)";
+  const pad=s*0.18, w=s-pad*2;
+  ctx.beginPath(); ctx.roundRect(pad,pad,w,w,s*0.115); ctx.fill();
+  // embleem
+  ctx.font=`${s*0.45}px serif`;
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText("📋", s/2, s/2+s*0.02);
+}
+const c192=document.getElementById("c192"), c512=document.getElementById("c512");
+drawIcon(c192); drawIcon(c512);
+function dl(canvas,name){
+  const a=document.createElement("a");
+  a.download=name; a.href=canvas.toDataURL("image/png"); a.click();
+}
+function downloadAll(){
+  dl(c192,"icon-192.png");
+  setTimeout(()=>dl(c512,"icon-512.png"),400);
+}
+</script>
+</body>
+</html>

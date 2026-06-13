@@ -5,6 +5,7 @@
       <stop offset="100%" stop-color="#047857"/>
     </linearGradient>
   </defs>
-  <rect width="192" height="192" rx="36" fill="url(#bg)"/>
-  <text x="96" y="118" font-size="90" text-anchor="middle" font-family="serif">📋</text>
+  <rect width="192" height="192" rx="44" fill="url(#bg)"/>
+  <rect x="34" y="34" width="124" height="124" rx="22" fill="#ffffff" fill-opacity="0.13"/>
+  <text x="96" y="96" font-size="86" text-anchor="middle" dominant-baseline="central" font-family="serif">📋</text>
 </svg>
