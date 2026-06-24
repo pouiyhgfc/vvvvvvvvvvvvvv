@@ -7,7 +7,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Fase 0, nog niet begonnen._ (Claude werkt deze regel bij.)
+**Status — huidige fase:** _Fase 2 geïmplementeerd — wacht op controle door gebruiker (DevTools → IndexedDB)._
 
 ---
 

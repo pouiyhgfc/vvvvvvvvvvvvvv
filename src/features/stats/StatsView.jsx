@@ -1,37 +1,36 @@
 import { dk } from '../../lib/date.js';
 import { DAYS_NL, FALLBACK_AREA_STYLE } from '../../lib/constants.js';
 
-export default function StatsView({routines,getAllDays,areaStyles}){
-  const allDays=getAllDays();
-  const entries=Object.entries(allDays).filter(([,v])=>v?.checked);
-  const total=Object.values(routines).flat().length;
+export default function StatsView({routines, allDays, areaStyles}){
+  const entries = Object.entries(allDays).filter(([,v]) => v?.checked);
+  const total = Object.values(routines).flat().length;
 
-  const last7=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);
-    const data=allDays[dk(d)];
-    const done=data?.checked?Object.values(data.checked).filter(Boolean).length:0;
-    last7.push({d:DAYS_NL[d.getDay()].substring(0,2),pct:total>0?Math.round((done/total)*100):0});
+  const last7 = [];
+  for(let i = 6; i >= 0; i--){
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const data = allDays[dk(d)];
+    const done = data?.checked ? Object.values(data.checked).filter(Boolean).length : 0;
+    last7.push({d:DAYS_NL[d.getDay()].substring(0,2), pct:total>0?Math.round((done/total)*100):0});
   }
 
-  const allR=Object.values(routines).flat();
-  const areaStats={};
-  allR.forEach(r=>{
-    if(!areaStats[r.area])areaStats[r.area]={total:0,done:0};
-    areaStats[r.area].total+=entries.length||1;
-    entries.forEach(([,data])=>{if(data.checked?.[r.id])areaStats[r.area].done++});
+  const allR = Object.values(routines).flat();
+  const areaStats = {};
+  allR.forEach(r => {
+    if(!areaStats[r.area]) areaStats[r.area] = {total:0, done:0};
+    areaStats[r.area].total += entries.length || 1;
+    entries.forEach(([,data]) => { if(data.checked?.[r.id]) areaStats[r.area].done++; });
   });
 
-  let bestPct=0;
-  entries.forEach(([,v])=>{
-    const pct=total>0?Math.round((Object.values(v.checked).filter(Boolean).length/total)*100):0;
-    if(pct>bestPct)bestPct=pct;
+  let bestPct = 0;
+  entries.forEach(([,v]) => {
+    const pct = total>0 ? Math.round((Object.values(v.checked).filter(Boolean).length/total)*100) : 0;
+    if(pct > bestPct) bestPct = pct;
   });
 
-  const skipCount={};
-  allR.forEach(r=>{skipCount[r.id]={name:r.name,icon:r.icon,skipped:0}});
-  entries.forEach(([,data])=>{allR.forEach(r=>{if(!data.checked?.[r.id])skipCount[r.id].skipped++})});
-  const mostSkipped=Object.values(skipCount).sort((a,b)=>b.skipped-a.skipped).slice(0,5);
+  const skipCount = {};
+  allR.forEach(r => { skipCount[r.id] = {name:r.name, icon:r.icon, skipped:0}; });
+  entries.forEach(([,data]) => { allR.forEach(r => { if(!data.checked?.[r.id]) skipCount[r.id].skipped++; }); });
+  const mostSkipped = Object.values(skipCount).sort((a,b) => b.skipped-a.skipped).slice(0,5);
 
   return(
     <div style={{padding:"14px 12px 24px",animation:"fadeUp .3s ease"}}>
@@ -53,8 +52,8 @@ export default function StatsView({routines,getAllDays,areaStyles}){
       <div style={{background:"var(--card)",borderRadius:12,padding:12,marginBottom:8,boxShadow:"0 1px 3px var(--shadow)"}}>
         <h3 style={{fontFamily:"var(--ff-head)",fontSize:13,fontWeight:700,marginBottom:10}}>Per Focus Gebied</h3>
         {Object.entries(areaStats).map(([area,s])=>{
-          const pct=s.total>0?Math.round((s.done/s.total)*100):0;
-          const st=(areaStyles&&areaStyles[area])||FALLBACK_AREA_STYLE;
+          const pct = s.total>0 ? Math.round((s.done/s.total)*100) : 0;
+          const st = (areaStyles&&areaStyles[area])||FALLBACK_AREA_STYLE;
           return(
             <div key={area} style={{marginBottom:9}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}>

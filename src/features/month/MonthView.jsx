@@ -1,24 +1,23 @@
-import { loadJSON } from '../../lib/storage.js';
-import { dk, isToday } from '../../lib/date.js';
+import { isToday } from '../../lib/date.js';
 import { MONTHS_NL } from '../../lib/constants.js';
 import NavBtn from '../../ui/NavBtn.jsx';
 
-export default function MonthView({date,setDate,setView,routines}){
-  const y=date.getFullYear(),m=date.getMonth();
-  const first=new Date(y,m,1),last=new Date(y,m+1,0);
-  const fDow=first.getDay()===0?6:first.getDay()-1;
-  const total=Object.values(routines).flat().length;
+export default function MonthView({date, setDate, setView, routines, allDays}){
+  const y = date.getFullYear(), m = date.getMonth();
+  const first = new Date(y,m,1), last = new Date(y,m+1,0);
+  const fDow = first.getDay()===0 ? 6 : first.getDay()-1;
+  const total = Object.values(routines).flat().length;
 
-  const days=[];
-  for(let d=1;d<=last.getDate();d++){
-    const k=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const data=loadJSON(`rt_day_${k}`,null);
-    const done=data?.checked?Object.values(data.checked).filter(Boolean).length:0;
-    days.push({day:d,pct:total>0?Math.round((done/total)*100):0,done});
+  const days = [];
+  for(let d = 1; d <= last.getDate(); d++){
+    const k = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const data = allDays[k];
+    const done = data?.checked ? Object.values(data.checked).filter(Boolean).length : 0;
+    days.push({day:d, pct:total>0?Math.round((done/total)*100):0, done});
   }
 
-  const color=(pct)=>pct===0?"var(--heat0)":pct<30?"#fecaca":pct<60?"#fde68a":pct<80?"#bbf7d0":"#059669";
-  const today=new Date();
+  const color = (pct) => pct===0?"var(--heat0)":pct<30?"#fecaca":pct<60?"#fde68a":pct<80?"#bbf7d0":"#059669";
+  const today = new Date();
 
   return(
     <div style={{padding:"14px 12px 24px",animation:"fadeUp .3s ease"}}>
@@ -35,7 +34,7 @@ export default function MonthView({date,setDate,setView,routines}){
       <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3}}>
         {Array(fDow).fill(null).map((_,i)=><div key={`e${i}`}/>)}
         {days.map(d=>{
-          const isT=d.day===today.getDate()&&m===today.getMonth()&&y===today.getFullYear();
+          const isT = d.day===today.getDate()&&m===today.getMonth()&&y===today.getFullYear();
           return(
             <div key={d.day} onClick={()=>{setDate(new Date(y,m,d.day));setView("tracker")}}
               style={{textAlign:"center",padding:"6px 2px",borderRadius:7,background:color(d.pct),
