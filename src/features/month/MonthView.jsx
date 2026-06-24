@@ -1,4 +1,3 @@
-import { isToday } from '../../lib/date.js';
 import { MONTHS_NL } from '../../lib/constants.js';
 import NavBtn from '../../ui/NavBtn.jsx';
 

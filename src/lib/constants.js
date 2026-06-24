@@ -47,7 +47,7 @@ export const DEFAULT_AREAS = [
   {name:"Fitness",color:"#ea580c"},{name:"Zelfzorg",color:"#db2777"},{name:"School",color:"#ca8a04"},
 ];
 
-export function areaStyleFromColor(c){return{accent:c,border:c,text:c,bg:c+"1c",tag:c+"2b"}}
+function areaStyleFromColor(c){return{accent:c,border:c,text:c,bg:c+"1c",tag:c+"2b"}}
 export const FALLBACK_AREA_STYLE={accent:"#9ca3af",border:"#9ca3af",text:"#9ca3af",bg:"#9ca3af1c",tag:"#9ca3af2b"};
 export function buildAreaStyles(areas){const m={};(areas||[]).forEach(a=>{m[a.name]=areaStyleFromColor(a.color)});return m}
 
@@ -69,7 +69,6 @@ export const EMOJI_CATEGORIES = [
   {name:"Natuur & weer",kw:"natuur weer ochtend avond zon maan vuur",emojis:["🌅","🌄","🌙","☀️","⭐","🌟","🔥","🌊","🌿","🌱","🌳","🍃","🌸","🌷","❄️","🌈","☁️","⚡","💫","🌍"]},
   {name:"Symbolen",kw:"symbool overig check vinkje doel beloning",emojis:["✅","☑️","🔔","⏰","🎯","💡","🏆","🥇","🎉","❤️","🔥","⭐","🧿","📍","🔑","🤝","👍","✨","🤖","🎨"]},
 ];
-export const EMOJI_LIST = EMOJI_CATEGORIES.flatMap(c=>c.emojis);
 export const EVENT_COLORS = ["#059669","#2563eb","#7c3aed","#dc2626","#d97706","#be185d","#0891b2","#65a30d"];
 export const WEEK_DAYS_SHORT = ["Ma","Di","Wo","Do","Vr","Za","Zo"];
 export const CAL_HOUR_H = 56;

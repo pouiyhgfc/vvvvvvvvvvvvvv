@@ -4,7 +4,7 @@ import { useSortable } from '../hooks/useSortable.js';
 import DragHandle from './DragHandle.jsx';
 import EmojiPicker from './EmojiPicker.jsx';
 
-export function EditRow({r,period,onSave,onCancel,areaNames}){
+function EditRow({r,period,onSave,onCancel,areaNames}){
   const [name,setName]=useState(r.name);
   const [icon,setIcon]=useState(r.icon);
   const [area,setArea]=useState(r.area);

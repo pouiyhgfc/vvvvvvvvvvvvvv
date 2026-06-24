@@ -1,0 +1,4 @@
+{
+  "entry": ["src/sw.js"],
+  "ignoreDependencies": ["prettier"]
+}

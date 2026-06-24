@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   DEFAULT_ROUTINES, DEFAULT_CAL_TEMPLATES, DEFAULT_AREAS, DEFAULT_SETTINGS,
@@ -34,12 +34,13 @@ export default function App(){
 
   const calEvents = useLiveQuery(() => db.calEvents.toArray()) ?? [];
 
-  const allDaysArray = useLiveQuery(() => db.days.toArray()) ?? [];
+  const allDaysRaw = useLiveQuery(() => db.days.toArray());
   const allDays = useMemo(() => {
+    if (!allDaysRaw) return {};
     const m = {};
-    allDaysArray.forEach(e => { m[e.date] = e; });
+    allDaysRaw.forEach(e => { m[e.date] = e; });
     return m;
-  }, [allDaysArray]);
+  }, [allDaysRaw]);
 
   // --- UI state ---
   const [notifPerm, setNotifPerm] = useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
@@ -187,7 +188,7 @@ export default function App(){
 
   const exportData = () => {
     const allDaysForExport = {};
-    allDaysArray.forEach(e => {
+    (allDaysRaw ?? []).forEach(e => {
       const {date: d, ...rest} = e;
       allDaysForExport[d] = rest;
     });
@@ -297,7 +298,7 @@ export default function App(){
   };
 
   const dataInfo = (() => {
-    const dayCount = allDaysArray.length;
+    const dayCount = allDaysRaw?.length ?? 0;
     const kb = ((JSON.stringify({routines, areas, calTemplates, calEvents, weekScheduleTemplates, settings}).length + dayCount * 200) / 1024).toFixed(1);
     return { dayCount, kb };
   })();
@@ -386,7 +387,7 @@ export default function App(){
           routines={routines} tab={tab} setTab={setTab}
           checked={checked} pctTotal={pctTotal} pDone={pDone} pPct={pPct}
           pop={pop} toggle={toggle}
-          areaStyles={areaStyles} streak={streak} total={total}
+          areaStyles={areaStyles} streak={streak}
         />
       )}
 

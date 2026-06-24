@@ -1,7 +1,7 @@
 import { PERIOD_LABELS, PERIOD_COLORS, MOODS, FALLBACK_AREA_STYLE } from '../../lib/constants.js';
 import Ring from '../../ui/Ring.jsx';
 
-export default function TrackerView({day,saveDay,routines,tab,setTab,checked,pctTotal,pDone,pPct,pop,toggle,areaStyles,streak,total}){
+export default function TrackerView({day,saveDay,routines,tab,setTab,checked,pctTotal,pDone,pPct,pop,toggle,areaStyles,streak}){
   return(
     <div style={{animation:"fadeUp .3s ease"}}>
       <div style={{display:"flex",alignItems:"center",gap:14,padding:"16px 12px",background:"var(--card)",margin:"10px 12px",borderRadius:14,boxShadow:"0 1px 4px var(--shadow)",flexWrap:"wrap"}}>
