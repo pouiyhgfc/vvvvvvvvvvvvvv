@@ -1,0 +1,77 @@
+export const DEFAULT_ROUTINES = {
+  ochtend: [
+    { id:"o1", name:"Duah", icon:"🤲", area:"Quran/Hifd" },
+    { id:"o2", name:"Rekken, Touwtje springen, Boxen", icon:"🥊", area:"Fitness" },
+    { id:"o3", name:"Douchen", icon:"🚿", area:"Zelfzorg" },
+    { id:"o4", name:"Bidden", icon:"🕌", area:"Quran/Hifd" },
+    { id:"o5", name:"Hifd", icon:"📖", area:"Quran/Hifd" },
+    { id:"o6", name:"Pagina Quran lezen", icon:"📜", area:"Quran/Hifd" },
+    { id:"o7", name:"Ademhalingssessie", icon:"🌬️", area:"Zelfzorg" },
+    { id:"o8", name:"Adhkar reciteren", icon:"📿", area:"Quran/Hifd" },
+    { id:"o9", name:"Frans Anki", icon:"🇫🇷", area:"Talen" },
+    { id:"o10", name:"Arabisch leren", icon:"🇸🇦", area:"Talen" },
+    { id:"o11", name:"Chinees leren", icon:"🇨🇳", area:"Talen" },
+    { id:"o12", name:"Berbers leren", icon:"ⵣ", area:"Talen" },
+    { id:"o13", name:"Video kijken", icon:"🎬", area:"School" },
+  ],
+  middag: [
+    { id:"m1", name:"Adhkar verrichten", icon:"📿", area:"Quran/Hifd" },
+    { id:"m2", name:"Arabisch met AI", icon:"🇸🇦", area:"Talen" },
+    { id:"m3", name:"Berbers met AI", icon:"ⵣ", area:"Talen" },
+    { id:"m4", name:"Chinees met AI", icon:"🇨🇳", area:"Talen" },
+    { id:"m5", name:"Hifd revisen/lezen", icon:"📖", area:"Quran/Hifd" },
+  ],
+  avond: [
+    { id:"a1", name:"Shake maken", icon:"🥤", area:"Fitness" },
+    { id:"a2", name:"Douche dingen", icon:"🚿", area:"Zelfzorg" },
+    { id:"a3", name:"Rekken", icon:"🧘", area:"Fitness" },
+    { id:"a4", name:"Blz Quran lezen", icon:"📜", area:"Quran/Hifd" },
+    { id:"a5", name:"Ademhalingssessie", icon:"🌬️", area:"Zelfzorg" },
+    { id:"a6", name:"Duah lezen", icon:"🤲", area:"Quran/Hifd" },
+    { id:"a7", name:"Logboek", icon:"📓", area:"Zelfzorg" },
+    { id:"a8", name:"Slapen (10-11 uur)", icon:"😴", area:"Zelfzorg" },
+  ],
+};
+
+export const DEFAULT_CAL_TEMPLATES = [
+  {id:"ct1",title:"Hifd",icon:"📖",color:"#dc2626"},
+  {id:"ct2",title:"Rekken / Boxen",icon:"🥊",color:"#d97706"},
+  {id:"ct3",title:"Arabisch",icon:"🇸🇦",color:"#7c3aed"},
+  {id:"ct4",title:"Quran lezen",icon:"📜",color:"#059669"},
+  {id:"ct5",title:"Frans Anki",icon:"🇫🇷",color:"#2563eb"},
+  {id:"ct6",title:"School",icon:"🎬",color:"#0891b2"},
+];
+
+export const DEFAULT_AREAS = [
+  {name:"Quran/Hifd",color:"#dc2626"},{name:"Talen",color:"#7c3aed"},
+  {name:"Fitness",color:"#ea580c"},{name:"Zelfzorg",color:"#db2777"},{name:"School",color:"#ca8a04"},
+];
+
+function areaStyleFromColor(c){return{accent:c,border:c,text:c,bg:c+"1c",tag:c+"2b"}}
+export const FALLBACK_AREA_STYLE={accent:"#9ca3af",border:"#9ca3af",text:"#9ca3af",bg:"#9ca3af1c",tag:"#9ca3af2b"};
+export function buildAreaStyles(areas){const m={};(areas||[]).forEach(a=>{m[a.name]=areaStyleFromColor(a.color)});return m}
+
+export const PERIOD_COLORS = {ochtend:"#d97706",middag:"#2563eb",avond:"#7c3aed"};
+export const PERIOD_LABELS = {ochtend:"🌅 Ochtend",middag:"🌤️ Middag",avond:"🌙 Avond"};
+export const MOODS = [
+  {value:"Geweldig",emoji:"🔥"},{value:"Goed",emoji:"😊"},{value:"Oké",emoji:"😐"},
+  {value:"Moe",emoji:"😴"},{value:"Slecht",emoji:"😞"},
+];
+export const DAYS_NL = ["Zondag","Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag"];
+export const MONTHS_NL = ["Januari","Februari","Maart","April","Mei","Juni","Juli","Augustus","September","Oktober","November","December"];
+export const EMOJI_CATEGORIES = [
+  {name:"Gebed & Quran",kw:"gebed bidden quran hifd duah adhkar islam moskee",emojis:["🤲","🕌","📖","📜","📿","🕋","☪️","🧎","📕","🌙","✨","🙏","🕯️"]},
+  {name:"Talen & vlaggen",kw:"taal talen vlag frans arabisch chinees berbers engels duits spaans",emojis:["🇸🇦","🇳🇱","🇬🇧","🇫🇷","🇩🇪","🇪🇸","🇮🇹","🇨🇳","🇯🇵","🇹🇷","🇲🇦","🇵🇹","🇷🇺","🇰🇷","🇮🇳","ⵣ","🗣️","💬","🔤","🔡"]},
+  {name:"Sport & fitness",kw:"sport fitness boxen rekken hardlopen gym workout",emojis:["🥊","🏋️","🏃","🚶","🧘","🧘‍♂️","💪","🤸","🚴","⚽","🏀","🏊","🥋","🧗","⛹️","🏸","🎽","🤾","🏐","🛹"]},
+  {name:"Eten & drinken",kw:"eten drinken food shake water fruit koffie maaltijd",emojis:["🥤","🥗","🍎","🍓","🫐","🍳","🥚","🥛","💧","☕","🍵","🧃","🍌","🥦","🥕","🍗","🍚","🥜","🍯","🧉"]},
+  {name:"Studie & werk",kw:"studie school werk leren huiswerk video focus",emojis:["📝","✏️","📓","📚","🎓","💻","📱","🖋️","🧠","🎯","🔬","🧪","📊","📈","🗂️","📌","⏰","⌛","🎬","🎵"]},
+  {name:"Zelfzorg",kw:"zelfzorg douche slapen rust gezondheid ademhaling logboek",emojis:["🚿","🛁","🧼","😴","🛌","🌬️","💊","🩺","🦷","🧴","🪥","❤️","🫀","🌿","🧿","🤍","☀️","🧖","💆","🧹"]},
+  {name:"Natuur & weer",kw:"natuur weer ochtend avond zon maan vuur",emojis:["🌅","🌄","🌙","☀️","⭐","🌟","🔥","🌊","🌿","🌱","🌳","🍃","🌸","🌷","❄️","🌈","☁️","⚡","💫","🌍"]},
+  {name:"Symbolen",kw:"symbool overig check vinkje doel beloning",emojis:["✅","☑️","🔔","⏰","🎯","💡","🏆","🥇","🎉","❤️","🔥","⭐","🧿","📍","🔑","🤝","👍","✨","🤖","🎨"]},
+];
+export const EVENT_COLORS = ["#059669","#2563eb","#7c3aed","#dc2626","#d97706","#be185d","#0891b2","#65a30d"];
+export const WEEK_DAYS_SHORT = ["Ma","Di","Wo","Do","Vr","Za","Zo"];
+export const CAL_HOUR_H = 56;
+export const CAL_START_H = 3;
+export const CAL_END_H = 24;
+export const DEFAULT_SETTINGS = {theme:"light",notifEnabled:false,notifLeadMin:10,streakPct:50};

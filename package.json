@@ -1,0 +1,33 @@
+{
+  "name": "routine-tracker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "deadcode": "knip"
+  },
+  "dependencies": {
+    "@fontsource-variable/dm-sans": "^5.1.1",
+    "@fontsource-variable/outfit": "^5.1.1",
+    "dexie": "^4.4.4",
+    "dexie-react-hooks": "^4.4.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^10.5.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.7.0",
+    "knip": "^6.20.0",
+    "prettier": "^3.8.4",
+    "vite": "^6.3.5",
+    "vite-plugin-pwa": "^0.21.1",
+    "workbox-precaching": "^7.3.0"
+  }
+}
