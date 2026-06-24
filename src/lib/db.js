@@ -6,9 +6,13 @@ export const db = new Dexie('routine-tracker');
 db.version(1).stores({
   meta:      '&key',
   settings:  '&id',
-  blobs:     '&key',       // slaat areas, routines, calTemplates, weekTemplates op als blob
-  days:      '&date',      // sleutel = 'YYYY-MM-DD'
+  blobs:     '&key',
+  days:      '&date',
   calEvents: '&id, date',
+});
+
+db.version(2).stores({
+  logEntries: '&id, date, createdAt',
 });
 
 export async function migrateFromLocalStorage() {

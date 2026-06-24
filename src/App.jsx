@@ -14,6 +14,7 @@ import WeekView from './features/planner/WeekView.jsx';
 import MonthView from './features/month/MonthView.jsx';
 import StatsView from './features/stats/StatsView.jsx';
 import SettingsPanel from './features/settings/SettingsPanel.jsx';
+import LogbookView from './features/logbook/LogbookView.jsx';
 
 export default function App(){
   // --- Dexie reactive queries ---
@@ -319,7 +320,7 @@ export default function App(){
             </div>
           </div>
           <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
-            {[["tracker","📝"],["week","📆"],["month","📅"],["stats","📊"],["settings","⚙️"]].map(([v,ic])=>(
+            {[["tracker","📝"],["week","📆"],["month","📅"],["stats","📊"],["logbook","📖"],["settings","⚙️"]].map(([v,ic])=>(
               <button key={v} onClick={()=>{v==="settings"?setShowSettings(!showSettings):setView(v);if(v!=="settings")setShowSettings(false)}}
                 style={{padding:"5px 8px",borderRadius:7,border:"1px solid rgba(255,255,255,.2)",
                   background:(view===v&&v!=="settings")||(v==="settings"&&showSettings)?"white":"rgba(255,255,255,.08)",
@@ -365,7 +366,7 @@ export default function App(){
       )}
 
       {/* DATE NAV */}
-      {!showSettings&&(
+      {!showSettings&&view!=="logbook"&&(
         <div style={{display:"flex",justifyContent:"center",gap:10,padding:"12px 16px",background:"var(--card)",borderBottom:"1px solid var(--border-mid)"}}>
           <NavBtn onClick={()=>go(view==="week"?-7:-1)}>◀</NavBtn>
           <button onClick={()=>setDate(new Date())} style={{
@@ -401,6 +402,9 @@ export default function App(){
 
       {/* STATS VIEW */}
       {view==="stats"&&!showSettings&&<StatsView routines={routines} allDays={allDays} areaStyles={areaStyles}/>}
+
+      {/* LOGBOOK VIEW */}
+      {view==="logbook"&&!showSettings&&<LogbookView/>}
     </div>
   );
 }
