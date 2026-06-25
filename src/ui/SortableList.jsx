@@ -292,104 +292,181 @@ function EditCalTplRow({ t, onSave, onCancel }) {
   );
 }
 
+const BTN = {
+  edit: {
+    background: "var(--card2)",
+    border: "1px solid var(--border)",
+    color: "var(--text)",
+    fontSize: 12,
+    fontWeight: 600,
+    padding: "6px 10px",
+    borderRadius: 6,
+  },
+  danger: {
+    background: "var(--danger-bg)",
+    border: "1px solid var(--danger-border)",
+    color: "#dc2626",
+    fontSize: 12,
+    fontWeight: 600,
+    padding: "6px 10px",
+    borderRadius: 6,
+  },
+  primary: {
+    background: "#7c3aed",
+    color: "white",
+    fontSize: 11,
+    fontWeight: 600,
+    padding: "6px 10px",
+    borderRadius: 6,
+    border: "none",
+  },
+  success: {
+    background: "#059669",
+    color: "white",
+    fontSize: 11,
+    fontWeight: 600,
+    padding: "6px 10px",
+    borderRadius: 6,
+    border: "none",
+  },
+};
+
 export function SortableTemplateList({ items, onReorder, onDelete, onEdit }) {
   const { ref, dragId, onHandleDown } = useSortable(onReorder);
   const [editingId, setEditingId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
   if (items.length === 0) return null;
   return (
     <div ref={ref}>
       {items.map((t) => {
         const isEditing = editingId === t.id;
+        const isExpanded = expandedId === t.id;
         return (
           <div
             key={t.id}
             data-srow="1"
             data-sid={t.id}
             style={{
-              display: "flex",
-              alignItems: isEditing ? "flex-start" : "center",
-              gap: 8,
-              padding: "8px 10px",
               borderRadius: 8,
               background: isEditing ? "var(--card2)" : "var(--card)",
               borderLeft: `3px solid ${t.color}`,
               marginBottom: 4,
               boxShadow: "0 1px 2px var(--shadow)",
+              overflow: "hidden",
             }}
             className={dragId === t.id ? "dragging" : ""}
           >
-            <DragHandle
-              onPointerDown={(e) => onHandleDown(e, items.indexOf(t), t.id)}
-            />
             {isEditing ? (
-              <EditCalTplRow
-                t={t}
-                onSave={(updated) => {
-                  onEdit(updated);
-                  setEditingId(null);
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 8,
+                  padding: "8px 10px",
                 }}
-                onCancel={() => setEditingId(null)}
-              />
+              >
+                <DragHandle
+                  onPointerDown={(e) => onHandleDown(e, items.indexOf(t), t.id)}
+                />
+                <EditCalTplRow
+                  t={t}
+                  onSave={(updated) => {
+                    onEdit(updated);
+                    setEditingId(null);
+                    setExpandedId(null);
+                  }}
+                  onCancel={() => setEditingId(null)}
+                />
+              </div>
             ) : (
               <>
-                <span style={{ fontSize: 15 }}>{t.icon}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "var(--text)",
-                    }}
-                  >
-                    {t.title}
-                  </div>
-                  {t.desc && (
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: "var(--text-muted)",
-                        marginTop: 1,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {t.desc}
-                    </div>
-                  )}
-                </div>
                 <div
                   style={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: 6,
-                    background: t.color,
-                    flexShrink: 0,
-                  }}
-                />
-                <button
-                  onClick={() => setEditingId(t.id)}
-                  style={{
-                    fontSize: 12,
-                    background: "var(--card2)",
-                    border: "1px solid var(--border)",
-                    padding: "4px 6px",
-                    borderRadius: 5,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "8px 10px",
                   }}
                 >
-                  ✏️
-                </button>
-                <button
-                  onClick={() => onDelete(t.id)}
-                  style={{
-                    fontSize: 12,
-                    background: "var(--danger-bg)",
-                    padding: "4px 6px",
-                    borderRadius: 5,
-                  }}
-                >
-                  🗑️
-                </button>
+                  <DragHandle
+                    onPointerDown={(e) =>
+                      onHandleDown(e, items.indexOf(t), t.id)
+                    }
+                  />
+                  <span style={{ fontSize: 15 }}>{t.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "var(--text)",
+                      }}
+                    >
+                      {t.title}
+                    </div>
+                    {t.desc && (
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "var(--text-muted)",
+                          marginTop: 1,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {t.desc}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: 6,
+                      background: t.color,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <button
+                    onClick={() => setExpandedId(isExpanded ? null : t.id)}
+                    style={{
+                      fontSize: 16,
+                      background: isExpanded ? "var(--sel-bg)" : "var(--card2)",
+                      border: "1px solid var(--border)",
+                      padding: "4px 9px",
+                      borderRadius: 6,
+                      color: "var(--text-muted)",
+                      lineHeight: 1,
+                    }}
+                  >
+                    ⋯
+                  </button>
+                </div>
+                {isExpanded && (
+                  <div
+                    style={{ display: "flex", gap: 6, padding: "0 10px 10px" }}
+                  >
+                    <button
+                      onClick={() => {
+                        setEditingId(t.id);
+                        setExpandedId(null);
+                      }}
+                      style={{ ...BTN.edit, flex: 1 }}
+                    >
+                      ✏️ Bewerken
+                    </button>
+                    <button
+                      onClick={() => {
+                        onDelete(t.id);
+                        setExpandedId(null);
+                      }}
+                      style={BTN.danger}
+                    >
+                      🗑️ Verwijderen
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -410,11 +487,13 @@ export function SortableWeekTplList({
   const { ref, dragId, onHandleDown } = useSortable(onReorder);
   const [editingId, setEditingId] = useState(null);
   const [draftName, setDraftName] = useState("");
+  const [expandedId, setExpandedId] = useState(null);
   if (items.length === 0) return null;
   return (
     <div ref={ref}>
       {items.map((tpl) => {
         const isEditing = editingId === tpl.id;
+        const isExpanded = expandedId === tpl.id;
         return (
           <div
             key={tpl.id}
@@ -423,10 +502,10 @@ export function SortableWeekTplList({
             style={{
               background: "var(--card)",
               borderRadius: 8,
-              padding: "10px 12px",
               marginBottom: 6,
               boxShadow: "0 1px 2px var(--shadow)",
               border: "1px solid var(--border)",
+              overflow: "hidden",
             }}
             className={dragId === tpl.id ? "dragging" : ""}
           >
@@ -435,7 +514,7 @@ export function SortableWeekTplList({
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                marginBottom: 4,
+                padding: "10px 12px",
               }}
             >
               <DragHandle
@@ -452,12 +531,9 @@ export function SortableWeekTplList({
                     autoFocus
                     onChange={(e) => setDraftName(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        if (draftName.trim()) {
-                          onRename(tpl.id, draftName.trim());
-                          setEditingId(null);
-                        }
+                      if (e.key === "Enter" && draftName.trim()) {
+                        onRename(tpl.id, draftName.trim());
+                        setEditingId(null);
                       }
                     }}
                     style={{
@@ -483,7 +559,6 @@ export function SortableWeekTplList({
                       padding: "3px 6px",
                       borderRadius: 4,
                       fontWeight: 600,
-                      flexShrink: 0,
                     }}
                   >
                     ✓
@@ -496,7 +571,6 @@ export function SortableWeekTplList({
                       background: "var(--input-bg)",
                       padding: "3px 6px",
                       borderRadius: 4,
-                      flexShrink: 0,
                     }}
                   >
                     ✕
@@ -518,64 +592,65 @@ export function SortableWeekTplList({
                     {tpl.events.length} events
                   </span>
                   <button
-                    onClick={() => {
-                      setDraftName(tpl.name);
-                      setEditingId(tpl.id);
-                    }}
+                    onClick={() => setExpandedId(isExpanded ? null : tpl.id)}
                     style={{
-                      fontSize: 12,
-                      background: "var(--card2)",
+                      fontSize: 16,
+                      background: isExpanded ? "var(--sel-bg)" : "var(--card2)",
                       border: "1px solid var(--border)",
-                      padding: "4px 6px",
-                      borderRadius: 5,
+                      padding: "4px 9px",
+                      borderRadius: 6,
+                      color: "var(--text-muted)",
+                      lineHeight: 1,
                     }}
                   >
-                    ✏️
+                    ⋯
                   </button>
                 </>
               )}
             </div>
-            {!isEditing && (
-              <div style={{ display: "flex", gap: 6 }}>
+            {isExpanded && !isEditing && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: 6,
+                  padding: "0 12px 10px",
+                  flexWrap: "wrap",
+                }}
+              >
                 <button
-                  onClick={() => onLoad(tpl)}
-                  style={{
-                    flex: 1,
-                    padding: "6px 8px",
-                    borderRadius: 6,
-                    background: "#7c3aed",
-                    color: "white",
-                    fontSize: 11,
-                    fontWeight: 600,
+                  onClick={() => {
+                    onLoad(tpl);
+                    setExpandedId(null);
                   }}
+                  style={{ ...BTN.primary, flex: 1 }}
                 >
                   ➕ Toevoegen
                 </button>
                 <button
-                  onClick={() => onReplace(tpl)}
-                  style={{
-                    flex: 1,
-                    padding: "6px 8px",
-                    borderRadius: 6,
-                    background: "#059669",
-                    color: "white",
-                    fontSize: 11,
-                    fontWeight: 600,
+                  onClick={() => {
+                    onReplace(tpl);
+                    setExpandedId(null);
                   }}
+                  style={{ ...BTN.success, flex: 1 }}
                 >
                   🔄 Vervangen
                 </button>
                 <button
-                  onClick={() => onDelete(tpl)}
-                  style={{
-                    padding: "6px 8px",
-                    borderRadius: 6,
-                    background: "var(--danger-bg)",
-                    border: "1px solid var(--danger-border)",
-                    color: "#dc2626",
-                    fontSize: 11,
-                    fontWeight: 600,
+                  onClick={() => {
+                    setDraftName(tpl.name);
+                    setEditingId(tpl.id);
+                    setExpandedId(null);
                   }}
+                  style={BTN.edit}
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={() => {
+                    onDelete(tpl);
+                    setExpandedId(null);
+                  }}
+                  style={BTN.danger}
                 >
                   🗑️
                 </button>
@@ -600,10 +675,12 @@ export function SortableRoutineList({
   areaNames,
 }) {
   const { ref, dragId, onHandleDown } = useSortable(onReorder);
+  const [expandedId, setExpandedId] = useState(null);
   return (
     <div ref={ref}>
       {items.map((r) => {
         const isEditing = editingId === r.id;
+        const isExpanded = expandedId === r.id;
         const a = (areaStyles && areaStyles[r.area]) || FALLBACK_AREA_STYLE;
         return (
           <div
@@ -611,93 +688,125 @@ export function SortableRoutineList({
             data-srow="1"
             data-sid={r.id}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "8px 10px",
               borderRadius: 8,
               background: isEditing ? "var(--card2)" : "var(--card)",
               borderLeft: `3px solid ${a.border}`,
               marginBottom: 3,
               boxShadow: "0 1px 2px var(--shadow)",
+              overflow: "hidden",
             }}
             className={dragId === r.id ? "dragging" : ""}
           >
             {isEditing ? (
-              <EditRow
-                r={r}
-                period={period}
-                onSave={onSave}
-                onCancel={() => setEditingId(null)}
-                areaNames={areaNames}
-              />
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "8px 10px",
+                }}
+              >
+                <EditRow
+                  r={r}
+                  period={period}
+                  onSave={onSave}
+                  onCancel={() => setEditingId(null)}
+                  areaNames={areaNames}
+                />
+              </div>
             ) : (
               <>
-                <DragHandle
-                  onPointerDown={(e) => onHandleDown(e, items.indexOf(r), r.id)}
-                />
-                <span style={{ fontSize: 14 }}>{r.icon}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 500,
-                      color: "var(--text)",
-                    }}
-                  >
-                    {r.name}
-                  </div>
-                  {r.desc && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "8px 10px",
+                  }}
+                >
+                  <DragHandle
+                    onPointerDown={(e) =>
+                      onHandleDown(e, items.indexOf(r), r.id)
+                    }
+                  />
+                  <span style={{ fontSize: 14 }}>{r.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
-                        fontSize: 10,
-                        color: "var(--text-muted)",
-                        marginTop: 1,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: "var(--text)",
                       }}
                     >
-                      {r.desc}
+                      {r.name}
                     </div>
-                  )}
+                    {r.desc && (
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "var(--text-muted)",
+                          marginTop: 1,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {r.desc}
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      padding: "1px 6px",
+                      borderRadius: 99,
+                      background: a.tag,
+                      color: a.text,
+                      fontWeight: 600,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {r.area}
+                  </span>
+                  <button
+                    onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                    style={{
+                      fontSize: 16,
+                      background: isExpanded ? "var(--sel-bg)" : "var(--card2)",
+                      border: "1px solid var(--border)",
+                      padding: "4px 9px",
+                      borderRadius: 6,
+                      color: "var(--text-muted)",
+                      lineHeight: 1,
+                    }}
+                  >
+                    ⋯
+                  </button>
                 </div>
-                <span
-                  style={{
-                    fontSize: 9,
-                    padding: "1px 6px",
-                    borderRadius: 99,
-                    background: a.tag,
-                    color: a.text,
-                    fontWeight: 600,
-                    flexShrink: 0,
-                  }}
-                >
-                  {r.area}
-                </span>
-                <button
-                  onClick={() => setEditingId(r.id)}
-                  style={{
-                    fontSize: 12,
-                    background: "var(--card2)",
-                    border: "1px solid var(--border)",
-                    padding: "4px 6px",
-                    borderRadius: 5,
-                  }}
-                >
-                  ✏️
-                </button>
-                <button
-                  onClick={() => onDelete(period, r.id)}
-                  style={{
-                    fontSize: 12,
-                    background: "var(--danger-bg)",
-                    padding: "4px 6px",
-                    borderRadius: 5,
-                  }}
-                >
-                  🗑️
-                </button>
+                {isExpanded && (
+                  <div
+                    style={{ display: "flex", gap: 6, padding: "0 10px 8px" }}
+                  >
+                    <button
+                      onClick={() => {
+                        setEditingId(r.id);
+                        setExpandedId(null);
+                      }}
+                      style={{ ...BTN.edit, flex: 1 }}
+                    >
+                      ✏️ Bewerken
+                    </button>
+                    <button
+                      onClick={() => {
+                        onDelete(period, r.id);
+                        setExpandedId(null);
+                      }}
+                      style={BTN.danger}
+                    >
+                      🗑️ Verwijderen
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>

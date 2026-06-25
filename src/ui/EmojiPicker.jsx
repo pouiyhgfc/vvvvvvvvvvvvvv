@@ -10,7 +10,10 @@ export default function EmojiPicker({
   const [q, setQ] = useState("");
   const [cat, setCat] = useState(0);
   const query = q.trim().toLowerCase();
+
   let emojis;
+  const catLabels = !query ? (EMOJI_CATEGORIES[cat]?.labels ?? null) : null;
+
   if (query) {
     const hits = EMOJI_CATEGORIES.filter((c) =>
       (c.name + " " + c.kw).toLowerCase().includes(query),
@@ -20,6 +23,7 @@ export default function EmojiPicker({
   } else {
     emojis = EMOJI_CATEGORIES[cat].emojis;
   }
+
   return (
     <div
       style={{
@@ -89,27 +93,46 @@ export default function EmojiPicker({
           padding: 2,
         }}
       >
-        {emojis.map((e, idx) => (
-          <button
-            key={e + idx}
-            onClick={() => onPick(e)}
-            style={{
-              width: size,
-              height: size,
-              borderRadius: 6,
-              border:
-                value === e ? "2px solid #059669" : "1px solid var(--border)",
-              background: value === e ? "var(--sel-bg)" : "var(--card)",
-              fontSize: size * 0.5,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            {e}
-          </button>
-        ))}
+        {emojis.map((e, idx) => {
+          const label = catLabels ? (catLabels[idx] ?? null) : null;
+          return (
+            <button
+              key={e + idx}
+              onClick={() => onPick(e)}
+              style={{
+                minWidth: label ? 46 : size,
+                width: label ? "auto" : size,
+                height: size,
+                borderRadius: 6,
+                border:
+                  value === e ? "2px solid #059669" : "1px solid var(--border)",
+                background: value === e ? "var(--sel-bg)" : "var(--card)",
+                fontSize: label ? size * 0.42 : size * 0.5,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                gap: 1,
+                padding: label ? "2px 5px" : 0,
+              }}
+            >
+              {label && (
+                <span
+                  style={{
+                    fontSize: 7,
+                    fontWeight: 700,
+                    color: "var(--text-muted)",
+                    lineHeight: 1,
+                  }}
+                >
+                  {label}
+                </span>
+              )}
+              {e}
+            </button>
+          );
+        })}
         {emojis.length === 0 && (
           <div style={{ fontSize: 11, color: "var(--text-faint)", padding: 8 }}>
             Niets gevonden.
