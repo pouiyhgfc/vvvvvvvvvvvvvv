@@ -383,7 +383,7 @@ export default function WeekView({
                   style={{
                     padding: "4px 8px",
                     borderRadius: 5,
-                    background: "#059669",
+                    background: "var(--accent)",
                     color: "white",
                     fontSize: 10,
                     fontWeight: 600,
@@ -446,7 +446,7 @@ export default function WeekView({
                       height: 24,
                       borderRadius: 12,
                       margin: "3px auto 0",
-                      background: today ? "#059669" : "transparent",
+                      background: today ? "var(--accent)" : "transparent",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",

@@ -73,7 +73,9 @@ export default function EmojiPicker({
                 borderRadius: 99,
                 whiteSpace: "nowrap",
                 border:
-                  cat === i ? "1.5px solid #059669" : "1px solid var(--border)",
+                  cat === i
+                    ? "1.5px solid var(--accent)"
+                    : "1px solid var(--border)",
                 background: cat === i ? "var(--sel-bg)" : "var(--card)",
                 color: cat === i ? "var(--accent-text)" : "var(--text-muted)",
               }}
@@ -105,7 +107,9 @@ export default function EmojiPicker({
                 height: size,
                 borderRadius: 6,
                 border:
-                  value === e ? "2px solid #059669" : "1px solid var(--border)",
+                  value === e
+                    ? "2px solid var(--accent)"
+                    : "1px solid var(--border)",
                 background: value === e ? "var(--sel-bg)" : "var(--card)",
                 fontSize: label ? size * 0.42 : size * 0.5,
                 display: "flex",

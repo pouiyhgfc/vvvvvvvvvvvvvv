@@ -243,7 +243,7 @@ export default function EventModal({
               fontSize: 13,
               outline: "none",
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#059669")}
+            onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
             onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
           />
         </div>
@@ -292,7 +292,7 @@ export default function EventModal({
               resize: "vertical",
               lineHeight: 1.5,
             }}
-            onFocus={(e) => (e.target.style.borderColor = "#059669")}
+            onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
             onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
           />
         </div>
@@ -391,7 +391,7 @@ export default function EventModal({
                 fontWeight: 600,
                 border:
                   curDur === m
-                    ? "2px solid #059669"
+                    ? "2px solid var(--accent)"
                     : "1.5px solid var(--border)",
                 background: curDur === m ? "var(--sel-bg)" : "var(--card)",
                 color:
@@ -432,7 +432,7 @@ export default function EventModal({
                   fontWeight: 600,
                   border:
                     repeat === v
-                      ? "2px solid #059669"
+                      ? "2px solid var(--accent)"
                       : "1.5px solid var(--border)",
                   background: repeat === v ? "var(--sel-bg)" : "var(--card)",
                   color:
@@ -573,7 +573,7 @@ export default function EventModal({
               flex: 1,
               padding: "11px",
               borderRadius: 9,
-              background: "#059669",
+              background: "var(--accent)",
               color: "white",
               fontSize: 14,
               fontWeight: 700,

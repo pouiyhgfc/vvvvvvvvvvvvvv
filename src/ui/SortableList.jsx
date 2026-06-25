@@ -64,7 +64,7 @@ function EditRow({ r, period, onSave, onCancel, areaNames }) {
         onClick={() => onSave(period, r.id, name, icon, area, desc)}
         style={{
           fontSize: 10,
-          color: "#059669",
+          color: "var(--accent)",
           background: "var(--sel-bg)",
           padding: "3px 6px",
           borderRadius: 4,
@@ -173,7 +173,7 @@ function EditCalTplRow({ t, onSave, onCancel }) {
           onClick={save}
           style={{
             fontSize: 10,
-            color: "#059669",
+            color: "var(--accent)",
             background: "var(--sel-bg)",
             padding: "3px 6px",
             borderRadius: 4,
@@ -321,7 +321,7 @@ const BTN = {
     border: "none",
   },
   success: {
-    background: "#059669",
+    background: "var(--accent)",
     color: "white",
     fontSize: 11,
     fontWeight: 600,
@@ -591,7 +591,7 @@ export function SortableWeekTplList({
                     }}
                     style={{
                       fontSize: 10,
-                      color: "#059669",
+                      color: "var(--accent)",
                       background: "var(--sel-bg)",
                       padding: "3px 6px",
                       borderRadius: 4,

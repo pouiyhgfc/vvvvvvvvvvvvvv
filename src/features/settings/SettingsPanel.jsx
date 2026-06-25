@@ -430,7 +430,7 @@ export default function SettingsPanel({
               fontSize: 11,
               padding: "3px 10px",
               borderRadius: 6,
-              background: "#059669",
+              background: "var(--accent)",
               color: "white",
               fontWeight: 600,
             }}
@@ -568,7 +568,7 @@ export default function SettingsPanel({
               style={{
                 padding: "8px",
                 borderRadius: 7,
-                background: "#059669",
+                background: "var(--accent)",
                 color: "white",
                 fontSize: 12,
                 fontWeight: 600,
@@ -702,7 +702,7 @@ export default function SettingsPanel({
               fontSize: 11,
               padding: "3px 10px",
               borderRadius: 6,
-              background: calTplForm ? "#dc2626" : "#059669",
+              background: calTplForm ? "#dc2626" : "var(--accent)",
               color: "white",
               fontWeight: 600,
             }}
@@ -897,7 +897,7 @@ export default function SettingsPanel({
                 width: "100%",
                 padding: "8px",
                 borderRadius: 8,
-                background: "#059669",
+                background: "var(--accent)",
                 color: "white",
                 fontWeight: 600,
                 fontSize: 13,
@@ -972,7 +972,7 @@ export default function SettingsPanel({
               fontSize: 11,
               padding: "3px 10px",
               borderRadius: 6,
-              background: savingWeekTpl ? "#dc2626" : "#059669",
+              background: savingWeekTpl ? "#dc2626" : "var(--accent)",
               color: "white",
               fontWeight: 600,
             }}
@@ -1070,7 +1070,7 @@ export default function SettingsPanel({
                 width: "100%",
                 padding: "8px",
                 borderRadius: 8,
-                background: "#059669",
+                background: "var(--accent)",
                 color: "white",
                 fontWeight: 600,
                 fontSize: 13,
@@ -1238,7 +1238,8 @@ export default function SettingsPanel({
                     fontSize: 11,
                     padding: "3px 10px",
                     borderRadius: 6,
-                    background: addingTo === period ? "#dc2626" : "#059669",
+                    background:
+                      addingTo === period ? "#dc2626" : "var(--accent)",
                     color: "white",
                     fontWeight: 600,
                   }}
@@ -1343,7 +1344,7 @@ export default function SettingsPanel({
                           width: "100%",
                           padding: "8px",
                           borderRadius: 8,
-                          background: "#059669",
+                          background: "var(--accent)",
                           color: "white",
                           fontWeight: 600,
                           fontSize: 13,
