@@ -53,12 +53,17 @@ export function eventsOnDate(events, d) {
 // Template events keep their original `repeat` field, so recurring events
 // stay recurring after loading. Use dayOffset (0-6) to shift dates to the
 // target week. Each loaded event gets a fresh id to avoid collisions.
+// Old backups store events with `date` instead of `dayOffset` — derive
+// the offset from the weekday so events land on the right day.
 export function applyWeekTemplate(tpl, targetMonday) {
   return tpl.events.map((ev) => {
     const d = new Date(targetMonday);
-    d.setDate(
-      targetMonday.getDate() + Math.max(0, Math.min(6, ev.dayOffset || 0)),
-    );
+    let offset = ev.dayOffset;
+    if (offset === undefined && ev.date) {
+      const wd = new Date(ev.date + "T00:00").getDay();
+      offset = wd === 0 ? 6 : wd - 1;
+    }
+    d.setDate(targetMonday.getDate() + Math.max(0, Math.min(6, offset ?? 0)));
     return { ...ev, id: uid(), date: dk(d) };
   });
 }
