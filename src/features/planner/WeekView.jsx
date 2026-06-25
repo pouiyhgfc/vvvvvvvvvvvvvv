@@ -17,6 +17,7 @@ import {
   CAL_END_H,
 } from "../../lib/constants.js";
 import EventModal from "./EventModal.jsx";
+import Emoji from "../../ui/Emoji.jsx";
 
 // Assign a column slot to each event so overlapping events sit side by side.
 // Returns Map<id, {col, totalCols}>.
@@ -611,7 +612,11 @@ export default function WeekView({
                               alignItems: "center",
                             }}
                           >
-                            <span style={{ flexShrink: 0 }}>{ev.icon}</span>
+                            <Emoji
+                              char={ev.icon}
+                              size={12}
+                              style={{ flexShrink: 0 }}
+                            />
                             <span
                               style={{
                                 overflow: "hidden",

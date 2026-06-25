@@ -19,6 +19,7 @@ import StatsView from "./features/stats/StatsView.jsx";
 import SettingsPanel from "./features/settings/SettingsPanel.jsx";
 import LogbookView from "./features/logbook/LogbookView.jsx";
 import ToastHost from "./ui/Toast.jsx";
+import Emoji from "./ui/Emoji.jsx";
 
 export default function App() {
   // --- Dexie reactive queries ---
@@ -517,7 +518,7 @@ export default function App() {
                 fontSize: 20,
               }}
             >
-              📋
+              <Emoji char="📋" size={22} />
             </div>
             <div>
               <h1
@@ -585,7 +586,7 @@ export default function App() {
                   transition: "all .2s",
                 }}
               >
-                {ic}
+                <Emoji char={ic} size={16} />
               </button>
             ))}
           </div>

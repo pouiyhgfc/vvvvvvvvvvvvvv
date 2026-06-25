@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">
+  <!-- Tifinagh yaz (ⵣ) — Amazigh "vrije mens". Niet in Twemoji, dus handgemaakt. -->
+  <g fill="none" stroke="#2d9b3f" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="18" cy="7" r="3.2" fill="#2d9b3f" stroke="none"/>
+    <line x1="18" y1="11" x2="18" y2="27"/>
+    <line x1="18" y1="15" x2="9.5" y2="9.5"/>
+    <line x1="18" y1="15" x2="26.5" y2="9.5"/>
+    <line x1="18" y1="27" x2="9.5" y2="32"/>
+    <line x1="18" y1="27" x2="26.5" y2="32"/>
+  </g>
+</svg>

@@ -1,5 +1,6 @@
 import { dk } from "../../lib/date.js";
 import { DAYS_NL, FALLBACK_AREA_STYLE } from "../../lib/constants.js";
+import Emoji from "../../ui/Emoji.jsx";
 
 export default function StatsView({ routines, allDays, areaStyles }) {
   const entries = Object.entries(allDays).filter(([, v]) => v?.checked);
@@ -219,7 +220,7 @@ export default function StatsView({ routines, allDays, areaStyles }) {
                 borderBottom: i < 4 ? "1px solid var(--border-soft)" : "none",
               }}
             >
-              <span style={{ fontSize: 13 }}>{r.icon}</span>
+              <Emoji char={r.icon} size={15} />
               <span style={{ flex: 1, fontSize: 11, color: "var(--text)" }}>
                 {r.name}
               </span>
@@ -241,7 +242,9 @@ export default function StatsView({ routines, allDays, areaStyles }) {
             boxShadow: "0 1px 3px var(--shadow)",
           }}
         >
-          <div style={{ fontSize: 24, marginBottom: 2 }}>📅</div>
+          <div style={{ marginBottom: 2 }}>
+            <Emoji char="📅" size={24} />
+          </div>
           <div
             style={{
               fontSize: 20,
@@ -265,7 +268,9 @@ export default function StatsView({ routines, allDays, areaStyles }) {
             boxShadow: "0 1px 3px var(--shadow)",
           }}
         >
-          <div style={{ fontSize: 24, marginBottom: 2 }}>🏆</div>
+          <div style={{ marginBottom: 2 }}>
+            <Emoji char="🏆" size={24} />
+          </div>
           <div
             style={{
               fontSize: 20,

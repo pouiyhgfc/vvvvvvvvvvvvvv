@@ -5,6 +5,7 @@ import {
   FALLBACK_AREA_STYLE,
 } from "../../lib/constants.js";
 import Ring from "../../ui/Ring.jsx";
+import Emoji from "../../ui/Emoji.jsx";
 
 export default function TrackerView({
   day,
@@ -95,7 +96,7 @@ export default function TrackerView({
               marginTop: 1,
             }}
           >
-            <span style={{ fontSize: 16 }}>🔥</span>
+            <Emoji char="🔥" size={16} />
             <span
               style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)" }}
             >
@@ -195,7 +196,7 @@ export default function TrackerView({
                   </span>
                 )}
               </div>
-              <span style={{ fontSize: 15, flexShrink: 0 }}>{r.icon}</span>
+              <Emoji char={r.icon} size={18} style={{ flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
                   style={{
@@ -306,7 +307,7 @@ export default function TrackerView({
                   transition: "all .15s",
                 }}
               >
-                <span style={{ fontSize: 16 }}>{m.emoji}</span>
+                <Emoji char={m.emoji} size={18} />
                 <span
                   style={{
                     fontSize: 8,

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { EMOJI_CATEGORIES } from "../lib/constants.js";
+import Emoji from "./Emoji.jsx";
 
 export default function EmojiPicker({
   value,
@@ -12,14 +13,15 @@ export default function EmojiPicker({
   const query = q.trim().toLowerCase();
 
   let emojis;
-  const catLabels = !query ? (EMOJI_CATEGORIES[cat]?.labels ?? null) : null;
-
   if (query) {
     const hits = EMOJI_CATEGORIES.filter((c) =>
       (c.name + " " + c.kw).toLowerCase().includes(query),
     );
-    emojis = (hits.length ? hits : EMOJI_CATEGORIES).flatMap((c) => c.emojis);
-    emojis = [...new Set(emojis)];
+    emojis = [
+      ...new Set(
+        (hits.length ? hits : EMOJI_CATEGORIES).flatMap((c) => c.emojis),
+      ),
+    ];
   } else {
     emojis = EMOJI_CATEGORIES[cat].emojis;
   }
@@ -47,6 +49,7 @@ export default function EmojiPicker({
           outline: "none",
           marginBottom: 6,
           background: "var(--input-bg)",
+          color: "var(--text)",
         }}
       />
       {!query && (
@@ -72,6 +75,9 @@ export default function EmojiPicker({
                 padding: "4px 9px",
                 borderRadius: 99,
                 whiteSpace: "nowrap",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
                 border:
                   cat === i
                     ? "1.5px solid var(--accent)"
@@ -80,7 +86,8 @@ export default function EmojiPicker({
                 color: cat === i ? "var(--accent-text)" : "var(--text-muted)",
               }}
             >
-              {c.name} {c.emojis[0]}
+              {c.name}
+              <Emoji char={c.emojis[0]} size={12} />
             </button>
           ))}
         </div>
@@ -95,48 +102,29 @@ export default function EmojiPicker({
           padding: 2,
         }}
       >
-        {emojis.map((e, idx) => {
-          const label = catLabels ? (catLabels[idx] ?? null) : null;
-          return (
-            <button
-              key={e + idx}
-              onClick={() => onPick(e)}
-              style={{
-                minWidth: label ? 46 : size,
-                width: label ? "auto" : size,
-                height: size,
-                borderRadius: 6,
-                border:
-                  value === e
-                    ? "2px solid var(--accent)"
-                    : "1px solid var(--border)",
-                background: value === e ? "var(--sel-bg)" : "var(--card)",
-                fontSize: label ? size * 0.42 : size * 0.5,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                gap: 1,
-                padding: label ? "2px 5px" : 0,
-              }}
-            >
-              {label && (
-                <span
-                  style={{
-                    fontSize: 7,
-                    fontWeight: 700,
-                    color: "var(--text-muted)",
-                    lineHeight: 1,
-                  }}
-                >
-                  {label}
-                </span>
-              )}
-              {e}
-            </button>
-          );
-        })}
+        {emojis.map((e, idx) => (
+          <button
+            key={e + idx}
+            onClick={() => onPick(e)}
+            style={{
+              width: size,
+              height: size,
+              borderRadius: 6,
+              border:
+                value === e
+                  ? "2px solid var(--accent)"
+                  : "1px solid var(--border)",
+              background: value === e ? "var(--sel-bg)" : "var(--card)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              padding: 0,
+            }}
+          >
+            <Emoji char={e} size={Math.round(size * 0.62)} />
+          </button>
+        ))}
         {emojis.length === 0 && (
           <div style={{ fontSize: 11, color: "var(--text-faint)", padding: 8 }}>
             Niets gevonden.
