@@ -645,6 +645,7 @@ export default function App() {
         <TrackerView
           day={day}
           saveDay={saveDay}
+          dateKey={key}
           routines={routines}
           tab={tab}
           setTab={setTab}

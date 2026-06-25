@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   PERIOD_LABELS,
   PERIOD_COLORS,
@@ -6,6 +7,55 @@ import {
 } from "../../lib/constants.js";
 import Ring from "../../ui/Ring.jsx";
 import Emoji from "../../ui/Emoji.jsx";
+
+// Eigen lokale state, zodat de cursor niet wegspringt en autocorrect niet
+// dubbelt door de async DB-round-trip. Remount per dag via key={dateKey}.
+function NotesField({ initial, onSave }) {
+  const [text, setText] = useState(initial || "");
+  return (
+    <>
+      <textarea
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          onSave(e.target.value);
+        }}
+        placeholder={
+          "Hoe was je dag?\nWat ging goed? Wat kan beter?\nWaar ben je dankbaar voor?"
+        }
+        rows={4}
+        style={{
+          width: "100%",
+          padding: "12px 14px",
+          borderRadius: 10,
+          border: "1.5px solid var(--border)",
+          fontSize: 13,
+          lineHeight: 1.6,
+          outline: "none",
+          background: "var(--input-bg)",
+          resize: "vertical",
+          minHeight: 90,
+          transition: "border-color .2s",
+          color: "var(--text)",
+        }}
+        onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+        onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
+      />
+      {text && (
+        <div
+          style={{
+            marginTop: 6,
+            fontSize: 10,
+            color: "var(--text-faint)",
+            textAlign: "right",
+          }}
+        >
+          {text.length} tekens
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function TrackerView({
   day,
@@ -21,6 +71,7 @@ export default function TrackerView({
   toggle,
   areaStyles,
   streak,
+  dateKey,
 }) {
   return (
     <div style={{ animation: "fadeUp .3s ease" }}>
@@ -348,42 +399,11 @@ export default function TrackerView({
           >
             📝 Notities & Reflecties
           </label>
-          <textarea
-            value={day.notes || ""}
-            onChange={(e) => saveDay({ ...day, notes: e.target.value })}
-            placeholder={
-              "Hoe was je dag?\nWat ging goed? Wat kan beter?\nWaar ben je dankbaar voor?"
-            }
-            rows={4}
-            style={{
-              width: "100%",
-              padding: "12px 14px",
-              borderRadius: 10,
-              border: "1.5px solid var(--border)",
-              fontSize: 13,
-              lineHeight: 1.6,
-              outline: "none",
-              background: "var(--input-bg)",
-              resize: "vertical",
-              minHeight: 90,
-              transition: "border-color .2s",
-              color: "var(--text)",
-            }}
-            onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-            onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
+          <NotesField
+            key={dateKey}
+            initial={day.notes}
+            onSave={(v) => saveDay({ ...day, notes: v })}
           />
-          {day.notes && (
-            <div
-              style={{
-                marginTop: 6,
-                fontSize: 10,
-                color: "var(--text-faint)",
-                textAlign: "right",
-              }}
-            >
-              {day.notes.length} tekens
-            </div>
-          )}
         </div>
       </div>
     </div>

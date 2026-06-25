@@ -609,19 +609,21 @@ export default function WeekView({
                               lineHeight: 1.2,
                               display: "flex",
                               gap: 2,
-                              alignItems: "center",
+                              alignItems: "flex-start",
                             }}
                           >
                             <Emoji
                               char={ev.icon}
                               size={12}
-                              style={{ flexShrink: 0 }}
+                              style={{ flexShrink: 0, marginTop: 1 }}
                             />
                             <span
                               style={{
                                 overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 3,
+                                WebkitBoxOrient: "vertical",
+                                overflowWrap: "anywhere",
                               }}
                             >
                               {ev.title}
@@ -650,15 +652,18 @@ export default function WeekView({
                               {ev.startTime}–{ev.endTime}
                             </div>
                           )}
-                          {height > 54 && ev.desc && (
+                          {height > 46 && ev.desc && (
                             <div
                               style={{
                                 fontSize: 8,
                                 color: "var(--text-muted)",
                                 marginTop: 1,
+                                lineHeight: 1.25,
                                 overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflowWrap: "anywhere",
                               }}
                             >
                               {ev.desc}

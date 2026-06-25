@@ -1,8 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 // Gedeelde bottom-sheet modal (de weekplanner-popup, veralgemeniseerd).
 // Sluit op backdrop-klik en Escape; vergrendelt de achtergrond-scroll.
 export default function Sheet({ title, subtitle, onClose, children, footer }) {
+  // Negeer een "spook"-klik (touch genereert ~300ms later nog een klik die
+  // anders op de backdrop landt en de net-geopende sheet meteen sluit).
+  const openedAt = useRef(null);
+  useEffect(() => {
+    openedAt.current = Date.now();
+  }, []);
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onClose();
@@ -28,7 +34,12 @@ export default function Sheet({ title, subtitle, onClose, children, footer }) {
         justifyContent: "center",
       }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (
+          e.target === e.currentTarget &&
+          openedAt.current &&
+          Date.now() - openedAt.current > 400
+        )
+          onClose();
       }}
     >
       <div

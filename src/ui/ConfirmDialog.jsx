@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Button from "./Button.jsx";
 
 // Gecentreerd bevestig-dialoog. Vervangt native confirm().
@@ -14,6 +14,10 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }) {
+  const openedAt = useRef(null);
+  useEffect(() => {
+    openedAt.current = Date.now();
+  }, []);
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onCancel();
@@ -35,7 +39,12 @@ export default function ConfirmDialog({
         padding: 20,
       }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onCancel();
+        if (
+          e.target === e.currentTarget &&
+          openedAt.current &&
+          Date.now() - openedAt.current > 400
+        )
+          onCancel();
       }}
     >
       <div
