@@ -2,21 +2,37 @@ import { useState, useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { uid, dk } from "../../lib/date.js";
-import { DAYS_NL, MONTHS_NL, MOODS } from "../../lib/constants.js";
+import {
+  DAYS_NL,
+  MONTHS_NL,
+  MOODS,
+  DEFAULT_NOTEBOOKS,
+} from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
 import Emoji from "../../ui/Emoji.jsx";
 import Button from "../../ui/Button.jsx";
 import LogEntrySheet from "./LogEntrySheet.jsx";
+import NotebookSheet from "./NotebookSheet.jsx";
 
 function fmtDay(str) {
   const d = new Date(str + "T12:00:00");
   return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
 }
 
+const nbOf = (e) => e.notebookId || "logboek";
+
 export default function LogbookView() {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState(null);
+  const [activeNb, setActiveNb] = useState("logboek");
   const [sheet, setSheet] = useState(null); // "new" | entry
+  const [nbSheet, setNbSheet] = useState(null); // "new" | notebook
+
+  const notebooksBlob = useLiveQuery(() => db.blobs.get("notebooks"));
+  const notebooks = notebooksBlob?.data ?? DEFAULT_NOTEBOOKS;
+  const activeNotebook =
+    notebooks.find((n) => n.id === activeNb) || notebooks[0];
+  const activeId = activeNotebook?.id ?? "logboek";
 
   const logEntriesRaw = useLiveQuery(() =>
     db.logEntries.orderBy("date").reverse().toArray(),
@@ -27,24 +43,31 @@ export default function LogbookView() {
 
   const allEntries = useMemo(() => {
     if (!logEntriesRaw || !dayNotesRaw) return [];
-    const log = logEntriesRaw.map((e) => ({ ...e, _type: "log" }));
-    const days = dayNotesRaw.map((d) => ({
-      id: `day_${d.date}`,
-      date: d.date,
-      body: d.notes,
-      tags: [],
-      mood: d.mood || null,
-      _type: "day",
-    }));
+    const log = logEntriesRaw
+      .filter((e) => nbOf(e) === activeId)
+      .map((e) => ({ ...e, _type: "log" }));
+    const days =
+      activeId === "logboek"
+        ? dayNotesRaw.map((d) => ({
+            id: `day_${d.date}`,
+            date: d.date,
+            body: d.notes,
+            tags: [],
+            mood: d.mood || null,
+            _type: "day",
+          }))
+        : [];
     return [...log, ...days].sort((a, b) => b.date.localeCompare(a.date));
-  }, [logEntriesRaw, dayNotesRaw]);
+  }, [logEntriesRaw, dayNotesRaw, activeId]);
 
   const allTags = useMemo(() => {
     if (!logEntriesRaw) return [];
     const s = new Set();
-    logEntriesRaw.forEach((e) => e.tags?.forEach((t) => s.add(t)));
+    logEntriesRaw
+      .filter((e) => nbOf(e) === activeId)
+      .forEach((e) => e.tags?.forEach((t) => s.add(t)));
     return [...s].sort();
-  }, [logEntriesRaw]);
+  }, [logEntriesRaw, activeId]);
 
   const filtered = useMemo(() => {
     let list = allEntries;
@@ -64,6 +87,7 @@ export default function LogbookView() {
     if (sheet === "new") {
       await db.logEntries.put({
         id: uid(),
+        notebookId: activeId,
         date: dk(new Date()),
         body: data.body,
         tags: data.tags,
@@ -90,6 +114,38 @@ export default function LogbookView() {
     showToast("✓ Verwijderd");
   };
 
+  const saveNotebook = (data) => {
+    if (nbSheet === "new") {
+      const id = uid();
+      db.blobs.put({ key: "notebooks", data: [...notebooks, { id, ...data }] });
+      setActiveNb(id);
+    } else {
+      db.blobs.put({
+        key: "notebooks",
+        data: notebooks.map((n) =>
+          n.id === nbSheet.id ? { ...n, ...data } : n,
+        ),
+      });
+    }
+    setNbSheet(null);
+  };
+
+  const deleteNotebook = async () => {
+    const id = nbSheet.id;
+    const toMove = await db.logEntries.filter((e) => nbOf(e) === id).toArray();
+    if (toMove.length)
+      await db.logEntries.bulkPut(
+        toMove.map((e) => ({ ...e, notebookId: "logboek" })),
+      );
+    await db.blobs.put({
+      key: "notebooks",
+      data: notebooks.filter((n) => n.id !== id),
+    });
+    setActiveNb("logboek");
+    setNbSheet(null);
+    showToast("✓ Notitieboek verwijderd");
+  };
+
   const moodEmoji = (val) => MOODS.find((m) => m.value === val)?.emoji;
 
   const cardBase = {
@@ -113,13 +169,70 @@ export default function LogbookView() {
 
   return (
     <div style={{ padding: "14px 12px 24px", animation: "fadeUp .3s ease" }}>
-      {/* Header */}
+      {/* Notitieboek-tabs */}
+      <div
+        style={{
+          display: "flex",
+          gap: 6,
+          overflowX: "auto",
+          paddingBottom: 8,
+          marginBottom: 10,
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        {notebooks.map((n) => {
+          const active = n.id === activeId;
+          return (
+            <button
+              key={n.id}
+              onClick={() => (active ? setNbSheet(n) : setActiveNb(n.id))}
+              style={{
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                padding: "6px 12px",
+                borderRadius: 99,
+                fontSize: 12,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                border: active
+                  ? `1.5px solid ${n.color}`
+                  : "1px solid var(--border)",
+                background: active ? "var(--sel-bg)" : "var(--card)",
+                color: active ? "var(--text)" : "var(--text-muted)",
+              }}
+            >
+              <Emoji char={n.icon} size={14} />
+              {n.name}
+            </button>
+          );
+        })}
+        <button
+          onClick={() => setNbSheet("new")}
+          aria-label="Nieuw notitieboek"
+          style={{
+            flexShrink: 0,
+            padding: "6px 12px",
+            borderRadius: 99,
+            fontSize: 14,
+            fontWeight: 700,
+            border: "1px dashed var(--border)",
+            background: "var(--card)",
+            color: "var(--text-muted)",
+          }}
+        >
+          +
+        </button>
+      </div>
+
+      {/* Kop: actief notitieboek + nieuwe entry */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           gap: 8,
-          marginBottom: 14,
+          marginBottom: 12,
         }}
       >
         <h2
@@ -130,10 +243,11 @@ export default function LogbookView() {
             flex: 1,
             display: "flex",
             alignItems: "center",
-            gap: 6,
+            gap: 7,
           }}
         >
-          <Emoji char="📖" size={20} /> Logboek
+          <Emoji char={activeNotebook?.icon ?? "📖"} size={20} />
+          {activeNotebook?.name ?? "Logboek"}
         </h2>
         <Button size="sm" onClick={() => setSheet("new")}>
           + Nieuw
@@ -209,7 +323,7 @@ export default function LogbookView() {
           <p style={{ fontSize: 12 }}>
             {search || activeTag
               ? "Geen resultaten."
-              : "Nog niets geschreven — druk op + Nieuw of schrijf een notitie in de tracker."}
+              : "Nog niets hier — druk op + Nieuw."}
           </p>
         </div>
       )}
@@ -299,6 +413,18 @@ export default function LogbookView() {
           onSave={saveEntry}
           onDelete={sheet !== "new" ? deleteEntry : undefined}
           onClose={() => setSheet(null)}
+        />
+      )}
+      {nbSheet && (
+        <NotebookSheet
+          notebook={nbSheet === "new" ? null : nbSheet}
+          onSave={saveNotebook}
+          onDelete={
+            nbSheet !== "new" && nbSheet.id !== "logboek"
+              ? deleteNotebook
+              : undefined
+          }
+          onClose={() => setNbSheet(null)}
         />
       )}
     </div>

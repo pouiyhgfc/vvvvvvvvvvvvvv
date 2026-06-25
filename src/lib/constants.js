@@ -479,6 +479,9 @@ export const WEEK_DAYS_SHORT = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
 export const CAL_HOUR_H = 56;
 export const CAL_START_H = 3;
 export const CAL_END_H = 24;
+export const DEFAULT_NOTEBOOKS = [
+  { id: "logboek", name: "Logboek", icon: "📖", color: "#059669" },
+];
 export const DEFAULT_SETTINGS = {
   theme: "light",
   notifEnabled: false,
