@@ -335,6 +335,7 @@ export function SortableTemplateList({ items, onReorder, onDelete, onEdit }) {
   const { ref, dragId, onHandleDown } = useSortable(onReorder);
   const [editingId, setEditingId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   if (items.length === 0) return null;
   return (
     <div ref={ref}>
@@ -445,26 +446,61 @@ export function SortableTemplateList({ items, onReorder, onDelete, onEdit }) {
                 </div>
                 {isExpanded && (
                   <div
-                    style={{ display: "flex", gap: 6, padding: "0 10px 10px" }}
+                    style={{
+                      display: "flex",
+                      gap: 6,
+                      padding: "0 10px 10px",
+                      alignItems: "center",
+                    }}
                   >
-                    <button
-                      onClick={() => {
-                        setEditingId(t.id);
-                        setExpandedId(null);
-                      }}
-                      style={{ ...BTN.edit, flex: 1 }}
-                    >
-                      ✏️ Bewerken
-                    </button>
-                    <button
-                      onClick={() => {
-                        onDelete(t.id);
-                        setExpandedId(null);
-                      }}
-                      style={BTN.danger}
-                    >
-                      🗑️ Verwijderen
-                    </button>
+                    {confirmDeleteId === t.id ? (
+                      <>
+                        <span
+                          style={{
+                            flex: 1,
+                            fontSize: 12,
+                            color: "#dc2626",
+                            fontWeight: 600,
+                          }}
+                        >
+                          ⚠️ Zeker weten?
+                        </span>
+                        <button
+                          onClick={() => {
+                            onDelete(t.id);
+                            setExpandedId(null);
+                            setConfirmDeleteId(null);
+                          }}
+                          style={BTN.danger}
+                        >
+                          Ja
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          style={BTN.edit}
+                        >
+                          Nee
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingId(t.id);
+                            setExpandedId(null);
+                          }}
+                          style={{ ...BTN.edit, flex: 1 }}
+                        >
+                          ✏️ Bewerken
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(t.id)}
+                          style={BTN.danger}
+                        >
+                          🗑️ Verwijderen
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </>
@@ -488,6 +524,7 @@ export function SortableWeekTplList({
   const [editingId, setEditingId] = useState(null);
   const [draftName, setDraftName] = useState("");
   const [expandedId, setExpandedId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   if (items.length === 0) return null;
   return (
     <div ref={ref}>
@@ -645,15 +682,43 @@ export function SortableWeekTplList({
                 >
                   ✏️
                 </button>
-                <button
-                  onClick={() => {
-                    onDelete(tpl);
-                    setExpandedId(null);
-                  }}
-                  style={BTN.danger}
-                >
-                  🗑️
-                </button>
+                {confirmDeleteId === tpl.id ? (
+                  <>
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: 12,
+                        color: "#dc2626",
+                        fontWeight: 600,
+                      }}
+                    >
+                      ⚠️ Zeker weten?
+                    </span>
+                    <button
+                      onClick={() => {
+                        onDelete(tpl);
+                        setExpandedId(null);
+                        setConfirmDeleteId(null);
+                      }}
+                      style={BTN.danger}
+                    >
+                      Ja
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      style={BTN.edit}
+                    >
+                      Nee
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDeleteId(tpl.id)}
+                    style={BTN.danger}
+                  >
+                    🗑️
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -676,6 +741,7 @@ export function SortableRoutineList({
 }) {
   const { ref, dragId, onHandleDown } = useSortable(onReorder);
   const [expandedId, setExpandedId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   return (
     <div ref={ref}>
       {items.map((r) => {
@@ -796,15 +862,43 @@ export function SortableRoutineList({
                     >
                       ✏️ Bewerken
                     </button>
-                    <button
-                      onClick={() => {
-                        onDelete(period, r.id);
-                        setExpandedId(null);
-                      }}
-                      style={BTN.danger}
-                    >
-                      🗑️ Verwijderen
-                    </button>
+                    {confirmDeleteId === r.id ? (
+                      <>
+                        <span
+                          style={{
+                            flex: 1,
+                            fontSize: 12,
+                            color: "#dc2626",
+                            fontWeight: 600,
+                          }}
+                        >
+                          ⚠️ Zeker weten?
+                        </span>
+                        <button
+                          onClick={() => {
+                            onDelete(period, r.id);
+                            setExpandedId(null);
+                            setConfirmDeleteId(null);
+                          }}
+                          style={BTN.danger}
+                        >
+                          Ja
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          style={BTN.edit}
+                        >
+                          Nee
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteId(r.id)}
+                        style={BTN.danger}
+                      >
+                        🗑️ Verwijderen
+                      </button>
+                    )}
                   </div>
                 )}
               </>

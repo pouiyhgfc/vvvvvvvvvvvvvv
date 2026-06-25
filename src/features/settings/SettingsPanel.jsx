@@ -148,7 +148,6 @@ export default function SettingsPanel({
     setEditingRoutine(null);
   };
   const deleteRoutine = (period, id) => {
-    if (!confirm("Weet je zeker dat je deze routine wilt verwijderen?")) return;
     setRoutines((prev) => ({
       ...prev,
       [period]: prev[period].filter((r) => r.id !== id),
@@ -1109,12 +1108,11 @@ export default function SettingsPanel({
             setCalEvents((prev) => [...prev, ...newEvs]);
             alert(`✓ ${newEvs.length} events toegevoegd voor deze week.`);
           }}
-          onDelete={(tpl) => {
-            if (confirm(`Template "${tpl.name}" verwijderen?`))
-              setWeekScheduleTemplates((prev) =>
-                prev.filter((t) => t.id !== tpl.id),
-              );
-          }}
+          onDelete={(tpl) =>
+            setWeekScheduleTemplates((prev) =>
+              prev.filter((t) => t.id !== tpl.id),
+            )
+          }
           onReplace={(tpl) => {
             if (!confirm(`"${tpl.name}" inladen en huidige week vervangen?`))
               return;
