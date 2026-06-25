@@ -3,11 +3,12 @@
 > Companion bij `PLAN.md` (het waarom) en `CLAUDE.md` (de vaste regels).
 >
 > **Hoe dit document werkt:**
+>
 > - De **vakjes** `- [ ]` zijn je voortgang. Klaar en gecontroleerd → `- [x]`.
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Fase 2 geïmplementeerd — wacht op controle door gebruiker (DevTools → IndexedDB)._
+**Status — huidige fase:** _UI-overhaul afgerond (fundament + Twemoji + popup-UI; build/lint/knip schoon) — wacht op visuele controle op Android. Zie "Fase UI" onderaan._
 
 ---
 
@@ -54,6 +55,7 @@ git checkout -b vite-migratie
 ```
 
 **Controle (afvinken):**
+
 - [ ] Backup geëxporteerd en veilig bewaard
 - [ ] Werkende versie gecommit op `main`
 - [ ] Op branch `vite-migratie` (check met `git branch`)
@@ -106,6 +108,7 @@ Leg na afloop kort uit welke bestanden je hebt gewijzigd en hoe ik
 **Wat het doet:** maakt het Vite-fundament, haalt externe CDN-verzoeken weg (React + fonts lokaal), en zet je service worker om naar de vite-plugin-pwa-manier zónder je meldingen te verliezen.
 
 **Controle (afvinken):**
+
 - [ ] `npm install` + `npm run dev` → app ziet er identiek uit, alle tabbladen werken
 - [ ] Bestaande routines/dagdata staan er nog
 - [ ] `npm run build` slaagt en maakt `dist/`
@@ -131,6 +134,7 @@ git commit -m "Fase 1a: omgezet naar Vite + PWA, fonts en React lokaal"
 In Vercel-projectinstellingen: **Build Command** = `npm run build`, **Output Directory** = `dist` (meestal auto-gedetecteerd — controleer het). Blijf op **dezelfde URL/het zelfde project**, zodat je localStorage-data behouden blijft.
 
 **Controle (afvinken):**
+
 - [ ] Build Command + Output Directory kloppen in Vercel
 - [ ] Preview-deploy werkt op je telefoon
 - [ ] Zelfde URL als voorheen (data behouden)
@@ -173,6 +177,7 @@ en zeg na elke verplaatsing of de app nog bouwt.
 **Wat het doet:** verandert niets aan wat de app dóét; verdeelt alleen de code over logische mappen.
 
 **Controle (afvinken):**
+
 - [ ] `npm run dev` → alles werkt nog identiek (elk tabblad nagekeken)
 - [ ] `npm run build` slaagt
 
@@ -221,6 +226,7 @@ overgekomen, vóór je verder gaat.
 **Wat het doet:** verhuist data van localStorage naar IndexedDB (groot, doorzoekbaar, met `persist()` beschermd). De migratie zorgt dat je niets kwijtraakt.
 
 **Controle (afvinken):**
+
 - [ ] Na migratie: alle routines, dagdata, events en instellingen staan er nog
 - [ ] DevTools → Application → IndexedDB → tabellen bevatten data
 - [ ] Iets aanpassen werkt en blijft staan na verversen
@@ -263,6 +269,7 @@ Stijl consistent met de rest. Raak andere modules niet aan.
 ```
 
 **Controle (afvinken):**
+
 - [ ] Toevoegen/bewerken/verwijderen werkt
 - [ ] Zoeken + tagfilter werken
 - [ ] Dag-notitie uit tracker verschijnt in logboek
@@ -302,6 +309,7 @@ Stijl consistent met de rest. Raak andere modules niet aan.
 ```
 
 **Controle (afvinken):**
+
 - [ ] Maken/bewerken/verwijderen werkt
 - [ ] Markdown wordt netjes getoond
 - [ ] Zoeken/filteren werkt
@@ -316,6 +324,31 @@ git commit -m "Fase 4: Notities/kennisbank-module"
 ```
 
 - [ ] **Fase 4 afgerond en gecommit**
+
+---
+
+## Fase UI — Overhaul: fundament, Twemoji & popup-UI (afgerond)
+
+**Doel:** de UI consistent maken en een gedeeld fundament leggen, zodat nieuwe features automatisch dezelfde stijl erven. Zie `ONTWERP.md` (design-systeem) en `CLAUDE.md` (sectie "UI-conventies").
+
+- [x] **1 — Tokens.** `--accent` + sweep van hardcoded groen → `var(--accent)`.
+- [x] **2 — Primitives.** `Sheet`, `ConfirmDialog`, `Button`, `Field`, `IconField`, `ColorPicker`, `Section`, `Emoji`, `Toast`.
+- [x] **3 — Twemoji.** Lokaal gebundelde emoji-set (incl. vlaggen), custom `ⵣ`, alle hoofd-iconen via `<Emoji>`.
+- [x] **4 — Weekplanner.** `EventModal` herbouwd op de primitives (referentie).
+- [x] **5 — Routines/templates/gebieden.** Inline-edit → Sheets + `ConfirmDialog`.
+- [x] **6 — Logboek + gevarenzone.** Sheets/ConfirmDialog/Toast; logboek-invoer in een Sheet.
+- [x] **7 — Instellingen-accordion.** Secties in `Section`; minder scroll.
+- [x] **8 — Documentatie.** `CLAUDE.md` UI-conventies + nieuwe `ONTWERP.md`.
+
+**Controle:**
+
+- [x] `npm run build`, `npm run lint` en `npm run deadcode` schoon.
+- [ ] Op Android/Vercel-preview: vlaggen 🇸🇦🇫🇷🇨🇳 en `ⵣ` renderen identiek; toevoegen/bewerken/verwijderen overal via dezelfde popup; donkere modus klopt; data intact.
+
+**Nog open (klein):**
+
+- [ ] Import "samenvoegen/vervangen" is nog een native `confirm()`.
+- [ ] Emoji's in losse knop-labels (bv. "💾 Opslaan") mogen later via `<Emoji>`.
 
 ---
 
