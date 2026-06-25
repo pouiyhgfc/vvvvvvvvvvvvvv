@@ -135,6 +135,8 @@ export default function WeekView({
   // scrolls; setPointerCapture in the timer overrides that only when dragging.
   const evDown = (e, ev) => {
     if (e.button != null && e.button !== 0) return;
+    // Date.now() draait hier in een pointer-handler, niet tijdens render.
+    // eslint-disable-next-line react-hooks/purity
     suppressClickRef.current = Date.now() + 400;
     const el = e.currentTarget;
     const pid = e.pointerId;

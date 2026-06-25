@@ -18,6 +18,7 @@ import MonthView from "./features/month/MonthView.jsx";
 import StatsView from "./features/stats/StatsView.jsx";
 import SettingsPanel from "./features/settings/SettingsPanel.jsx";
 import LogbookView from "./features/logbook/LogbookView.jsx";
+import ToastHost from "./ui/Toast.jsx";
 
 export default function App() {
   // --- Dexie reactive queries ---
@@ -729,6 +730,8 @@ export default function App() {
 
       {/* LOGBOOK VIEW */}
       {view === "logbook" && !showSettings && <LogbookView />}
+
+      <ToastHost />
     </div>
   );
 }
