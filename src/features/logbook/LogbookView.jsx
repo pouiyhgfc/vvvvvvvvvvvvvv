@@ -19,6 +19,20 @@ function fmtDay(str) {
   return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
 }
 
+// Vormen waarop je een entry op datum kunt vinden: ISO, "25 juni",
+// "25 juni 2026" en de weekdag.
+function dateSearchString(str) {
+  const d = new Date(str + "T12:00:00");
+  return [
+    str,
+    `${d.getDate()} ${MONTHS_NL[d.getMonth()]}`,
+    `${d.getDate()} ${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`,
+    DAYS_NL[d.getDay()],
+  ]
+    .join(" ")
+    .toLowerCase();
+}
+
 const nbOf = (e) => e.notebookId || "logboek";
 
 export default function LogbookView() {
@@ -77,7 +91,8 @@ export default function LogbookView() {
       list = list.filter(
         (e) =>
           e.body?.toLowerCase().includes(q) ||
-          e.tags?.some((t) => t.toLowerCase().includes(q)),
+          e.tags?.some((t) => t.toLowerCase().includes(q)) ||
+          dateSearchString(e.date).includes(q),
       );
     }
     return list;
