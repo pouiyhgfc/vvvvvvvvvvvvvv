@@ -1,20 +1,40 @@
 import { useState } from "react";
 
-// Inklapbare instellingen-sectie (accordion). Default ingeklapt.
-// `right` is een optionele actie-node in de kop (bv. een "+"-knop).
+const TONES = {
+  default: {
+    bg: "var(--card2)",
+    border: "var(--border)",
+    title: "var(--text)",
+  },
+  accent: {
+    bg: "var(--accent-bg)",
+    border: "var(--accent-border)",
+    title: "var(--accent-text)",
+  },
+  danger: {
+    bg: "var(--danger-bg)",
+    border: "var(--danger-border)",
+    title: "var(--danger-text)",
+  },
+};
+
+// Inklapbare instellingen-sectie (accordion). `right` is een optionele
+// actie-node in de kop (bv. een "+"-knop); `tone` kleurt de sectie.
 export default function Section({
   title,
   icon,
   right,
+  tone = "default",
   defaultOpen = false,
   children,
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const t = TONES[tone];
   return (
     <div
       style={{
-        background: "var(--card2)",
-        border: "1px solid var(--border)",
+        background: t.bg,
+        border: `1px solid ${t.border}`,
         borderRadius: 10,
         marginBottom: 10,
         overflow: "hidden",
@@ -48,6 +68,7 @@ export default function Section({
             fontSize: 14,
             fontWeight: 700,
             flex: 1,
+            color: t.title,
           }}
         >
           {title}

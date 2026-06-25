@@ -21,6 +21,8 @@ import RoutineSheet from "./RoutineSheet.jsx";
 import TemplateSheet from "./TemplateSheet.jsx";
 import AreaSheet from "./AreaSheet.jsx";
 import WeekTemplateSheet from "./WeekTemplateSheet.jsx";
+import Section from "../../ui/Section.jsx";
+import Emoji from "../../ui/Emoji.jsx";
 
 const addBtn = {
   fontSize: 11,
@@ -30,20 +32,6 @@ const addBtn = {
   color: "white",
   fontWeight: 600,
 };
-const sectionCard = {
-  background: "var(--card2)",
-  border: "1px solid var(--border)",
-  borderRadius: 10,
-  padding: 12,
-  marginBottom: 14,
-};
-const sectionHead = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 6,
-};
-const h3Style = { fontFamily: "var(--ff-head)", fontSize: 14, fontWeight: 700 };
 const introP = {
   fontSize: 11,
   color: "var(--text-muted)",
@@ -250,18 +238,11 @@ export default function SettingsPanel({
       </h2>
 
       {/* WEERGAVE & MELDINGEN */}
-      <div style={sectionCard}>
-        <h3
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: "var(--text)",
-            marginBottom: 10,
-          }}
-        >
-          🎨 Weergave & Meldingen
-        </h3>
-
+      <Section
+        title="Weergave & Meldingen"
+        icon={<Emoji char="🎨" size={16} />}
+        defaultOpen
+      >
         <div
           style={{
             display: "flex",
@@ -438,16 +419,18 @@ export default function SettingsPanel({
             {total} routines afvinken telt als een voltooide dag voor je streak.
           </div>
         </div>
-      </div>
+      </Section>
 
       {/* FOCUSGEBIEDEN */}
-      <div style={sectionCard}>
-        <div style={sectionHead}>
-          <h3 style={h3Style}>🎯 Focusgebieden</h3>
+      <Section
+        title="Focusgebieden"
+        icon={<Emoji char="🎯" size={16} />}
+        right={
           <button onClick={() => setAreaSheet("new")} style={addBtn}>
             + Gebied
           </button>
-        </div>
+        }
+      >
         <p style={introP}>
           Tik een gebied aan om naam en kleur te wijzigen. De kleur wordt
           gebruikt voor routines in dit gebied (kalender-events hebben een eigen
@@ -492,28 +475,15 @@ export default function SettingsPanel({
             <span style={{ fontSize: 16, color: "var(--text-faint)" }}>›</span>
           </div>
         ))}
-      </div>
+      </Section>
 
       {/* BACKUP */}
-      <div
-        style={{
-          background: "var(--accent-bg)",
-          border: "1px solid var(--accent-border)",
-          borderRadius: 10,
-          padding: 12,
-          marginBottom: 14,
-        }}
+      <Section
+        title="Backup & Data"
+        icon={<Emoji char="💾" size={16} />}
+        tone="accent"
+        defaultOpen
       >
-        <h3
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: "var(--accent-text)",
-            marginBottom: 8,
-          }}
-        >
-          💾 Backup & Data
-        </h3>
         <div style={{ marginBottom: 6 }}>
           <div
             style={{
@@ -634,16 +604,18 @@ export default function SettingsPanel({
             Alles staat lokaal op dit apparaat. Niemand kan meekijken.
           </div>
         </div>
-      </div>
+      </Section>
 
       {/* WEEKPLANNER TEMPLATES */}
-      <div style={sectionCard}>
-        <div style={sectionHead}>
-          <h3 style={h3Style}>📅 Weekplanner Templates</h3>
+      <Section
+        title="Weekplanner Templates"
+        icon={<Emoji char="📅" size={16} />}
+        right={
           <button onClick={() => setTplSheet("new")} style={addBtn}>
             + Nieuw
           </button>
-        </div>
+        }
+      >
         <p style={introP}>
           Snelkeuze-activiteiten voor de weekkalender. Tik een template aan om
           te bewerken; sleep met ⠿ om te ordenen.
@@ -658,12 +630,13 @@ export default function SettingsPanel({
           }
           onEdit={(t) => setTplSheet(t)}
         />
-      </div>
+      </Section>
 
       {/* WEEKSCHEMA TEMPLATES */}
-      <div style={sectionCard}>
-        <div style={sectionHead}>
-          <h3 style={h3Style}>📅 Weekschema Templates</h3>
+      <Section
+        title="Weekschema Templates"
+        icon={<Emoji char="📅" size={16} />}
+        right={
           <button
             onClick={() => {
               setSavingWeek(true);
@@ -673,7 +646,8 @@ export default function SettingsPanel({
           >
             💾 Huidig opslaan
           </button>
-        </div>
+        }
+      >
         <p style={introP}>
           Sla je huidige weekplanning op als template en laad hem later in voor
           elke week.
@@ -688,11 +662,10 @@ export default function SettingsPanel({
           }
           onEdit={(tpl) => setWeekTplSheet(tpl)}
         />
-      </div>
+      </Section>
 
       {/* ROUTINES */}
-      <div style={sectionCard}>
-        <h3 style={h3Style}>📋 Routines Beheren</h3>
+      <Section title="Routines Beheren" icon={<Emoji char="📋" size={16} />}>
         <p
           style={{
             fontSize: 11,
@@ -782,28 +755,14 @@ export default function SettingsPanel({
             </div>
           );
         })}
-      </div>
+      </Section>
 
       {/* DANGER ZONE */}
-      <div
-        style={{
-          background: "var(--danger-bg)",
-          border: "1px solid var(--danger-border)",
-          borderRadius: 10,
-          padding: 12,
-          marginTop: 4,
-        }}
+      <Section
+        title="Gevarenzone"
+        icon={<Emoji char="⚠️" size={16} />}
+        tone="danger"
       >
-        <h3
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: "var(--danger-text)",
-            marginBottom: 8,
-          }}
-        >
-          ⚠️ Gevarenzone
-        </h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <button
             onClick={() => setConfirmReset(true)}
@@ -857,7 +816,7 @@ export default function SettingsPanel({
             💥 Wis ALLES (reset naar fabrieksinstellingen)
           </button>
         </div>
-      </div>
+      </Section>
 
       {/* SHEETS & DIALOGS */}
       {routineSheet && (
