@@ -9,6 +9,7 @@ import {
 } from "./lib/constants.js";
 import { dk, fmtDate, isToday, getMonday } from "./lib/date.js";
 import { buzz } from "./lib/storage.js";
+import { showToast } from "./lib/toast.js";
 import { useNotifications } from "./lib/notify.js";
 import { db } from "./lib/db.js";
 import NavBtn from "./ui/NavBtn.jsx";
@@ -210,7 +211,7 @@ export default function App() {
 
   const toggleNotifications = async () => {
     if (typeof Notification === "undefined") {
-      alert("Meldingen worden niet ondersteund door deze browser.");
+      showToast("Meldingen worden niet ondersteund door deze browser.");
       return;
     }
     if (settings.notifEnabled) {
@@ -228,7 +229,7 @@ export default function App() {
         });
       } catch {}
     } else {
-      alert(
+      showToast(
         "Meldingen zijn geblokkeerd. Sta ze toe in de browser-/app-instellingen om herinneringen te krijgen.",
       );
     }
@@ -318,16 +319,16 @@ export default function App() {
           !data.calEvents &&
           !data.weekScheduleTemplates
         ) {
-          alert("❌ Ongeldig backup bestand.");
+          showToast("❌ Ongeldig backup bestand.");
           return;
         }
         if (type === "routines") {
           if (!data.routines) {
-            alert("❌ Geen routines gevonden in dit bestand.");
+            showToast("❌ Geen routines gevonden in dit bestand.");
             return;
           }
           await db.blobs.put({ key: "routines", data: data.routines });
-          alert("✓ Routines geïmporteerd.");
+          showToast("✓ Routines geïmporteerd.");
           return;
         }
         if (type === "weekplanning") {
@@ -347,11 +348,11 @@ export default function App() {
               key: "weekTemplates",
               data: data.weekScheduleTemplates,
             });
-          alert("✓ Weekplanning geïmporteerd.");
+          showToast("✓ Weekplanning geïmporteerd.");
           return;
         }
         if (!data.routines || !data.days) {
-          alert("❌ Ongeldig backup bestand.");
+          showToast("❌ Ongeldig backup bestand.");
           return;
         }
         const mode = confirm("OK = Samenvoegen\nAnnuleer = Volledig vervangen");
@@ -393,28 +394,23 @@ export default function App() {
             if (dayEntries.length) await db.days.bulkPut(dayEntries);
           },
         );
-        alert(
+        showToast(
           `✓ Import gelukt! ${Object.keys(data.days).length} dagen geïmporteerd.`,
         );
       } catch (err) {
-        alert("❌ Fout bij importeren: " + err.message);
+        showToast("❌ Fout bij importeren: " + err.message);
       }
     };
     reader.readAsText(file);
   };
 
   const clearAllDays = async () => {
-    if (!confirm("⚠️ ALLE dagdata wissen?\n\nExporteer eerst een backup!"))
-      return;
-    if (!confirm("Weet je het écht zeker?")) return;
     const count = await db.days.count();
     await db.days.clear();
-    alert(`✓ ${count} dagen gewist.`);
+    showToast(`✓ ${count} dagen gewist`);
   };
 
   const clearEverything = async () => {
-    if (!confirm("⚠️⚠️ ALLES wissen? Exporteer eerst een backup!")) return;
-    if (!confirm("Dit is DEFINITIEF. Doorgaan?")) return;
     await db.transaction(
       "rw",
       db.settings,
@@ -440,7 +436,7 @@ export default function App() {
       if (k && k.startsWith("rt_notified_")) keysToDelete.push(k);
     }
     keysToDelete.forEach((k) => localStorage.removeItem(k));
-    alert("✓ Alles gewist. App is gereset.");
+    showToast("✓ Alles gewist. App is gereset.");
   };
 
   const dataInfo = (() => {

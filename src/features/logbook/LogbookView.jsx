@@ -3,27 +3,20 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { uid, dk } from "../../lib/date.js";
 import { DAYS_NL, MONTHS_NL, MOODS } from "../../lib/constants.js";
+import { showToast } from "../../lib/toast.js";
+import Emoji from "../../ui/Emoji.jsx";
+import Button from "../../ui/Button.jsx";
+import LogEntrySheet from "./LogEntrySheet.jsx";
 
 function fmtDay(str) {
   const d = new Date(str + "T12:00:00");
   return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
 }
 
-function parseTags(str) {
-  return str
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean);
-}
-
 export default function LogbookView() {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [newBody, setNewBody] = useState("");
-  const [newTags, setNewTags] = useState("");
-  const [newMood, setNewMood] = useState("");
-  const [editing, setEditing] = useState(null);
+  const [sheet, setSheet] = useState(null); // "new" | entry
 
   const logEntriesRaw = useLiveQuery(() =>
     db.logEntries.orderBy("date").reverse().toArray(),
@@ -67,47 +60,34 @@ export default function LogbookView() {
     return list;
   }, [allEntries, search, activeTag]);
 
-  const addEntry = async () => {
-    if (!newBody.trim()) return;
-    await db.logEntries.put({
-      id: uid(),
-      date: dk(new Date()),
-      body: newBody.trim(),
-      tags: parseTags(newTags),
-      mood: newMood || null,
-      createdAt: new Date().toISOString(),
-    });
-    setNewBody("");
-    setNewTags("");
-    setNewMood("");
-    setShowForm(false);
-  };
-
-  const startEdit = (entry) => {
-    setEditing({ ...entry, tagsStr: entry.tags?.join(", ") || "" });
-    setShowForm(false);
-  };
-
-  const saveEdit = async () => {
-    if (editing._type === "log") {
-      await db.logEntries.update(editing.id, {
-        body: editing.body,
-        tags: parseTags(editing.tagsStr),
-        mood: editing.mood,
+  const saveEntry = async (data) => {
+    if (sheet === "new") {
+      await db.logEntries.put({
+        id: uid(),
+        date: dk(new Date()),
+        body: data.body,
+        tags: data.tags,
+        mood: data.mood,
+        createdAt: new Date().toISOString(),
+      });
+      showToast("✓ Entry toegevoegd");
+    } else if (sheet._type === "log") {
+      await db.logEntries.update(sheet.id, {
+        body: data.body,
+        tags: data.tags,
+        mood: data.mood,
       });
     } else {
-      await db.days.update(editing.date, { notes: editing.body });
+      await db.days.update(sheet.date, { notes: data.body });
     }
-    setEditing(null);
+    setSheet(null);
   };
 
-  const deleteEntry = async (entry) => {
-    if (!confirm("Verwijderen?")) return;
-    if (entry._type === "log") {
-      await db.logEntries.delete(entry.id);
-    } else {
-      await db.days.update(entry.date, { notes: "" });
-    }
+  const deleteEntry = async () => {
+    if (sheet._type === "log") await db.logEntries.delete(sheet.id);
+    else await db.days.update(sheet.date, { notes: "" });
+    setSheet(null);
+    showToast("✓ Verwijderd");
   };
 
   const moodEmoji = (val) => MOODS.find((m) => m.value === val)?.emoji;
@@ -118,14 +98,6 @@ export default function LogbookView() {
     padding: 14,
     marginBottom: 8,
     boxShadow: "0 1px 3px var(--shadow)",
-  };
-  const btnBase = {
-    padding: "3px 8px",
-    borderRadius: 6,
-    border: "1px solid var(--border)",
-    background: "var(--card)",
-    color: "var(--text-muted)",
-    fontSize: 11,
     cursor: "pointer",
   };
   const inputStyle = {
@@ -156,103 +128,17 @@ export default function LogbookView() {
             fontSize: 18,
             fontWeight: 700,
             flex: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
           }}
         >
-          📖 Logboek
+          <Emoji char="📖" size={20} /> Logboek
         </h2>
-        <button
-          onClick={() => {
-            setShowForm((f) => !f);
-            setEditing(null);
-          }}
-          style={{
-            padding: "6px 14px",
-            borderRadius: 8,
-            border: "none",
-            cursor: "pointer",
-            fontSize: 12,
-            fontWeight: 700,
-            background: showForm ? "var(--border-soft)" : "var(--accent)",
-            color: showForm ? "var(--text)" : "white",
-          }}
-        >
-          {showForm ? "Annuleer" : "+ Nieuw"}
-        </button>
+        <Button size="sm" onClick={() => setSheet("new")}>
+          + Nieuw
+        </Button>
       </div>
-
-      {/* Nieuw entry formulier */}
-      {showForm && (
-        <div style={cardBase}>
-          <textarea
-            value={newBody}
-            onChange={(e) => setNewBody(e.target.value)}
-            placeholder="Schrijf iets..."
-            rows={4}
-            autoFocus
-            style={{
-              ...inputStyle,
-              lineHeight: 1.6,
-              resize: "vertical",
-              minHeight: 90,
-            }}
-          />
-          <input
-            value={newTags}
-            onChange={(e) => setNewTags(e.target.value)}
-            placeholder="Tags (komma-gescheiden: werk, focus, gezondheid)"
-            style={{ ...inputStyle, marginTop: 8 }}
-          />
-          <div
-            style={{
-              display: "flex",
-              gap: 4,
-              marginTop: 10,
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex", gap: 4 }}>
-              {MOODS.map((m) => (
-                <button
-                  key={m.value}
-                  onClick={() => setNewMood(newMood === m.value ? "" : m.value)}
-                  style={{
-                    padding: "3px 8px",
-                    borderRadius: 7,
-                    fontSize: 15,
-                    cursor: "pointer",
-                    border:
-                      newMood === m.value
-                        ? "2px solid var(--accent)"
-                        : "1.5px solid var(--border)",
-                    background:
-                      newMood === m.value ? "var(--sel-bg)" : "var(--card)",
-                  }}
-                >
-                  {m.emoji}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={addEntry}
-              disabled={!newBody.trim()}
-              style={{
-                padding: "7px 18px",
-                borderRadius: 8,
-                border: "none",
-                cursor: "pointer",
-                background: "var(--accent)",
-                color: "white",
-                fontSize: 12,
-                fontWeight: 700,
-                opacity: newBody.trim() ? 1 : 0.4,
-              }}
-            >
-              Opslaan
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Zoekbalk */}
       <div style={{ position: "relative", marginBottom: 10 }}>
@@ -262,11 +148,11 @@ export default function LogbookView() {
             left: 10,
             top: "50%",
             transform: "translateY(-50%)",
-            fontSize: 13,
             pointerEvents: "none",
+            display: "flex",
           }}
         >
-          🔍
+          <Emoji char="🔍" size={14} />
         </span>
         <input
           value={search}
@@ -317,7 +203,9 @@ export default function LogbookView() {
             color: "var(--text-faint)",
           }}
         >
-          <p style={{ fontSize: 32, marginBottom: 6 }}>📭</p>
+          <div style={{ marginBottom: 6 }}>
+            <Emoji char="📭" size={32} />
+          </div>
           <p style={{ fontSize: 12 }}>
             {search || activeTag
               ? "Geen resultaten."
@@ -328,164 +216,91 @@ export default function LogbookView() {
 
       {/* Entry-kaarten */}
       {filtered.map((entry) => (
-        <div key={entry.id} style={cardBase}>
-          {editing?.id === entry.id ? (
-            <div>
-              <textarea
-                value={editing.body}
-                onChange={(e) =>
-                  setEditing((ed) => ({ ...ed, body: e.target.value }))
-                }
-                rows={4}
-                autoFocus
+        <div key={entry.id} style={cardBase} onClick={() => setSheet(entry)}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              flexWrap: "wrap",
+              marginBottom: 6,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "var(--text-muted)",
+              }}
+            >
+              {fmtDay(entry.date)}
+            </span>
+            {entry._type === "day" && (
+              <span
                 style={{
-                  ...inputStyle,
-                  lineHeight: 1.6,
-                  resize: "vertical",
-                  minHeight: 80,
-                  borderColor: "var(--accent)",
-                }}
-              />
-              {editing._type === "log" && (
-                <input
-                  value={editing.tagsStr}
-                  onChange={(e) =>
-                    setEditing((ed) => ({ ...ed, tagsStr: e.target.value }))
-                  }
-                  placeholder="Tags (komma-gescheiden)"
-                  style={{ ...inputStyle, marginTop: 8 }}
-                />
-              )}
-              <div
-                style={{
-                  display: "flex",
-                  gap: 6,
-                  marginTop: 10,
-                  justifyContent: "flex-end",
+                  fontSize: 9,
+                  padding: "1px 7px",
+                  borderRadius: 99,
+                  background: "var(--border-soft)",
+                  color: "var(--text-faint)",
+                  fontWeight: 600,
                 }}
               >
-                <button
-                  onClick={() => setEditing(null)}
-                  style={{ ...btnBase, padding: "6px 12px" }}
-                >
-                  Annuleer
-                </button>
-                <button
-                  onClick={saveEdit}
+                Dagnotitie
+              </span>
+            )}
+            {entry.mood && <Emoji char={moodEmoji(entry.mood)} size={15} />}
+            <span style={{ flex: 1 }} />
+            <span style={{ fontSize: 15, color: "var(--text-faint)" }}>›</span>
+          </div>
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--text)",
+              lineHeight: 1.65,
+              whiteSpace: "pre-wrap",
+              margin: 0,
+            }}
+          >
+            {entry.body}
+          </p>
+          {entry.tags?.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                gap: 4,
+                flexWrap: "wrap",
+                marginTop: 8,
+              }}
+            >
+              {entry.tags.map((tag) => (
+                <span
+                  key={tag}
                   style={{
-                    padding: "6px 14px",
-                    borderRadius: 7,
-                    border: "none",
-                    background: "var(--accent)",
-                    color: "white",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: "pointer",
+                    fontSize: 10,
+                    padding: "2px 8px",
+                    borderRadius: 99,
+                    background: "var(--border-soft)",
+                    color: "var(--text-muted)",
+                    fontWeight: 600,
                   }}
                 >
-                  Opslaan
-                </button>
-              </div>
+                  #{tag}
+                </span>
+              ))}
             </div>
-          ) : (
-            <>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 6,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    {fmtDay(entry.date)}
-                  </span>
-                  {entry._type === "day" && (
-                    <span
-                      style={{
-                        fontSize: 9,
-                        padding: "1px 7px",
-                        borderRadius: 99,
-                        background: "var(--border-soft)",
-                        color: "var(--text-faint)",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Dagnotitie
-                    </span>
-                  )}
-                  {entry.mood && (
-                    <span style={{ fontSize: 13 }}>
-                      {moodEmoji(entry.mood)}
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
-                  <button onClick={() => startEdit(entry)} style={btnBase}>
-                    ✏️
-                  </button>
-                  <button onClick={() => deleteEntry(entry)} style={btnBase}>
-                    🗑️
-                  </button>
-                </div>
-              </div>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "var(--text)",
-                  lineHeight: 1.65,
-                  whiteSpace: "pre-wrap",
-                  margin: 0,
-                }}
-              >
-                {entry.body}
-              </p>
-              {entry.tags?.length > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 4,
-                    flexWrap: "wrap",
-                    marginTop: 8,
-                  }}
-                >
-                  {entry.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      onClick={() => setActiveTag(tag)}
-                      style={{
-                        fontSize: 10,
-                        padding: "2px 8px",
-                        borderRadius: 99,
-                        cursor: "pointer",
-                        background: "var(--border-soft)",
-                        color: "var(--text-muted)",
-                        fontWeight: 600,
-                      }}
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </>
           )}
         </div>
       ))}
+
+      {sheet && (
+        <LogEntrySheet
+          entry={sheet === "new" ? null : sheet}
+          onSave={saveEntry}
+          onDelete={sheet !== "new" ? deleteEntry : undefined}
+          onClose={() => setSheet(null)}
+        />
+      )}
     </div>
   );
 }
