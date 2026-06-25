@@ -59,6 +59,30 @@ function colStyle(col, totalCols) {
   };
 }
 
+// Na een touch-tap vuurt de browser ~300ms later nog een synthetische
+// muissequentie op dezelfde plek. Als de net-geopende popup daar een veld heeft
+// (bv. de tijd), opent die meteen. Deze helper slikt die ene spook-sequentie op.
+function swallowGhostClick() {
+  const kill = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+  const onClick = (e) => {
+    kill(e);
+    cleanup();
+  };
+  const cleanup = () => {
+    document.removeEventListener("click", onClick, true);
+    document.removeEventListener("mousedown", kill, true);
+    document.removeEventListener("mouseup", kill, true);
+    clearTimeout(timer);
+  };
+  const timer = setTimeout(cleanup, 600);
+  document.addEventListener("click", onClick, true);
+  document.addEventListener("mousedown", kill, true);
+  document.addEventListener("mouseup", kill, true);
+}
+
 export default function WeekView({
   date,
   calTemplates,
@@ -179,6 +203,7 @@ export default function WeekView({
     e.preventDefault(); // prevent synthetic click firing on underlying cell
     if (!s.moved || !s.dragging) {
       setDrag(null);
+      swallowGhostClick();
       setModal({ mode: "edit", event: ev });
       return;
     }
