@@ -1,18 +1,61 @@
+import { useState } from "react";
 import {
   PERIOD_LABELS,
   PERIOD_COLORS,
-  EVENT_COLORS,
   DEFAULT_ROUTINES,
 } from "../../lib/constants.js";
 import { getMonday, dk, uid, applyWeekTemplate } from "../../lib/date.js";
 import { buzz } from "../../lib/storage.js";
 import { arrMove } from "../../hooks/useSortable.js";
-import EmojiPicker from "../../ui/EmojiPicker.jsx";
+import { showToast } from "../../lib/toast.js";
 import {
   SortableTemplateList,
   SortableWeekTplList,
   SortableRoutineList,
 } from "../../ui/SortableList.jsx";
+import Sheet from "../../ui/Sheet.jsx";
+import Button from "../../ui/Button.jsx";
+import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
+import { Field, TextInput } from "../../ui/Field.jsx";
+import RoutineSheet from "./RoutineSheet.jsx";
+import TemplateSheet from "./TemplateSheet.jsx";
+import AreaSheet from "./AreaSheet.jsx";
+import WeekTemplateSheet from "./WeekTemplateSheet.jsx";
+
+const addBtn = {
+  fontSize: 11,
+  padding: "3px 10px",
+  borderRadius: 6,
+  background: "var(--accent)",
+  color: "white",
+  fontWeight: 600,
+};
+const sectionCard = {
+  background: "var(--card2)",
+  border: "1px solid var(--border)",
+  borderRadius: 10,
+  padding: 12,
+  marginBottom: 14,
+};
+const sectionHead = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 6,
+};
+const h3Style = { fontFamily: "var(--ff-head)", fontSize: 14, fontWeight: 700 };
+const introP = {
+  fontSize: 11,
+  color: "var(--text-muted)",
+  marginBottom: 10,
+  lineHeight: 1.5,
+};
+const emptyList = {
+  textAlign: "center",
+  padding: "14px 0",
+  color: "var(--text-faint)",
+  fontSize: 12,
+};
 
 export default function SettingsPanel({
   settings,
@@ -28,28 +71,10 @@ export default function SettingsPanel({
   setWeekScheduleTemplates,
   calEvents,
   setCalEvents,
-  openPeriods,
-  setOpenPeriods,
-  addingTo,
-  setAddingTo,
-  newR,
-  setNewR,
-  calTplForm,
-  setCalTplForm,
-  calTplShowEmoji,
-  setCalTplShowEmoji,
-  newCalTpl,
-  setNewCalTpl,
-  savingWeekTpl,
-  setSavingWeekTpl,
-  newWeekTplName,
-  setNewWeekTplName,
   date,
   total,
   areaNames,
   areaStyles,
-  editingRoutine,
-  setEditingRoutine,
   toggleNotifications,
   clearAllDays,
   clearEverything,
@@ -59,123 +84,148 @@ export default function SettingsPanel({
   importData,
   dataInfo,
 }) {
-  const addCalTpl = () => {
-    if (!newCalTpl.title.trim()) return;
+  const [openPeriods, setOpenPeriods] = useState({
+    ochtend: true,
+    middag: true,
+    avond: true,
+  });
+  const [routineSheet, setRoutineSheet] = useState(null); // { period, routine }
+  const [tplSheet, setTplSheet] = useState(null); // "new" | template
+  const [areaSheet, setAreaSheet] = useState(null); // "new" | { area, index }
+  const [weekTplSheet, setWeekTplSheet] = useState(null); // tpl
+  const [savingWeek, setSavingWeek] = useState(false);
+  const [weekName, setWeekName] = useState("");
+  const [confirmReset, setConfirmReset] = useState(false);
+
+  // --- Routines ---
+  const saveRoutine = (data) => {
     buzz();
-    setCalTemplates((prev) => [
-      ...prev,
-      {
-        id: uid(),
-        title: newCalTpl.title.trim(),
-        icon: newCalTpl.icon,
-        color: newCalTpl.color,
-        desc: (newCalTpl.desc || "").trim(),
-      },
-    ]);
-    setNewCalTpl({ title: "", icon: "✅", color: "#059669", desc: "" });
-    setCalTplForm(false);
-    setCalTplShowEmoji(false);
-  };
-
-  const updateArea = (i, patch) =>
-    setAreas((prev) =>
-      prev.map((a, idx) => (idx === i ? { ...a, ...patch } : a)),
-    );
-  const renameArea = (i, newName) => {
-    const old = areas[i]?.name;
-    setAreas((prev) =>
-      prev.map((a, idx) => (idx === i ? { ...a, name: newName } : a)),
-    );
-    if (old && old !== newName)
-      setRoutines((prev) => {
-        const n = {};
-        for (const k in prev)
-          n[k] = prev[k].map((r) =>
-            r.area === old ? { ...r, area: newName } : r,
-          );
-        return n;
-      });
-  };
-  const addArea = () => {
-    buzz();
-    setAreas((prev) => [
-      ...prev,
-      {
-        name: "Nieuw gebied",
-        color: EVENT_COLORS[prev.length % EVENT_COLORS.length],
-      },
-    ]);
-  };
-  const deleteArea = (i) => {
-    if (areas.length <= 1) {
-      alert("Je hebt minimaal één focusgebied nodig.");
-      return;
-    }
-    if (
-      !confirm(
-        `Gebied "${areas[i].name}" verwijderen? Routines met dit gebied houden de naam maar krijgen een neutrale kleur.`,
-      )
-    )
-      return;
-    setAreas((prev) => prev.filter((_, idx) => idx !== i));
-  };
-
-  const resetRoutines = () => {
-    if (
-      confirm(
-        "Alle routines terugzetten naar standaard? Je dagdata blijft bewaard.",
-      )
-    ) {
-      setRoutines(DEFAULT_ROUTINES);
-    }
-  };
-
-  const renameRoutine = (period, id, newName, newIcon, newArea, newDesc) => {
+    const { period } = routineSheet;
     setRoutines((prev) => ({
       ...prev,
-      [period]: prev[period].map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              name: newName,
-              icon: newIcon,
-              area: newArea,
-              desc: (newDesc || "").trim(),
-            }
-          : r,
-      ),
+      [period]: data.id
+        ? prev[period].map((r) => (r.id === data.id ? { ...r, ...data } : r))
+        : [...prev[period], { id: uid(), ...data }],
     }));
-    setEditingRoutine(null);
+    setRoutineSheet(null);
   };
-  const deleteRoutine = (period, id) => {
+  const deleteRoutine = () => {
+    const { period, routine } = routineSheet;
     setRoutines((prev) => ({
       ...prev,
-      [period]: prev[period].filter((r) => r.id !== id),
+      [period]: prev[period].filter((r) => r.id !== routine.id),
     }));
+    setRoutineSheet(null);
   };
-  const reorderRoutine = (period, from, to) => {
+  const reorderRoutine = (period, from, to) =>
     setRoutines((prev) => ({
       ...prev,
       [period]: arrMove(prev[period], from, to),
     }));
+
+  // --- Weekplanner templates ---
+  const saveTemplate = (data) => {
+    buzz();
+    setCalTemplates((prev) =>
+      data.id
+        ? prev.map((t) => (t.id === data.id ? { ...t, ...data } : t))
+        : [...prev, { id: uid(), ...data }],
+    );
+    setTplSheet(null);
+  };
+  const deleteTemplate = () => {
+    setCalTemplates((prev) => prev.filter((t) => t.id !== tplSheet.id));
+    setTplSheet(null);
   };
 
-  const addRoutine = (period) => {
-    if (!newR.name.trim()) return;
+  // --- Focusgebieden ---
+  const saveArea = (data) => {
     buzz();
-    const area = areaNames.includes(newR.area)
-      ? newR.area
-      : areas[0]?.name || newR.area;
-    const r = {
+    if (areaSheet === "new") {
+      setAreas((prev) => [...prev, data]);
+    } else {
+      const i = areaSheet.index;
+      const old = areas[i]?.name;
+      setAreas((prev) => prev.map((a, idx) => (idx === i ? data : a)));
+      if (old && old !== data.name)
+        setRoutines((prev) => {
+          const n = {};
+          for (const k in prev)
+            n[k] = prev[k].map((r) =>
+              r.area === old ? { ...r, area: data.name } : r,
+            );
+          return n;
+        });
+    }
+    setAreaSheet(null);
+  };
+  const deleteArea = () => {
+    const i = areaSheet.index;
+    setAreas((prev) => prev.filter((_, idx) => idx !== i));
+    setAreaSheet(null);
+  };
+
+  // --- Weekschema templates ---
+  const weekEventCount = calEvents.filter((e) => {
+    const monStr = dk(getMonday(date));
+    const sunStr = dk(new Date(getMonday(date).getTime() + 6 * 86400000));
+    return e.date >= monStr && e.date <= sunStr;
+  }).length;
+
+  const saveCurrentWeek = () => {
+    if (!weekName.trim()) return;
+    const mon = getMonday(date);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    const monStr = dk(mon),
+      sunStr = dk(sun);
+    const weekEvents = calEvents.filter(
+      (e) => e.date >= monStr && e.date <= sunStr,
+    );
+    const tplEvents = weekEvents.map((ev) => ({
+      ...ev,
       id: uid(),
-      name: newR.name.trim(),
-      icon: newR.icon,
-      area,
-      desc: (newR.desc || "").trim(),
-    };
-    setRoutines((prev) => ({ ...prev, [period]: [...prev[period], r] }));
-    setNewR({ name: "", icon: "✅", area: "Zelfzorg", desc: "" });
-    setAddingTo(null);
+      dayOffset: Math.round((new Date(ev.date + "T00:00") - mon) / 86400000),
+    }));
+    setWeekScheduleTemplates((prev) => [
+      ...prev,
+      {
+        id: uid(),
+        name: weekName.trim(),
+        createdAt: new Date().toISOString(),
+        events: tplEvents,
+      },
+    ]);
+    setSavingWeek(false);
+    setWeekName("");
+    showToast("✓ Weekschema opgeslagen");
+  };
+  const loadWeek = (tpl) => {
+    const newEvs = applyWeekTemplate(tpl, getMonday(date));
+    setCalEvents((prev) => [...prev, ...newEvs]);
+    setWeekTplSheet(null);
+    showToast(`✓ ${newEvs.length} events toegevoegd`);
+  };
+  const replaceWeek = (tpl) => {
+    const mon = getMonday(date);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    const monStr = dk(mon),
+      sunStr = dk(sun);
+    const newEvs = applyWeekTemplate(tpl, mon);
+    setCalEvents((prev) => [
+      ...prev.filter(
+        (e) =>
+          !(
+            e.date >= monStr &&
+            e.date <= sunStr &&
+            (!e.repeat || e.repeat === "none")
+          ),
+      ),
+      ...newEvs,
+    ]);
+    setWeekTplSheet(null);
+    showToast(`✓ ${newEvs.length} events ingeladen`);
   };
 
   return (
@@ -199,15 +249,7 @@ export default function SettingsPanel({
       </h2>
 
       {/* WEERGAVE & MELDINGEN */}
-      <div
-        style={{
-          background: "var(--card2)",
-          border: "1px solid var(--border)",
-          borderRadius: 10,
-          padding: 12,
-          marginBottom: 14,
-        }}
-      >
+      <div style={sectionCard}>
         <h3
           style={{
             fontSize: 13,
@@ -398,128 +440,55 @@ export default function SettingsPanel({
       </div>
 
       {/* FOCUSGEBIEDEN */}
-      <div
-        style={{
-          background: "var(--card2)",
-          border: "1px solid var(--border)",
-          borderRadius: 10,
-          padding: 12,
-          marginBottom: 14,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 6,
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: "var(--ff-head)",
-              fontSize: 14,
-              fontWeight: 700,
-            }}
-          >
-            🎯 Focusgebieden
-          </h3>
-          <button
-            onClick={addArea}
-            style={{
-              fontSize: 11,
-              padding: "3px 10px",
-              borderRadius: 6,
-              background: "var(--accent)",
-              color: "white",
-              fontWeight: 600,
-            }}
-          >
+      <div style={sectionCard}>
+        <div style={sectionHead}>
+          <h3 style={h3Style}>🎯 Focusgebieden</h3>
+          <button onClick={() => setAreaSheet("new")} style={addBtn}>
             + Gebied
           </button>
         </div>
-        <p
-          style={{
-            fontSize: 11,
-            color: "var(--text-muted)",
-            marginBottom: 10,
-            lineHeight: 1.5,
-          }}
-        >
-          Pas naam en kleur aan, of voeg eigen gebieden toe. De kleur wordt
+        <p style={introP}>
+          Tik een gebied aan om naam en kleur te wijzigen. De kleur wordt
           gebruikt voor routines in dit gebied (kalender-events hebben een eigen
           kleur).
         </p>
         {areas.map((ar, i) => (
           <div
             key={i}
+            onClick={() => setAreaSheet({ area: ar, index: i })}
             style={{
               display: "flex",
               alignItems: "center",
               gap: 8,
-              padding: "7px 9px",
+              padding: "9px 10px",
               borderRadius: 8,
               background: "var(--card)",
               borderLeft: `4px solid ${ar.color}`,
               marginBottom: 5,
               boxShadow: "0 1px 2px var(--shadow)",
+              cursor: "pointer",
             }}
           >
-            <label
+            <span
               style={{
-                width: 26,
-                height: 26,
-                borderRadius: 13,
-                flexShrink: 0,
-                cursor: "pointer",
-                position: "relative",
-                overflow: "hidden",
+                width: 16,
+                height: 16,
+                borderRadius: 8,
                 background: ar.color,
-                border: "2px solid var(--card)",
-                boxShadow: "0 0 0 1px var(--border)",
-              }}
-            >
-              <input
-                type="color"
-                value={ar.color}
-                onChange={(e) => updateArea(i, { color: e.target.value })}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  opacity: 0,
-                  cursor: "pointer",
-                  border: "none",
-                  padding: 0,
-                }}
-              />
-            </label>
-            <input
-              type="text"
-              value={ar.name}
-              onChange={(e) => renameArea(i, e.target.value)}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                padding: "5px 8px",
-                borderRadius: 6,
-                border: "1px solid var(--border)",
-                fontSize: 12,
-                fontWeight: 600,
-                outline: "none",
+                flexShrink: 0,
               }}
             />
-            <button
-              onClick={() => deleteArea(i)}
+            <span
               style={{
+                flex: 1,
                 fontSize: 12,
-                background: "var(--danger-bg)",
-                border: "1px solid var(--danger-border)",
-                padding: "4px 6px",
-                borderRadius: 5,
+                fontWeight: 600,
+                color: "var(--text)",
               }}
             >
-              🗑️
-            </button>
+              {ar.name}
+            </span>
+            <span style={{ fontSize: 16, color: "var(--text-faint)" }}>›</span>
           </div>
         ))}
       </div>
@@ -667,501 +636,62 @@ export default function SettingsPanel({
       </div>
 
       {/* WEEKPLANNER TEMPLATES */}
-      <div
-        style={{
-          background: "var(--card2)",
-          border: "1px solid var(--border)",
-          borderRadius: 10,
-          padding: 12,
-          marginBottom: 14,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 6,
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: "var(--ff-head)",
-              fontSize: 14,
-              fontWeight: 700,
-            }}
-          >
-            📅 Weekplanner Templates
-          </h3>
-          <button
-            onClick={() => {
-              setCalTplForm(!calTplForm);
-              setCalTplShowEmoji(false);
-            }}
-            style={{
-              fontSize: 11,
-              padding: "3px 10px",
-              borderRadius: 6,
-              background: calTplForm ? "#dc2626" : "var(--accent)",
-              color: "white",
-              fontWeight: 600,
-            }}
-          >
-            {calTplForm ? "✕ Annuleer" : "+ Nieuw"}
+      <div style={sectionCard}>
+        <div style={sectionHead}>
+          <h3 style={h3Style}>📅 Weekplanner Templates</h3>
+          <button onClick={() => setTplSheet("new")} style={addBtn}>
+            + Nieuw
           </button>
         </div>
-        <p
-          style={{
-            fontSize: 11,
-            color: "var(--text-muted)",
-            marginBottom: 10,
-            lineHeight: 1.5,
-          }}
-        >
-          Snelkeuze-activiteiten voor de weekkalender. Naam, icoon, kleur en
-          optioneel een beschrijving — de tijd stel je in op de kalender zelf.
-          Sleep met ⠿ om de volgorde te wijzigen.
+        <p style={introP}>
+          Snelkeuze-activiteiten voor de weekkalender. Tik een template aan om
+          te bewerken; sleep met ⠿ om te ordenen.
         </p>
-
-        {calTplForm && (
-          <div
-            style={{
-              background: "var(--accent-bg)",
-              borderRadius: 10,
-              padding: 12,
-              marginBottom: 10,
-              animation: "fadeUp .2s ease",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                gap: 6,
-                marginBottom: 8,
-                alignItems: "center",
-              }}
-            >
-              <button
-                onClick={() => setCalTplShowEmoji(!calTplShowEmoji)}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 7,
-                  border: "1.5px solid var(--border)",
-                  background: "var(--card)",
-                  fontSize: 18,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                {newCalTpl.icon}
-              </button>
-              <input
-                type="text"
-                value={newCalTpl.title}
-                autoFocus
-                onChange={(e) =>
-                  setNewCalTpl((p) => ({ ...p, title: e.target.value }))
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addCalTpl();
-                  }
-                }}
-                placeholder="Template naam..."
-                style={{
-                  flex: 1,
-                  padding: "7px 10px",
-                  borderRadius: 7,
-                  border: "1px solid var(--border)",
-                  fontSize: 13,
-                  outline: "none",
-                }}
-              />
-            </div>
-            <input
-              type="text"
-              value={newCalTpl.desc || ""}
-              onChange={(e) =>
-                setNewCalTpl((p) => ({ ...p, desc: e.target.value }))
-              }
-              placeholder="Beschrijving (optioneel)..."
-              style={{
-                width: "100%",
-                marginBottom: 8,
-                padding: "7px 10px",
-                borderRadius: 7,
-                border: "1px solid var(--border)",
-                fontSize: 12,
-                outline: "none",
-              }}
-            />
-            {calTplShowEmoji && (
-              <div style={{ marginBottom: 8 }}>
-                <EmojiPicker
-                  value={newCalTpl.icon}
-                  onPick={(e) => {
-                    setNewCalTpl((p) => ({ ...p, icon: e }));
-                    setCalTplShowEmoji(false);
-                  }}
-                  size={26}
-                  height={130}
-                />
-              </div>
-            )}
-            <div style={{ marginBottom: 10 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "var(--text)",
-                  marginBottom: 5,
-                }}
-              >
-                Kleur
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 5,
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                }}
-              >
-                {EVENT_COLORS.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setNewCalTpl((p) => ({ ...p, color: c }))}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      background: c,
-                      border:
-                        newCalTpl.color.toLowerCase() === c
-                          ? "3px solid var(--text)"
-                          : "2px solid transparent",
-                      flexShrink: 0,
-                    }}
-                  />
-                ))}
-                <label
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 12,
-                    flexShrink: 0,
-                    cursor: "pointer",
-                    position: "relative",
-                    overflow: "hidden",
-                    border: EVENT_COLORS.includes(newCalTpl.color.toLowerCase())
-                      ? "1.5px dashed var(--border)"
-                      : "3px solid var(--text)",
-                    background: EVENT_COLORS.includes(
-                      newCalTpl.color.toLowerCase(),
-                    )
-                      ? "conic-gradient(red,orange,yellow,lime,aqua,blue,magenta,red)"
-                      : newCalTpl.color,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {EVENT_COLORS.includes(newCalTpl.color.toLowerCase()) && (
-                    <span style={{ fontSize: 11 }}>🎨</span>
-                  )}
-                  <input
-                    type="color"
-                    value={newCalTpl.color}
-                    onChange={(e) =>
-                      setNewCalTpl((p) => ({ ...p, color: e.target.value }))
-                    }
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      opacity: 0,
-                      cursor: "pointer",
-                      border: "none",
-                      padding: 0,
-                    }}
-                  />
-                </label>
-              </div>
-            </div>
-            <button
-              onClick={addCalTpl}
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: 8,
-                background: "var(--accent)",
-                color: "white",
-                fontWeight: 600,
-                fontSize: 13,
-              }}
-            >
-              ✓ Template Toevoegen
-            </button>
-          </div>
-        )}
-
-        {calTemplates.length === 0 && !calTplForm && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "14px 0",
-              color: "var(--text-faint)",
-              fontSize: 12,
-            }}
-          >
-            Nog geen templates.
-          </div>
+        {calTemplates.length === 0 && (
+          <div style={emptyList}>Nog geen templates.</div>
         )}
         <SortableTemplateList
           items={calTemplates}
           onReorder={(from, to) =>
             setCalTemplates((prev) => arrMove(prev, from, to))
           }
-          onDelete={(id) =>
-            setCalTemplates((prev) => prev.filter((x) => x.id !== id))
-          }
-          onEdit={(updated) =>
-            setCalTemplates((prev) =>
-              prev.map((t) => (t.id === updated.id ? updated : t)),
-            )
-          }
+          onEdit={(t) => setTplSheet(t)}
         />
       </div>
 
       {/* WEEKSCHEMA TEMPLATES */}
-      <div
-        style={{
-          background: "var(--card2)",
-          border: "1px solid var(--border)",
-          borderRadius: 10,
-          padding: 12,
-          marginBottom: 14,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 6,
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: "var(--ff-head)",
-              fontSize: 14,
-              fontWeight: 700,
-            }}
-          >
-            📅 Weekschema Templates
-          </h3>
+      <div style={sectionCard}>
+        <div style={sectionHead}>
+          <h3 style={h3Style}>📅 Weekschema Templates</h3>
           <button
             onClick={() => {
-              setSavingWeekTpl(!savingWeekTpl);
-              setNewWeekTplName("");
+              setSavingWeek(true);
+              setWeekName("");
             }}
-            style={{
-              fontSize: 11,
-              padding: "3px 10px",
-              borderRadius: 6,
-              background: savingWeekTpl ? "#dc2626" : "var(--accent)",
-              color: "white",
-              fontWeight: 600,
-            }}
+            style={addBtn}
           >
-            {savingWeekTpl ? "✕ Annuleer" : "💾 Huidig opslaan"}
+            💾 Huidig opslaan
           </button>
         </div>
-        <p
-          style={{
-            fontSize: 11,
-            color: "var(--text-muted)",
-            marginBottom: 10,
-            lineHeight: 1.5,
-          }}
-        >
+        <p style={introP}>
           Sla je huidige weekplanning op als template en laad hem later in voor
           elke week.
         </p>
-        {savingWeekTpl && (
-          <div
-            style={{
-              background: "var(--accent-bg)",
-              borderRadius: 10,
-              padding: 12,
-              marginBottom: 10,
-              animation: "fadeUp .2s ease",
-            }}
-          >
-            <input
-              type="text"
-              value={newWeekTplName}
-              onChange={(e) => setNewWeekTplName(e.target.value)}
-              placeholder="Naam voor dit weekschema..."
-              style={{
-                width: "100%",
-                padding: "8px 10px",
-                borderRadius: 7,
-                border: "1px solid var(--border)",
-                fontSize: 13,
-                outline: "none",
-                marginBottom: 8,
-              }}
-            />
-            <p
-              style={{
-                fontSize: 10,
-                color: "var(--text-muted)",
-                marginBottom: 8,
-              }}
-            >
-              Slaat alle events van de huidige week op (
-              {
-                calEvents.filter(
-                  (e) =>
-                    dk(getMonday(date)) <= e.date &&
-                    e.date <=
-                      dk(new Date(getMonday(date).getTime() + 6 * 86400000)),
-                ).length
-              }{" "}
-              events).
-            </p>
-            <button
-              onClick={() => {
-                if (!newWeekTplName.trim()) return;
-                const mon = getMonday(date);
-                const sun = new Date(mon);
-                sun.setDate(mon.getDate() + 6);
-                const monStr = dk(mon),
-                  sunStr = dk(sun);
-                const weekEvents = calEvents.filter(
-                  (e) => e.date >= monStr && e.date <= sunStr,
-                );
-                const dayOffset = (ev) => {
-                  const d = new Date(ev.date + "T00:00");
-                  return Math.round((d - mon) / 86400000);
-                };
-                const tplEvents = weekEvents.map((ev) => ({
-                  ...ev,
-                  id: uid(),
-                  dayOffset: dayOffset(ev),
-                }));
-                setWeekScheduleTemplates((prev) => [
-                  ...prev,
-                  {
-                    id: uid(),
-                    name: newWeekTplName.trim(),
-                    createdAt: new Date().toISOString(),
-                    events: tplEvents,
-                  },
-                ]);
-                setSavingWeekTpl(false);
-                setNewWeekTplName("");
-              }}
-              style={{
-                width: "100%",
-                padding: "8px",
-                borderRadius: 8,
-                background: "var(--accent)",
-                color: "white",
-                fontWeight: 600,
-                fontSize: 13,
-              }}
-            >
-              💾 Opslaan als template
-            </button>
-          </div>
-        )}
-        {weekScheduleTemplates.length === 0 && !savingWeekTpl && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "14px 0",
-              color: "var(--text-faint)",
-              fontSize: 12,
-            }}
-          >
-            Nog geen weekschema templates.
-          </div>
+        {weekScheduleTemplates.length === 0 && (
+          <div style={emptyList}>Nog geen weekschema templates.</div>
         )}
         <SortableWeekTplList
           items={weekScheduleTemplates}
           onReorder={(from, to) =>
             setWeekScheduleTemplates((prev) => arrMove(prev, from, to))
           }
-          onLoad={(tpl) => {
-            if (
-              !confirm(
-                `Template "${tpl.name}" inladen voor deze week?\n\nBestaande events van deze week worden NIET gewist — de template wordt toegevoegd.`,
-              )
-            )
-              return;
-            const newEvs = applyWeekTemplate(tpl, getMonday(date));
-            setCalEvents((prev) => [...prev, ...newEvs]);
-            alert(`✓ ${newEvs.length} events toegevoegd voor deze week.`);
-          }}
-          onDelete={(tpl) =>
-            setWeekScheduleTemplates((prev) =>
-              prev.filter((t) => t.id !== tpl.id),
-            )
-          }
-          onReplace={(tpl) => {
-            if (!confirm(`"${tpl.name}" inladen en huidige week vervangen?`))
-              return;
-            const mon = getMonday(date);
-            const sun = new Date(mon);
-            sun.setDate(mon.getDate() + 6);
-            const monStr = dk(mon),
-              sunStr = dk(sun);
-            const newEvs = applyWeekTemplate(tpl, mon);
-            setCalEvents((prev) => [
-              ...prev.filter(
-                (e) =>
-                  !(
-                    e.date >= monStr &&
-                    e.date <= sunStr &&
-                    (!e.repeat || e.repeat === "none")
-                  ),
-              ),
-              ...newEvs,
-            ]);
-            alert(`✓ ${newEvs.length} events ingeladen (week vervangen).`);
-          }}
-          onRename={(id, newName) =>
-            setWeekScheduleTemplates((prev) =>
-              prev.map((t) => (t.id === id ? { ...t, name: newName } : t)),
-            )
-          }
+          onEdit={(tpl) => setWeekTplSheet(tpl)}
         />
       </div>
 
       {/* ROUTINES */}
-      <div
-        style={{
-          background: "var(--card2)",
-          border: "1px solid var(--border)",
-          borderRadius: 10,
-          padding: 12,
-          marginBottom: 14,
-        }}
-      >
-        <h3
-          style={{
-            fontFamily: "var(--ff-head)",
-            fontSize: 14,
-            fontWeight: 700,
-          }}
-        >
-          📋 Routines Beheren
-        </h3>
+      <div style={sectionCard}>
+        <h3 style={h3Style}>📋 Routines Beheren</h3>
         <p
           style={{
             fontSize: 11,
@@ -1170,8 +700,8 @@ export default function SettingsPanel({
             lineHeight: 1.4,
           }}
         >
-          Sleep met ⠿ om de volgorde te wijzigen. Tik ✏️ om naam, icoon en
-          beschrijving te bewerken.
+          Sleep met ⠿ om te ordenen. Tik een routine aan om te bewerken of te
+          verwijderen.
         </p>
 
         {Object.entries(PERIOD_LABELS).map(([period, label]) => {
@@ -1231,139 +761,20 @@ export default function SettingsPanel({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setOpenPeriods((p) => ({ ...p, [period]: true }));
-                    setAddingTo(addingTo === period ? null : period);
+                    setRoutineSheet({ period, routine: null });
                   }}
-                  style={{
-                    fontSize: 11,
-                    padding: "3px 10px",
-                    borderRadius: 6,
-                    background:
-                      addingTo === period ? "#dc2626" : "var(--accent)",
-                    color: "white",
-                    fontWeight: 600,
-                  }}
+                  style={addBtn}
                 >
-                  {addingTo === period ? "✕ Annuleer" : "+ Toevoegen"}
+                  + Toevoegen
                 </button>
               </div>
               {isOpen && (
                 <div style={{ marginTop: 8 }}>
-                  {addingTo === period && (
-                    <div
-                      style={{
-                        background: "var(--accent-bg)",
-                        borderRadius: 10,
-                        padding: 12,
-                        marginBottom: 8,
-                        animation: "fadeUp .2s ease",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 6,
-                          marginBottom: 8,
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <input
-                          type="text"
-                          value={newR.name}
-                          autoFocus
-                          onChange={(e) =>
-                            setNewR((p) => ({ ...p, name: e.target.value }))
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              addRoutine(period);
-                            }
-                          }}
-                          placeholder="Routine naam..."
-                          style={{
-                            flex: 1,
-                            minWidth: 120,
-                            padding: "7px 10px",
-                            borderRadius: 7,
-                            border: "1px solid var(--border)",
-                            fontSize: 13,
-                            outline: "none",
-                          }}
-                        />
-                        <select
-                          value={
-                            areaNames.includes(newR.area)
-                              ? newR.area
-                              : areaNames[0] || ""
-                          }
-                          onChange={(e) =>
-                            setNewR((p) => ({ ...p, area: e.target.value }))
-                          }
-                          style={{
-                            padding: "7px 8px",
-                            borderRadius: 7,
-                            border: "1px solid var(--border)",
-                            fontSize: 12,
-                            background: "var(--card)",
-                          }}
-                        >
-                          {areaNames.map((a) => (
-                            <option key={a} value={a}>
-                              {a}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <input
-                        type="text"
-                        value={newR.desc || ""}
-                        onChange={(e) =>
-                          setNewR((p) => ({ ...p, desc: e.target.value }))
-                        }
-                        placeholder="Beschrijving (optioneel)..."
-                        style={{
-                          width: "100%",
-                          marginBottom: 8,
-                          padding: "7px 10px",
-                          borderRadius: 7,
-                          border: "1px solid var(--border)",
-                          fontSize: 12,
-                          outline: "none",
-                        }}
-                      />
-                      <div style={{ marginBottom: 8 }}>
-                        <EmojiPicker
-                          value={newR.icon}
-                          onPick={(e) => setNewR((p) => ({ ...p, icon: e }))}
-                        />
-                      </div>
-                      <button
-                        onClick={() => addRoutine(period)}
-                        style={{
-                          width: "100%",
-                          padding: "8px",
-                          borderRadius: 8,
-                          background: "var(--accent)",
-                          color: "white",
-                          fontWeight: 600,
-                          fontSize: 13,
-                        }}
-                      >
-                        ✓ Toevoegen aan {label}
-                      </button>
-                    </div>
-                  )}
                   <SortableRoutineList
-                    period={period}
                     items={routines[period]}
-                    editingId={editingRoutine}
-                    setEditingId={setEditingRoutine}
-                    onSave={renameRoutine}
-                    onDelete={deleteRoutine}
                     onReorder={(from, to) => reorderRoutine(period, from, to)}
+                    onEdit={(r) => setRoutineSheet({ period, routine: r })}
                     areaStyles={areaStyles}
-                    areaNames={areaNames}
                   />
                 </div>
               )}
@@ -1394,7 +805,7 @@ export default function SettingsPanel({
         </h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <button
-            onClick={resetRoutines}
+            onClick={() => setConfirmReset(true)}
             style={{
               padding: "8px",
               borderRadius: 7,
@@ -1446,6 +857,91 @@ export default function SettingsPanel({
           </button>
         </div>
       </div>
+
+      {/* SHEETS & DIALOGS */}
+      {routineSheet && (
+        <RoutineSheet
+          routine={routineSheet.routine}
+          periodLabel={PERIOD_LABELS[routineSheet.period]}
+          areaNames={areaNames}
+          onSave={saveRoutine}
+          onDelete={routineSheet.routine ? deleteRoutine : undefined}
+          onClose={() => setRoutineSheet(null)}
+        />
+      )}
+      {tplSheet && (
+        <TemplateSheet
+          template={tplSheet === "new" ? null : tplSheet}
+          onSave={saveTemplate}
+          onDelete={tplSheet !== "new" ? deleteTemplate : undefined}
+          onClose={() => setTplSheet(null)}
+        />
+      )}
+      {areaSheet && (
+        <AreaSheet
+          area={areaSheet === "new" ? null : areaSheet.area}
+          onSave={saveArea}
+          onDelete={
+            areaSheet !== "new" && areas.length > 1 ? deleteArea : undefined
+          }
+          onClose={() => setAreaSheet(null)}
+        />
+      )}
+      {weekTplSheet && (
+        <WeekTemplateSheet
+          tpl={weekTplSheet}
+          onRename={(name) => {
+            setWeekScheduleTemplates((prev) =>
+              prev.map((t) => (t.id === weekTplSheet.id ? { ...t, name } : t)),
+            );
+            setWeekTplSheet(null);
+          }}
+          onLoad={() => loadWeek(weekTplSheet)}
+          onReplace={() => replaceWeek(weekTplSheet)}
+          onDelete={() => {
+            setWeekScheduleTemplates((prev) =>
+              prev.filter((t) => t.id !== weekTplSheet.id),
+            );
+            setWeekTplSheet(null);
+          }}
+          onClose={() => setWeekTplSheet(null)}
+        />
+      )}
+      {savingWeek && (
+        <Sheet
+          title="Weekschema opslaan"
+          subtitle={`${weekEventCount} events van deze week`}
+          onClose={() => setSavingWeek(false)}
+          footer={
+            <Button full disabled={!weekName.trim()} onClick={saveCurrentWeek}>
+              💾 Opslaan
+            </Button>
+          }
+        >
+          <Field label="Naam">
+            <TextInput
+              value={weekName}
+              autoFocus
+              onChange={(e) => setWeekName(e.target.value)}
+              placeholder="Naam voor dit weekschema..."
+            />
+          </Field>
+        </Sheet>
+      )}
+      {confirmReset && (
+        <ConfirmDialog
+          title="Routines resetten?"
+          message="Alle routines terugzetten naar standaard? Je dagdata blijft bewaard."
+          confirmLabel="Resetten"
+          danger={false}
+          onCancel={() => setConfirmReset(false)}
+          onConfirm={() => {
+            setRoutines(DEFAULT_ROUTINES);
+            setConfirmReset(false);
+            showToast("✓ Routines gereset");
+          }}
+        />
+      )}
     </div>
   );
 }

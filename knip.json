@@ -1,4 +1,4 @@
 {
   "entry": ["src/sw.js"],
-  "ignoreDependencies": ["prettier"]
+  "ignoreDependencies": ["prettier", "@twemoji/svg"]
 }

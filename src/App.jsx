@@ -58,28 +58,11 @@ export default function App() {
       ? Notification.permission
       : "unsupported",
   );
-  const [openPeriods, setOpenPeriods] = useState({
-    ochtend: true,
-    middag: true,
-    avond: true,
-  });
   const [date, setDate] = useState(new Date());
   const [tab, setTab] = useState("ochtend");
   const [view, setView] = useState("tracker");
   const [pop, setPop] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [editingRoutine, setEditingRoutine] = useState(null);
-  const [addingTo, setAddingTo] = useState(null);
-  const [newR, setNewR] = useState({ name: "", icon: "✅", area: "Zelfzorg" });
-  const [calTplForm, setCalTplForm] = useState(false);
-  const [calTplShowEmoji, setCalTplShowEmoji] = useState(false);
-  const [newCalTpl, setNewCalTpl] = useState({
-    title: "",
-    icon: "✅",
-    color: "#059669",
-  });
-  const [savingWeekTpl, setSavingWeekTpl] = useState(false);
-  const [newWeekTplName, setNewWeekTplName] = useState("");
 
   const key = dk(date);
   const total = Object.values(routines).flat().length;
@@ -609,28 +592,10 @@ export default function App() {
           setWeekScheduleTemplates={setWeekScheduleTemplates}
           calEvents={calEvents}
           setCalEvents={setCalEvents}
-          openPeriods={openPeriods}
-          setOpenPeriods={setOpenPeriods}
-          addingTo={addingTo}
-          setAddingTo={setAddingTo}
-          newR={newR}
-          setNewR={setNewR}
-          calTplForm={calTplForm}
-          setCalTplForm={setCalTplForm}
-          calTplShowEmoji={calTplShowEmoji}
-          setCalTplShowEmoji={setCalTplShowEmoji}
-          newCalTpl={newCalTpl}
-          setNewCalTpl={setNewCalTpl}
-          savingWeekTpl={savingWeekTpl}
-          setSavingWeekTpl={setSavingWeekTpl}
-          newWeekTplName={newWeekTplName}
-          setNewWeekTplName={setNewWeekTplName}
           date={date}
           total={total}
           areaNames={areaNames}
           areaStyles={areaStyles}
-          editingRoutine={editingRoutine}
-          setEditingRoutine={setEditingRoutine}
           toggleNotifications={toggleNotifications}
           clearAllDays={clearAllDays}
           clearEverything={clearEverything}
