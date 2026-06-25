@@ -1,8 +1,34 @@
 import { useState } from "react";
 import { fmtDate, dk, tMin, minT } from "../../lib/date.js";
 import { buzz } from "../../lib/storage.js";
-import { EVENT_COLORS, DAYS_NL } from "../../lib/constants.js";
-import EmojiPicker from "../../ui/EmojiPicker.jsx";
+import { DAYS_NL } from "../../lib/constants.js";
+import Sheet from "../../ui/Sheet.jsx";
+import Button from "../../ui/Button.jsx";
+import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
+import IconField from "../../ui/IconField.jsx";
+import ColorPicker from "../../ui/ColorPicker.jsx";
+import Emoji from "../../ui/Emoji.jsx";
+import { Field, TextInput, TextArea } from "../../ui/Field.jsx";
+
+const DURS = [
+  [15, "15m"],
+  [30, "30m"],
+  [45, "45m"],
+  [60, "1u"],
+  [90, "1½u"],
+  [120, "2u"],
+];
+
+const timeStyle = {
+  width: "100%",
+  padding: "9px 10px",
+  borderRadius: 8,
+  border: "1.5px solid var(--border)",
+  fontSize: 14,
+  outline: "none",
+  background: "var(--input-bg)",
+  color: "var(--text)",
+};
 
 export default function EventModal({
   modal,
@@ -32,8 +58,8 @@ export default function EventModal({
   const [color, setColor] = useState(ev?.color || "#059669");
   const [desc, setDesc] = useState(ev?.desc || "");
   const [repeat, setRepeat] = useState(ev?.repeat || "none");
-  const [showEmoji, setShowEmoji] = useState(false);
   const [timeError, setTimeError] = useState("");
+  const [confirmDel, setConfirmDel] = useState(false);
 
   const dateStr = isEdit ? ev.date : dk(modal.date);
   const dayLabel = isEdit
@@ -76,90 +102,43 @@ export default function EventModal({
   };
   const setDur = (mins) =>
     setEndTime(minT(Math.min(24 * 60 - 1, tMin(startTime) + mins)));
-  const DURS = [
-    [15, "15m"],
-    [30, "30m"],
-    [45, "45m"],
-    [60, "1u"],
-    [90, "1½u"],
-    [120, "2u"],
-  ];
 
-  const handleDelete = () => {
-    if (isEdit && ev.repeat && ev.repeat !== "none") {
-      const whole = confirm(
-        `"${ev.title}" is een herhalend event.\n\nOK = hele reeks verwijderen\nAnnuleren = alleen deze dag (${dayLabel}) overslaan`,
-      );
-      if (whole) onDelete(ev.id, { whole: true });
-      else onDelete(ev.id, { skipDate: ev.date });
-    } else {
-      if (confirm("Event verwijderen?")) onDelete(ev.id);
-    }
-  };
+  const isRepeat = isEdit && ev.repeat && ev.repeat !== "none";
+
+  const segBtn = (active) => ({
+    flex: 1,
+    padding: "8px 4px",
+    borderRadius: 8,
+    fontSize: 12,
+    fontWeight: 600,
+    border: active ? "2px solid var(--accent)" : "1.5px solid var(--border)",
+    background: active ? "var(--sel-bg)" : "var(--card)",
+    color: active ? "var(--accent-text)" : "var(--text-muted)",
+  });
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,.55)",
-        zIndex: 200,
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-      }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        style={{
-          background: "var(--card)",
-          borderRadius: "16px 16px 0 0",
-          padding: 20,
-          width: "100%",
-          maxWidth: 540,
-          maxHeight: "92vh",
-          overflowY: "auto",
-          animation: "fadeUp .25s ease",
-        }}
+    <>
+      <Sheet
+        title={isEdit ? "Event bewerken" : "Nieuw event"}
+        subtitle={dayLabel}
+        onClose={onClose}
+        footer={
+          <>
+            {isEdit && (
+              <Button variant="danger" onClick={() => setConfirmDel(true)}>
+                <Emoji char="🗑️" size={16} />
+              </Button>
+            )}
+            <Button
+              onClick={submit}
+              disabled={!title.trim()}
+              style={{ flex: 1 }}
+            >
+              {isEdit ? "💾 Opslaan" : "✓ Toevoegen"}
+            </Button>
+          </>
+        }
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 4,
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: "var(--ff-head)",
-              fontSize: 16,
-              fontWeight: 700,
-            }}
-          >
-            {isEdit ? "Event bewerken" : "Nieuw event"}
-          </h3>
-          <button
-            onClick={onClose}
-            style={{
-              fontSize: 20,
-              color: "var(--text-faint)",
-              background: "none",
-              padding: 4,
-              lineHeight: 1,
-            }}
-          >
-            ✕
-          </button>
-        </div>
-        <div
-          style={{ fontSize: 11, color: "var(--text-faint)", marginBottom: 12 }}
-        >
-          {dayLabel}
-        </div>
-
         {!isEdit && templates.length > 0 && (
           <div style={{ marginBottom: 14 }}>
             <div
@@ -188,10 +167,9 @@ export default function EventModal({
                     fontSize: 12,
                     fontWeight: 600,
                     color: t.color,
-                    transition: "border-color .15s",
                   }}
                 >
-                  {t.icon} {t.title}
+                  <Emoji char={t.icon} size={14} /> {t.title}
                 </button>
               ))}
             </div>
@@ -204,27 +182,11 @@ export default function EventModal({
             gap: 8,
             marginBottom: 10,
             alignItems: "center",
+            flexWrap: "wrap",
           }}
         >
-          <button
-            onClick={() => setShowEmoji(!showEmoji)}
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 9,
-              border: "1.5px solid var(--border)",
-              background: "var(--input-bg)",
-              fontSize: 22,
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {icon}
-          </button>
-          <input
-            type="text"
+          <IconField value={icon} onChange={setIcon} />
+          <TextInput
             value={title}
             autoFocus={!isEdit}
             onChange={(e) => setTitle(e.target.value)}
@@ -235,67 +197,18 @@ export default function EventModal({
                 submit();
               }
             }}
-            style={{
-              flex: 1,
-              padding: "10px 12px",
-              borderRadius: 8,
-              border: "1.5px solid var(--border)",
-              fontSize: 13,
-              outline: "none",
-            }}
-            onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-            onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
+            style={{ flex: 1, minWidth: 140 }}
           />
         </div>
 
-        {showEmoji && (
-          <div style={{ marginBottom: 10 }}>
-            <EmojiPicker
-              value={icon}
-              onPick={(e) => {
-                setIcon(e);
-                setShowEmoji(false);
-              }}
-              size={28}
-              height={150}
-            />
-          </div>
-        )}
-
-        <div style={{ marginBottom: 10 }}>
-          <label
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--text)",
-              display: "block",
-              marginBottom: 4,
-            }}
-          >
-            Beschrijving{" "}
-            <span style={{ fontWeight: 400, color: "var(--text-faint)" }}>
-              (optioneel)
-            </span>
-          </label>
-          <textarea
+        <Field label="Beschrijving (optioneel)">
+          <TextArea
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
             placeholder="Notitie of details..."
             rows={2}
-            style={{
-              width: "100%",
-              padding: "9px 11px",
-              borderRadius: 8,
-              border: "1.5px solid var(--border)",
-              fontSize: 13,
-              outline: "none",
-              resize: "vertical",
-              lineHeight: 1.5,
-            }}
-            onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-            onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
           />
-        </div>
+        </Field>
 
         <div
           style={{
@@ -305,58 +218,22 @@ export default function EventModal({
             marginBottom: 8,
           }}
         >
-          <div>
-            <label
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--text)",
-                display: "block",
-                marginBottom: 4,
-              }}
-            >
-              Starttijd
-            </label>
+          <Field label="Starttijd">
             <input
               type="time"
               value={startTime}
               onChange={(e) => onStart(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "9px 10px",
-                borderRadius: 8,
-                border: "1.5px solid var(--border)",
-                fontSize: 14,
-                outline: "none",
-              }}
+              style={timeStyle}
             />
-          </div>
-          <div>
-            <label
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--text)",
-                display: "block",
-                marginBottom: 4,
-              }}
-            >
-              Eindtijd
-            </label>
+          </Field>
+          <Field label="Eindtijd">
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "9px 10px",
-                borderRadius: 8,
-                border: "1.5px solid var(--border)",
-                fontSize: 14,
-                outline: "none",
-              }}
+              style={timeStyle}
             />
-          </div>
+          </Field>
         </div>
         {timeError && (
           <div
@@ -403,18 +280,7 @@ export default function EventModal({
           ))}
         </div>
 
-        <div style={{ marginBottom: 14 }}>
-          <label
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--text)",
-              display: "block",
-              marginBottom: 6,
-            }}
-          >
-            🔁 Herhalen
-          </label>
+        <Field label="🔁 Herhalen">
           <div style={{ display: "flex", gap: 6 }}>
             {[
               ["none", "Niet"],
@@ -424,20 +290,7 @@ export default function EventModal({
               <button
                 key={v}
                 onClick={() => setRepeat(v)}
-                style={{
-                  flex: 1,
-                  padding: "8px 4px",
-                  borderRadius: 8,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  border:
-                    repeat === v
-                      ? "2px solid var(--accent)"
-                      : "1.5px solid var(--border)",
-                  background: repeat === v ? "var(--sel-bg)" : "var(--card)",
-                  color:
-                    repeat === v ? "var(--accent-text)" : "var(--text-muted)",
-                }}
+                style={segBtn(repeat === v)}
               >
                 {l}
               </button>
@@ -459,132 +312,40 @@ export default function EventModal({
               Herhaalt elke dag vanaf {dayLabel}.
             </div>
           )}
-        </div>
+        </Field>
 
-        <div style={{ marginBottom: 18 }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--text)",
-              marginBottom: 7,
-            }}
-          >
-            Kleur
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: 7,
-              flexWrap: "wrap",
-              alignItems: "center",
-            }}
-          >
-            {EVENT_COLORS.map((c) => (
-              <button
-                key={c}
-                onClick={() => setColor(c)}
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 14,
-                  background: c,
-                  border:
-                    color.toLowerCase() === c
-                      ? "3px solid var(--text)"
-                      : "2.5px solid transparent",
-                  boxShadow:
-                    color.toLowerCase() === c
-                      ? "0 0 0 2px var(--card) inset"
-                      : "none",
-                  flexShrink: 0,
-                  transition: "all .15s",
-                }}
-              />
-            ))}
-            <label
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 14,
-                flexShrink: 0,
-                cursor: "pointer",
-                position: "relative",
-                border: EVENT_COLORS.includes(color.toLowerCase())
-                  ? "1.5px dashed var(--border)"
-                  : "3px solid var(--text)",
-                background: EVENT_COLORS.includes(color.toLowerCase())
-                  ? "conic-gradient(red,orange,yellow,lime,aqua,blue,magenta,red)"
-                  : color,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 13,
-                overflow: "hidden",
-              }}
-            >
-              {EVENT_COLORS.includes(color.toLowerCase()) && (
-                <span
-                  style={{
-                    fontSize: 13,
-                    filter: "drop-shadow(0 0 1px rgba(0,0,0,.4))",
-                  }}
-                >
-                  🎨
-                </span>
-              )}
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  opacity: 0,
-                  cursor: "pointer",
-                  border: "none",
-                  padding: 0,
-                }}
-              />
-            </label>
-          </div>
-        </div>
+        <Field label="Kleur">
+          <ColorPicker value={color} onChange={setColor} />
+        </Field>
+      </Sheet>
 
-        <div style={{ display: "flex", gap: 8 }}>
-          {isEdit && (
-            <button
-              onClick={handleDelete}
-              style={{
-                padding: "11px 14px",
-                borderRadius: 9,
-                background: "var(--danger-bg)",
-                border: "1px solid var(--danger-border)",
-                color: "#dc2626",
-                fontSize: 14,
-                fontWeight: 600,
-              }}
-            >
-              🗑️
-            </button>
-          )}
-          <button
-            onClick={submit}
-            style={{
-              flex: 1,
-              padding: "11px",
-              borderRadius: 9,
-              background: "var(--accent)",
-              color: "white",
-              fontSize: 14,
-              fontWeight: 700,
-              opacity: title.trim() ? "1" : ".5",
-              transition: "opacity .15s",
-            }}
-          >
-            {isEdit ? "💾 Opslaan" : "✓ Toevoegen"}
-          </button>
-        </div>
-      </div>
-    </div>
+      {confirmDel &&
+        (isRepeat ? (
+          <ConfirmDialog
+            title="Herhalend event verwijderen"
+            message={`"${ev.title}" is een herhalend event.`}
+            onCancel={() => setConfirmDel(false)}
+            actions={[
+              {
+                label: "Hele reeks verwijderen",
+                variant: "dangerSolid",
+                onClick: () => onDelete(ev.id, { whole: true }),
+              },
+              {
+                label: `Alleen deze dag (${dayLabel})`,
+                variant: "secondary",
+                onClick: () => onDelete(ev.id, { skipDate: ev.date }),
+              },
+            ]}
+          />
+        ) : (
+          <ConfirmDialog
+            title="Event verwijderen?"
+            message={`"${ev.title}" wordt verwijderd.`}
+            onCancel={() => setConfirmDel(false)}
+            onConfirm={() => onDelete(ev.id)}
+          />
+        ))}
+    </>
   );
 }
