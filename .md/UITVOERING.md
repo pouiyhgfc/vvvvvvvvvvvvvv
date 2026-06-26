@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _UI-overhaul afgerond (fundament + Twemoji + popup-UI; build/lint/knip schoon) — wacht op visuele controle op Android. Zie "Fase UI" onderaan._
+**Status — huidige fase:** _UI-overhaul én notitieboeken-werkruimte (Notion-achtige editor) afgerond; build/lint/knip schoon — wacht op visuele/mobiele controle. Zie "Fase UI" en "Fase Notitieboeken" onderaan._
 
 ---
 
@@ -349,6 +349,24 @@ git commit -m "Fase 4: Notities/kennisbank-module"
 
 - [ ] Import "samenvoegen/vervangen" is nog een native `confirm()`.
 - [ ] Emoji's in losse knop-labels (bv. "💾 Opslaan") mogen later via `<Emoji>`.
+
+---
+
+## Fase Notitieboeken — werkruimte + rijke editor (afgerond)
+
+**Doel:** de Logboek-tab uitbreiden tot een notitieboeken-werkruimte (zelf tabs maken) met een Notion-achtige editor. Zie `ONTWERP.md` (sectie "Notitieboeken & rijke editor").
+
+- [x] **1** — Ghost-click op het tijd-veld in de planner opgevangen.
+- [x] **2** — Notitieboeken-laag: sub-tabs, `NotebookSheet`, entries per notitieboek; dag-notities alleen in Logboek.
+- [x] **3** — Zoeken matcht ook de datum (ISO, "25 juni", weekdag).
+- [x] **4** — Volledige pagina (`EntryPage`) + lazy **BlockNote**-editor; React 18 → 19.
+- [x] **5** — Backup v6: `logEntries` + `notebooks` in export/import.
+- [x] **6** — Documentatie (`CLAUDE.md` + `ONTWERP.md`).
+
+**Controle:**
+
+- [x] `npm run build` / `lint` / `deadcode` schoon.
+- [ ] Mobiel: editor (tabellen/opsommingen/checklist) prettig in gebruik; entry maken/bewerken/verwijderen; zoeken op tekst, tag én datum; notitieboek toevoegen/verwijderen; backup export → import; oude v5-backup importeert nog.
 
 ---
 

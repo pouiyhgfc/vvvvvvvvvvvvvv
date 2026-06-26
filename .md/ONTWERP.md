@@ -87,8 +87,20 @@ Doel: emoji's renderen op élk toestel identiek (vlaggen renderen anders per And
   Toevoegen/bewerken/verwijderen gebeurt in een `Sheet`. Zie `ui/SortableList.jsx`.
 - **Instellingen:** elke sectie in een `Section` (accordion). Korte secties mogen `defaultOpen`.
 
+## Notitieboeken & rijke editor
+
+De Logboek-tab is een werkruimte met **notitieboeken** ([LogbookView.jsx](src/features/logbook/LogbookView.jsx)):
+
+- Notitieboeken: blob `notebooks` = `[{ id, name, icon, color }]`, fallback `DEFAULT_NOTEBOOKS`. Beheren via `NotebookSheet`; een notitieboek verwijderen verhuist zijn entries naar `logboek`.
+- Entries (`db.logEntries`): `notebookId` (ontbreekt = `logboek`), `title`, `doc` (BlockNote blocks-JSON), `body` (afgeleide markdown voor zoeken/preview), `tags`, `mood`, `date`, `createdAt`, `updatedAt`.
+- Dag-notities uit de tracker (`days.notes`) verschijnen alleen in `logboek` en blijven plat (geen rijke editor) — bewerken via `LogEntrySheet`.
+- Een log-entry openen = volledige pagina `EntryPage` met **auto-save** (debounced + bij Terug); verwijderen zit in de pagina-topbalk.
+
+**Editor-pipeline (BlockNote):** `RichEditor.jsx` is **lazy** geladen en toont de editor; bij wijziging geeft hij `{ doc, text }` terug (`text` = `blocksToMarkdownLossy`). Oude platte entries laden via `plainToBlocks`. Thema volgt `settings.theme`. Nieuwe emoji's niet nodig hier. BlockNote-kern is MPL-2.0 — vermijd de GPL "XL"-pakketten.
+
 ## Bekende uitzonderingen / nog te doen
 
 - De import-keuze "samenvoegen vs. vervangen" (`App.jsx` → `importData`) is nog een native
   `confirm()`; lastig veilig om te bouwen midden in het `FileReader`-inlezen.
 - Emoji's in losse knop-labels (bv. "💾 Opslaan") renderen nog als OS-emoji; mag later via `<Emoji>`.
+- De BlockNote-editor-chunk (~1,7 MB) wordt geprecached door de PWA (offline-voordeel, maar zwaardere service-worker-install). Optioneel later uitsluiten via `manualChunks` + `globIgnores`.

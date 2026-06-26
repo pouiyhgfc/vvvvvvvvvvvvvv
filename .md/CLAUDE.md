@@ -63,6 +63,7 @@ De UI draait op gedeelde primitives in `src/ui/`. Gebruik die altijd; bouw geen 
 - **Geen native dialogs.** Geen `confirm()`/`alert()`/`prompt()`. Bevestigen → `ui/ConfirmDialog.jsx`; korte meldingen → `showToast()` uit `lib/toast.js`.
 - **Iconen via `<Emoji char="…" />`.** Nooit een kale emoji in JSX. `<Emoji>` rendert de lokaal gebundelde Twemoji-SVG (identiek op elk toestel, incl. vlaggen). Nieuwe emoji's: zet ze in `EMOJI_CATEGORIES` (`constants.js`) — `npm run emoji` kopieert ze (gebeurt ook bij `dev`/`build`). Niet-emoji glyphs: eigen SVG in `src/emoji-custom/` met de codepoint als bestandsnaam.
 - **Knoppen via `ui/Button.jsx`** (`primary/secondary/danger/dangerSolid/ghost`); **instellingen-secties via `ui/Section.jsx`** (inklapbaar, `tone` voor accent/danger).
+- **Logboek = notitieboeken-werkruimte.** Notitieboeken staan in de `notebooks`-blob; elke entry heeft een `notebookId` (ontbreekt = `logboek`). Een entry is een rijk **BlockNote**-document: sla zowel `doc` (blocks-JSON) als een afgeleide `body` (markdown) op — `body` voedt zoeken en kaart-preview. De editor (`features/logbook/RichEditor.jsx`) is **lazy**; importeer 'm nooit direct in de hoofd-bundel. App draait op **React 19**.
 
 ## Bij twijfel
 
