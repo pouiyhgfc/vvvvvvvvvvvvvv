@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
-import { uid, dk } from "../../lib/date.js";
+import { uid } from "../../lib/date.js";
 import {
   DAYS_NL,
   MONTHS_NL,
@@ -13,6 +13,7 @@ import Emoji from "../../ui/Emoji.jsx";
 import Button from "../../ui/Button.jsx";
 import LogEntrySheet from "./LogEntrySheet.jsx";
 import NotebookSheet from "./NotebookSheet.jsx";
+import EntryPage from "./EntryPage.jsx";
 
 function fmtDay(str) {
   const d = new Date(str + "T12:00:00");
@@ -39,9 +40,12 @@ export default function LogbookView() {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState(null);
   const [activeNb, setActiveNb] = useState("logboek");
-  const [sheet, setSheet] = useState(null); // "new" | entry
+  const [sheet, setSheet] = useState(null); // dag-notitie (plat tekstveld)
   const [nbSheet, setNbSheet] = useState(null); // "new" | notebook
+  const [pageEntry, setPageEntry] = useState(null); // "new" | log-entry
 
+  const settingsRec = useLiveQuery(() => db.settings.get("singleton"));
+  const theme = settingsRec?.theme ?? "light";
   const notebooksBlob = useLiveQuery(() => db.blobs.get("notebooks"));
   const notebooks = notebooksBlob?.data ?? DEFAULT_NOTEBOOKS;
   const activeNotebook =
@@ -98,33 +102,14 @@ export default function LogbookView() {
     return list;
   }, [allEntries, search, activeTag]);
 
-  const saveEntry = async (data) => {
-    if (sheet === "new") {
-      await db.logEntries.put({
-        id: uid(),
-        notebookId: activeId,
-        date: dk(new Date()),
-        body: data.body,
-        tags: data.tags,
-        mood: data.mood,
-        createdAt: new Date().toISOString(),
-      });
-      showToast("✓ Entry toegevoegd");
-    } else if (sheet._type === "log") {
-      await db.logEntries.update(sheet.id, {
-        body: data.body,
-        tags: data.tags,
-        mood: data.mood,
-      });
-    } else {
-      await db.days.update(sheet.date, { notes: data.body });
-    }
+  // Dag-notities (uit de tracker) blijven een plat tekstveld; log-entries
+  // openen de volledige pagina met de rijke editor (zie EntryPage).
+  const saveDayNote = async (data) => {
+    await db.days.update(sheet.date, { notes: data.body });
     setSheet(null);
   };
-
-  const deleteEntry = async () => {
-    if (sheet._type === "log") await db.logEntries.delete(sheet.id);
-    else await db.days.update(sheet.date, { notes: "" });
+  const deleteDayNote = async () => {
+    await db.days.update(sheet.date, { notes: "" });
     setSheet(null);
     showToast("✓ Verwijderd");
   };
@@ -264,7 +249,7 @@ export default function LogbookView() {
           <Emoji char={activeNotebook?.icon ?? "📖"} size={20} />
           {activeNotebook?.name ?? "Logboek"}
         </h2>
-        <Button size="sm" onClick={() => setSheet("new")}>
+        <Button size="sm" onClick={() => setPageEntry("new")}>
           + Nieuw
         </Button>
       </div>
@@ -345,7 +330,13 @@ export default function LogbookView() {
 
       {/* Entry-kaarten */}
       {filtered.map((entry) => (
-        <div key={entry.id} style={cardBase} onClick={() => setSheet(entry)}>
+        <div
+          key={entry.id}
+          style={cardBase}
+          onClick={() =>
+            entry._type === "day" ? setSheet(entry) : setPageEntry(entry)
+          }
+        >
           <div
             style={{
               display: "flex",
@@ -382,17 +373,35 @@ export default function LogbookView() {
             <span style={{ flex: 1 }} />
             <span style={{ fontSize: 15, color: "var(--text-faint)" }}>›</span>
           </div>
-          <p
-            style={{
-              fontSize: 13,
-              color: "var(--text)",
-              lineHeight: 1.65,
-              whiteSpace: "pre-wrap",
-              margin: 0,
-            }}
-          >
-            {entry.body}
-          </p>
+          {entry.title && (
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: "var(--text)",
+                marginBottom: 3,
+              }}
+            >
+              {entry.title}
+            </div>
+          )}
+          {entry.body?.trim() && (
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--text-muted)",
+                lineHeight: 1.55,
+                whiteSpace: "pre-wrap",
+                margin: 0,
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+              }}
+            >
+              {entry.body}
+            </p>
+          )}
           {entry.tags?.length > 0 && (
             <div
               style={{
@@ -422,11 +431,19 @@ export default function LogbookView() {
         </div>
       ))}
 
+      {pageEntry && (
+        <EntryPage
+          entry={pageEntry === "new" ? null : pageEntry}
+          notebookId={activeId}
+          theme={theme}
+          onClose={() => setPageEntry(null)}
+        />
+      )}
       {sheet && (
         <LogEntrySheet
-          entry={sheet === "new" ? null : sheet}
-          onSave={saveEntry}
-          onDelete={sheet !== "new" ? deleteEntry : undefined}
+          entry={sheet}
+          onSave={saveDayNote}
+          onDelete={deleteDayNote}
           onClose={() => setSheet(null)}
         />
       )}

@@ -12,12 +12,15 @@
     "deadcode": "knip"
   },
   "dependencies": {
+    "@blocknote/core": "^0.51.4",
+    "@blocknote/mantine": "^0.51.4",
+    "@blocknote/react": "^0.51.4",
     "@fontsource-variable/dm-sans": "^5.1.1",
     "@fontsource-variable/outfit": "^5.1.1",
     "dexie": "^4.4.4",
     "dexie-react-hooks": "^4.4.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
