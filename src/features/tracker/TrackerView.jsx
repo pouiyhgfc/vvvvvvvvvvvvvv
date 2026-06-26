@@ -1,61 +1,16 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import {
   PERIOD_LABELS,
   PERIOD_COLORS,
   MOODS,
   FALLBACK_AREA_STYLE,
 } from "../../lib/constants.js";
+import { db } from "../../lib/db.js";
 import Ring from "../../ui/Ring.jsx";
 import Emoji from "../../ui/Emoji.jsx";
 
-// Eigen lokale state, zodat de cursor niet wegspringt en autocorrect niet
-// dubbelt door de async DB-round-trip. Remount per dag via key={dateKey}.
-function NotesField({ initial, onSave }) {
-  const [text, setText] = useState(initial || "");
-  return (
-    <>
-      <textarea
-        value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          onSave(e.target.value);
-        }}
-        placeholder={
-          "Hoe was je dag?\nWat ging goed? Wat kan beter?\nWaar ben je dankbaar voor?"
-        }
-        rows={4}
-        style={{
-          width: "100%",
-          padding: "12px 14px",
-          borderRadius: 10,
-          border: "1.5px solid var(--border)",
-          fontSize: 13,
-          lineHeight: 1.6,
-          outline: "none",
-          background: "var(--input-bg)",
-          resize: "vertical",
-          minHeight: 90,
-          transition: "border-color .2s",
-          color: "var(--text)",
-        }}
-        onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
-        onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
-      />
-      {text && (
-        <div
-          style={{
-            marginTop: 6,
-            fontSize: 10,
-            color: "var(--text-faint)",
-            textAlign: "right",
-          }}
-        >
-          {text.length} tekens
-        </div>
-      )}
-    </>
-  );
-}
+const EntryPage = lazy(() => import("../logbook/EntryPage.jsx"));
 
 export default function TrackerView({
   day,
@@ -73,6 +28,19 @@ export default function TrackerView({
   streak,
   dateKey,
 }) {
+  const settingsRec = useLiveQuery(() => db.settings.get("singleton"));
+  const theme = settingsRec?.theme ?? "light";
+  const todayEntry = useLiveQuery(
+    () =>
+      db.logEntries
+        .where("date")
+        .equals(dateKey)
+        .filter((e) => (e.notebookId || "logboek") === "logboek")
+        .first(),
+    [dateKey],
+  );
+  const [entryPage, setEntryPage] = useState(null);
+
   return (
     <div style={{ animation: "fadeUp .3s ease" }}>
       <div
@@ -378,34 +346,43 @@ export default function TrackerView({
       </div>
 
       <div style={{ padding: "0 12px 16px" }}>
-        <div
+        <button
+          onClick={() => setEntryPage(todayEntry || "new")}
           style={{
-            background: "var(--card)",
+            width: "100%",
+            padding: "14px",
             borderRadius: 12,
-            padding: 14,
+            border: "1.5px solid var(--border)",
+            background: "var(--card)",
+            color: "var(--text)",
+            fontSize: 13,
+            fontWeight: 600,
+            textAlign: "left",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
             boxShadow: "0 1px 3px var(--shadow)",
           }}
         >
-          <label
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "var(--text)",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              marginBottom: 8,
-            }}
-          >
-            📝 Notities & Reflecties
-          </label>
-          <NotesField
-            key={dateKey}
-            initial={day.notes}
-            onSave={(v) => saveDay({ ...day, notes: v })}
-          />
-        </div>
+          <span style={{ fontSize: 18 }}>{todayEntry ? "📖" : "📝"}</span>
+          {todayEntry
+            ? "Logboek voor vandaag openen"
+            : "Nieuw logboek voor vandaag aanmaken"}
+        </button>
       </div>
+
+      {entryPage && (
+        <Suspense fallback={null}>
+          <EntryPage
+            entry={entryPage === "new" ? null : entryPage}
+            notebookId="logboek"
+            date={dateKey}
+            theme={theme}
+            onClose={() => setEntryPage(null)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

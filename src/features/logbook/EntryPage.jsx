@@ -21,17 +21,15 @@ const parseTags = (str) =>
     .map((t) => t.trim())
     .filter(Boolean);
 
-// Platte tekst (oude entries) → BlockNote-paragraafblokken.
-function plainToBlocks(text) {
-  return (text || "").split("\n").map((line) => ({
-    type: "paragraph",
-    content: line ? [{ type: "text", text: line, styles: {} }] : [],
-  }));
-}
-
 // Volledige eigen pagina met de rijke editor. Slaat automatisch op (debounced
 // + bij Terug). Maakt een nieuwe entry pas aan zodra er inhoud is.
-export default function EntryPage({ entry, notebookId, theme, onClose }) {
+export default function EntryPage({
+  entry,
+  notebookId,
+  date: dateProp,
+  theme,
+  onClose,
+}) {
   const [title, setTitle] = useState(entry?.title || "");
   const [tags, setTags] = useState(entry?.tags?.join(", ") || "");
   const [mood, setMood] = useState(entry?.mood || "");
@@ -45,11 +43,8 @@ export default function EntryPage({ entry, notebookId, theme, onClose }) {
     text: entry?.body ?? "",
   });
 
-  const initialContent = entry?.doc?.length
-    ? entry.doc
-    : entry?.body
-      ? plainToBlocks(entry.body)
-      : undefined;
+  // RichEditor normaliseert zelf: array → door, string → plainToBlocks, leeg → undefined.
+  const initialContent = entry?.doc ?? entry?.body ?? undefined;
 
   const persist = useCallback(async () => {
     const { doc, text } = contentRef.current;
@@ -62,7 +57,7 @@ export default function EntryPage({ entry, notebookId, theme, onClose }) {
       await db.logEntries.put({
         id,
         notebookId,
-        date: dk(new Date()),
+        date: dateProp || dk(new Date()),
         title: title.trim(),
         body: text || "",
         doc: doc || undefined,
@@ -81,7 +76,7 @@ export default function EntryPage({ entry, notebookId, theme, onClose }) {
         updatedAt: new Date().toISOString(),
       });
     }
-  }, [title, tags, mood, notebookId]);
+  }, [title, tags, mood, notebookId, dateProp]);
 
   // Debounced auto-save bij elke wijziging (titel/tags/mood via persist, editor
   // via contentVersion).
