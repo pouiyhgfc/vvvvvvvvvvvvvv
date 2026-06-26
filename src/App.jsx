@@ -5,6 +5,7 @@ import {
   DEFAULT_CAL_TEMPLATES,
   DEFAULT_AREAS,
   DEFAULT_SETTINGS,
+  DEFAULT_NOTEBOOKS,
   buildAreaStyles,
 } from "./lib/constants.js";
 import { dk, fmtDate, isToday, getMonday } from "./lib/date.js";
@@ -235,14 +236,16 @@ export default function App() {
     }
   };
 
-  const exportData = () => {
+  const exportData = async () => {
     const allDaysForExport = {};
     (allDaysRaw ?? []).forEach((e) => {
       const { date: d, ...rest } = e;
       allDaysForExport[d] = rest;
     });
+    const logEntries = await db.logEntries.toArray();
+    const notebooksBlob = await db.blobs.get("notebooks");
     const payload = {
-      version: 5,
+      version: 6,
       exportedAt: new Date().toISOString(),
       routines,
       areas,
@@ -251,6 +254,8 @@ export default function App() {
       weekScheduleTemplates,
       settings,
       days: allDaysForExport,
+      logEntries,
+      notebooks: notebooksBlob?.data ?? DEFAULT_NOTEBOOKS,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
@@ -362,10 +367,12 @@ export default function App() {
           db.days,
           db.calEvents,
           db.settings,
+          db.logEntries,
           async () => {
             if (!mode) {
               await db.days.clear();
               await db.calEvents.clear();
+              await db.logEntries.clear();
             }
             await db.blobs.put({ key: "routines", data: data.routines });
             if (data.calTemplates)
@@ -392,6 +399,10 @@ export default function App() {
               ([d, dayData]) => ({ date: d, ...dayData }),
             );
             if (dayEntries.length) await db.days.bulkPut(dayEntries);
+            if (Array.isArray(data.logEntries) && data.logEntries.length)
+              await db.logEntries.bulkPut(data.logEntries);
+            if (Array.isArray(data.notebooks) && data.notebooks.length)
+              await db.blobs.put({ key: "notebooks", data: data.notebooks });
           },
         );
         showToast(
