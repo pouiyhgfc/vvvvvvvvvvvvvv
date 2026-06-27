@@ -470,7 +470,7 @@ export default function LogbookView() {
                         Dagnotitie
                       </span>
                     )}
-                    {entry.mood && (
+                    {!isLog && entry.mood && (
                       <Emoji char={moodEmoji(entry.mood)} size={15} />
                     )}
                     <span style={{ flex: 1 }} />

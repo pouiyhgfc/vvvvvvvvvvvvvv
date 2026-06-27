@@ -8,8 +8,7 @@ import {
 } from "react";
 import { db } from "../../lib/db.js";
 import { uid, dk } from "../../lib/date.js";
-import { MOODS } from "../../lib/constants.js";
-import Emoji from "../../ui/Emoji.jsx";
+import { DAYS_NL, MONTHS_NL } from "../../lib/constants.js";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import { TextInput } from "../../ui/Field.jsx";
 
@@ -20,6 +19,45 @@ const parseTags = (str) =>
     .split(",")
     .map((t) => t.trim())
     .filter(Boolean);
+
+function fmtDay(str) {
+  const d = new Date(str + "T12:00");
+  return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
+}
+
+function ChevronIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12.5 5l-5 5 5 5" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h14M8 6V4h4v2M5 6l1 11h8l1-11" />
+    </svg>
+  );
+}
 
 // Volledige eigen pagina met de rijke editor. Slaat automatisch op (debounced
 // + bij Terug). Maakt een nieuwe entry pas aan zodra er inhoud is.
@@ -32,7 +70,6 @@ export default function EntryPage({
 }) {
   const [title, setTitle] = useState(entry?.title || "");
   const [tags, setTags] = useState(entry?.tags?.join(", ") || "");
-  const [mood, setMood] = useState(entry?.mood || "");
   const [created, setCreated] = useState(!!entry?.id);
   const [confirmDel, setConfirmDel] = useState(false);
   const [contentVersion, setContentVersion] = useState(0);
@@ -43,8 +80,8 @@ export default function EntryPage({
     text: entry?.body ?? "",
   });
 
-  // RichEditor normaliseert zelf: array → door, string → plainToBlocks, leeg → undefined.
   const initialContent = entry?.doc ?? entry?.body ?? undefined;
+  const entryDate = entry?.date || dateProp || dk(new Date());
 
   const persist = useCallback(async () => {
     const { doc, text } = contentRef.current;
@@ -62,7 +99,6 @@ export default function EntryPage({
         body: text || "",
         doc: doc || undefined,
         tags: parseTags(tags),
-        mood: mood || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -72,14 +108,11 @@ export default function EntryPage({
         body: text || "",
         doc: doc || undefined,
         tags: parseTags(tags),
-        mood: mood || null,
         updatedAt: new Date().toISOString(),
       });
     }
-  }, [title, tags, mood, notebookId, dateProp]);
+  }, [title, tags, notebookId, dateProp]);
 
-  // Debounced auto-save bij elke wijziging (titel/tags/mood via persist, editor
-  // via contentVersion).
   useEffect(() => {
     const t = setTimeout(persist, 500);
     return () => clearTimeout(t);
@@ -109,106 +142,119 @@ export default function EntryPage({
         flexDirection: "column",
       }}
     >
-      {/* Topbalk */}
+      {/* Topbalk — minimaal: alleen terug + verwijder */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 6,
-          padding: "10px 12px",
+          justifyContent: "space-between",
+          padding: "8px 12px",
           borderBottom: "1px solid var(--border-mid)",
           background: "var(--card)",
+          minHeight: 52,
         }}
       >
         <button
           onClick={close}
           aria-label="Terug"
           style={{
-            fontSize: 22,
+            width: 36,
+            height: 36,
+            borderRadius: 99,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--text-muted)",
+            border: "none",
             background: "none",
-            color: "var(--text)",
-            padding: "2px 8px",
-            lineHeight: 1,
+            cursor: "pointer",
           }}
         >
-          ←
+          <ChevronIcon />
         </button>
-        <TextInput
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Titel..."
-          style={{
-            flex: 1,
-            border: "none",
-            background: "transparent",
-            fontSize: 16,
-            fontWeight: 700,
-            padding: "6px 4px",
-          }}
-        />
         {created && (
           <button
             onClick={() => setConfirmDel(true)}
             aria-label="Verwijderen"
             style={{
-              background: "var(--danger-bg)",
+              width: 34,
+              height: 34,
+              borderRadius: 99,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--danger-text)",
               border: "1px solid var(--danger-border)",
-              borderRadius: 8,
-              padding: "6px 9px",
-              lineHeight: 1,
+              background: "var(--danger-bg)",
+              cursor: "pointer",
             }}
           >
-            <Emoji char="🗑️" size={15} />
+            <TrashIcon />
           </button>
         )}
       </div>
 
-      {/* Tags + stemming */}
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          flexWrap: "wrap",
-          padding: "8px 12px",
-          borderBottom: "1px solid var(--border-soft)",
-          background: "var(--card)",
-        }}
-      >
-        <TextInput
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          placeholder="tags (komma-gescheiden)"
-          style={{ flex: 1, minWidth: 150, fontSize: 12, padding: "6px 10px" }}
-        />
-        <div style={{ display: "flex", gap: 4 }}>
-          {MOODS.map((m) => (
-            <button
-              key={m.value}
-              onClick={() => setMood(mood === m.value ? "" : m.value)}
-              aria-label={m.value}
-              style={{
-                padding: 4,
-                borderRadius: 7,
-                display: "flex",
-                border:
-                  mood === m.value
-                    ? "2px solid var(--accent)"
-                    : "1.5px solid var(--border)",
-                background: mood === m.value ? "var(--sel-bg)" : "var(--card)",
-              }}
-            >
-              <Emoji char={m.emoji} size={16} />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Editor */}
+      {/* Scroll-zone: titel + meta + editor */}
       <div style={{ flex: 1, overflowY: "auto" }}>
         <div
-          style={{ maxWidth: 720, margin: "0 auto", padding: "14px 4px 48px" }}
+          style={{ maxWidth: 720, margin: "0 auto", padding: "20px 16px 48px" }}
         >
+          {/* Grote titel */}
+          <TextInput
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Titel…"
+            style={{
+              width: "100%",
+              border: "none",
+              background: "transparent",
+              fontFamily: "var(--ff-display)",
+              fontSize: 26,
+              fontWeight: 700,
+              color: "var(--text)",
+              padding: "0 0 8px",
+              lineHeight: 1.2,
+              boxShadow: "none",
+            }}
+          />
+          {/* Meta-rij: datum · tags */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 16,
+              flexWrap: "wrap",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 12,
+                color: "var(--text-faint)",
+                fontWeight: 500,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {fmtDay(entryDate)}
+            </span>
+            <span style={{ color: "var(--border)", fontSize: 14 }}>·</span>
+            <TextInput
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="tags (komma-gescheiden)"
+              style={{
+                flex: 1,
+                minWidth: 120,
+                border: "none",
+                background: "transparent",
+                fontSize: 12,
+                color: "var(--text-muted)",
+                padding: 0,
+                boxShadow: "none",
+              }}
+            />
+          </div>
+          {/* Rijke editor */}
           <Suspense
             fallback={
               <div
