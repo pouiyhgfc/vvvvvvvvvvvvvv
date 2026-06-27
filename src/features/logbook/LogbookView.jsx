@@ -14,6 +14,7 @@ import { useSortable, arrMove } from "../../hooks/useSortable.js";
 import Emoji from "../../ui/Emoji.jsx";
 import Button from "../../ui/Button.jsx";
 import DragHandle from "../../ui/DragHandle.jsx";
+import Sheet from "../../ui/Sheet.jsx";
 import LogEntrySheet from "./LogEntrySheet.jsx";
 import NotebookSheet from "./NotebookSheet.jsx";
 import EntryPage from "./EntryPage.jsx";
@@ -53,6 +54,7 @@ export default function LogbookView() {
   const [sheet, setSheet] = useState(null); // dag-notitie (plat tekstveld)
   const [nbSheet, setNbSheet] = useState(null); // "new" | notebook
   const [pageEntry, setPageEntry] = useState(null); // "new" | log-entry
+  const [sortNbSheet, setSortNbSheet] = useState(false);
 
   const settingsRec = useLiveQuery(() => db.settings.get("singleton"));
   const theme = settingsRec?.theme ?? "light";
@@ -219,7 +221,6 @@ export default function LogbookView() {
     <div style={{ padding: "14px 12px 24px", animation: "fadeUp .3s ease" }}>
       {/* Notitieboek-tabs */}
       <div
-        ref={nbSortRef}
         style={{
           display: "flex",
           gap: 6,
@@ -229,19 +230,18 @@ export default function LogbookView() {
           WebkitOverflowScrolling: "touch",
         }}
       >
-        {notebooks.map((n, ni) => {
+        {notebooks.map((n) => {
           const active = n.id === activeId;
           return (
             <button
               key={n.id}
-              data-srow="1"
               onClick={() => (active ? setNbSheet(n) : setActiveNb(n.id))}
               style={{
                 flexShrink: 0,
                 display: "flex",
                 alignItems: "center",
                 gap: 5,
-                padding: "6px 10px 6px 8px",
+                padding: "6px 12px",
                 borderRadius: 99,
                 fontSize: 12,
                 fontWeight: 600,
@@ -253,23 +253,6 @@ export default function LogbookView() {
                 color: active ? "var(--text)" : "var(--text-muted)",
               }}
             >
-              <span
-                onPointerDown={(e) => {
-                  e.stopPropagation();
-                  nbHandleDown(e, ni, n.id);
-                }}
-                style={{
-                  fontSize: 11,
-                  color: "var(--text-faint)",
-                  lineHeight: 1,
-                  userSelect: "none",
-                  touchAction: "none",
-                  cursor: "grab",
-                  paddingRight: 3,
-                }}
-              >
-                ⠿
-              </span>
               <Emoji char={n.icon} size={14} />
               {n.name}
             </button>
@@ -291,6 +274,23 @@ export default function LogbookView() {
         >
           +
         </button>
+        {notebooks.length > 1 && (
+          <button
+            onClick={() => setSortNbSheet(true)}
+            aria-label="Volgorde wijzigen"
+            style={{
+              flexShrink: 0,
+              padding: "6px 10px",
+              borderRadius: 99,
+              fontSize: 13,
+              border: "1px solid var(--border)",
+              background: "var(--card)",
+              color: "var(--text-faint)",
+            }}
+          >
+            ↕
+          </button>
+        )}
       </div>
 
       {/* Kop: actief notitieboek + nieuwe entry */}
@@ -554,6 +554,54 @@ export default function LogbookView() {
           }
           onClose={() => setNbSheet(null)}
         />
+      )}
+      {sortNbSheet && (
+        <Sheet
+          title="Volgorde notitieboeken"
+          onClose={() => setSortNbSheet(false)}
+        >
+          <div ref={nbSortRef}>
+            {notebooks.map((n, i) => (
+              <div
+                key={n.id}
+                data-srow="1"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  background: "var(--card)",
+                  border: `1.5px solid ${n.color}22`,
+                  marginBottom: 6,
+                  boxShadow: "0 1px 2px var(--shadow)",
+                }}
+              >
+                <DragHandle onPointerDown={(e) => nbHandleDown(e, i, n.id)} />
+                <Emoji char={n.icon} size={18} />
+                <span
+                  style={{
+                    flex: 1,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "var(--text)",
+                  }}
+                >
+                  {n.name}
+                </span>
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 99,
+                    background: n.color,
+                    flexShrink: 0,
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </Sheet>
       )}
     </div>
   );
