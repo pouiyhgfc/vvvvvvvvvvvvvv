@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _UI-overhaul én notitieboeken-werkruimte (Notion-achtige editor) afgerond; build/lint/knip schoon — wacht op visuele/mobiele controle. Zie "Fase UI" en "Fase Notitieboeken" onderaan._
+**Status — huidige fase:** _Design-integratie "Evergreen" afgerond — nieuw palet (licht+donker), Schibsted Grotesk als display-font, thema-bewust accent, rijkere header met tegel-nav; build/lint schoon — wacht op visuele/mobiele controle. Zie "Fase Design-integratie" onderaan._
 
 ---
 
@@ -367,6 +367,23 @@ git commit -m "Fase 4: Notities/kennisbank-module"
 
 - [x] `npm run build` / `lint` / `deadcode` schoon.
 - [ ] Mobiel: editor (tabellen/opsommingen/checklist) prettig in gebruik; entry maken/bewerken/verwijderen; zoeken op tekst, tag én datum; notitieboek toevoegen/verwijderen; backup export → import; oude v5-backup importeert nog.
+
+---
+
+## Fase Design-integratie — "Evergreen" overal toepassen (afgerond)
+
+**Doel:** het Evergreen-ontwerp (uit de tijdelijke `nieuwe/`-mockups) overal toepassen, leunend op de bestaande tokens/primitives. Zie `ONTWERP.md`.
+
+- [x] **1 — Fundament:** Schibsted Grotesk (`--ff-display`) toegevoegd; volledig Evergreen-palet (licht + donker) in `index.html`; accent + `--accent-contrast` thema-bewust; `theme-color` bijgewerkt.
+- [x] **2 — Primitives + header:** Button/NavBtn/Section/Ring/segment-schakelaar verfijnd; nieuwe gradient-header met tegel-nav (rand + lichter, niet vervaagd).
+- [x] **3 — Schermen:** Tracker (streak-chip, voltooid = groen), Week (display-weekkop), heatmap-top + merk-groen defaults naar `#0e7a52`.
+- [x] **4 — Editor:** BlockNote-vlak transparant op het Evergreen-vlak; `EntryPage` erft de tokens.
+- [x] **5 — Documentatie:** `ONTWERP.md` + `CLAUDE.md` (font-tiers, thema-bewust accent).
+
+**Controle:**
+
+- [x] `npm run build` / `lint` / `deadcode` schoon.
+- [ ] Mobiel (Android): elk scherm in licht én donker; header-tegels leesbaar met rand; dark-mode accentcontrast; editor in het Logboek.
 
 ---
 

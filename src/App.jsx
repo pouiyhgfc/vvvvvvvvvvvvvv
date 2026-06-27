@@ -102,7 +102,7 @@ export default function App() {
     if (meta)
       meta.setAttribute(
         "content",
-        settings.theme === "dark" ? "#0f1311" : "#064e3b",
+        settings.theme === "dark" ? "#0e1210" : "#0a3d2b",
       );
   }, [settings.theme]);
 
@@ -482,73 +482,70 @@ export default function App() {
       {/* HEADER */}
       <div
         style={{
-          background: "linear-gradient(140deg,#064e3b 0%,#047857 100%)",
-          padding: "22px 16px 16px",
+          background: "linear-gradient(140deg,#0a3d2b 0%,#0e7a52 100%)",
+          padding: "22px 16px 0",
         }}
       >
         <div
           style={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            flexWrap: "wrap",
-            gap: 8,
+            gap: 10,
+            alignItems: "center",
+            marginBottom: 14,
           }}
         >
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10,
-                background: "rgba(255,255,255,.12)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 20,
-              }}
-            >
-              <Emoji char="📋" size={22} />
-            </div>
-            <div>
-              <h1
-                style={{
-                  fontFamily: "var(--ff-head)",
-                  fontSize: 20,
-                  fontWeight: 800,
-                  color: "white",
-                }}
-              >
-                Routine Tracker
-              </h1>
-              <p
-                style={{
-                  fontSize: 11,
-                  color: "rgba(255,255,255,.7)",
-                  marginTop: 1,
-                }}
-              >
-                {fmtDate(date)}
-                {isToday(date) ? " — Vandaag" : ""}
-              </p>
-            </div>
-          </div>
           <div
             style={{
+              width: 38,
+              height: 38,
+              borderRadius: 11,
+              background: "rgba(255,255,255,.16)",
               display: "flex",
-              gap: 4,
-              flexWrap: "wrap",
-              justifyContent: "flex-end",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            {[
-              ["tracker", "📝"],
-              ["week", "📆"],
-              ["month", "📅"],
-              ["stats", "📊"],
-              ["logbook", "📖"],
-              ["settings", "⚙️"],
-            ].map(([v, ic]) => (
+            <Emoji char="🌿" size={20} />
+          </div>
+          <div>
+            <h1
+              style={{
+                fontFamily: "var(--ff-display)",
+                fontSize: 20,
+                fontWeight: 600,
+                letterSpacing: "-.01em",
+                color: "white",
+                lineHeight: 1.1,
+              }}
+            >
+              Routine
+            </h1>
+            <p
+              style={{
+                fontSize: 12,
+                color: "rgba(255,255,255,.58)",
+                marginTop: 1,
+              }}
+            >
+              {fmtDate(date)}
+              {isToday(date) ? " — Vandaag" : ""}
+            </p>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 0 }}>
+          {[
+            ["tracker", "✅", "Dag"],
+            ["week", "📅", "Week"],
+            ["month", "🗓️", "Maand"],
+            ["stats", "📊", "Stats"],
+            ["logbook", "📓", "Log"],
+            ["settings", "⚙️", "Config"],
+          ].map(([v, ic, label]) => {
+            const active =
+              (view === v && v !== "settings") ||
+              (v === "settings" && showSettings);
+            return (
               <button
                 key={v}
                 onClick={() => {
@@ -558,28 +555,45 @@ export default function App() {
                   if (v !== "settings") setShowSettings(false);
                 }}
                 style={{
-                  padding: "5px 8px",
-                  borderRadius: 7,
-                  border: "1px solid rgba(255,255,255,.2)",
-                  background:
-                    (view === v && v !== "settings") ||
-                    (v === "settings" && showSettings)
-                      ? "white"
-                      : "rgba(255,255,255,.08)",
-                  color:
-                    (view === v && v !== "settings") ||
-                    (v === "settings" && showSettings)
-                      ? "#064e3b"
-                      : "white",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  transition: "all .2s",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "8px 2px 12px",
+                  background: "transparent",
                 }}
               >
-                <Emoji char={ic} size={16} />
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: active ? "#ffffff" : "rgba(255,255,255,.14)",
+                    border: active
+                      ? "1px solid #ffffff"
+                      : "1px solid rgba(255,255,255,.30)",
+                    transition: "background .2s, border-color .2s",
+                  }}
+                >
+                  <Emoji char={ic} size={17} />
+                </div>
+                <span
+                  style={{
+                    fontFamily: "var(--ff-body)",
+                    fontSize: 9,
+                    fontWeight: 600,
+                    color: "white",
+                  }}
+                >
+                  {label}
+                </span>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
 

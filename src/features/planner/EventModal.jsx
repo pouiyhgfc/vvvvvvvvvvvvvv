@@ -55,7 +55,7 @@ export default function EventModal({
           : `${String(h0 + 1).padStart(2, "0")}:00`
         : "10:00"),
   );
-  const [color, setColor] = useState(ev?.color || "#059669");
+  const [color, setColor] = useState(ev?.color || "#0e7a52");
   const [desc, setDesc] = useState(ev?.desc || "");
   const [repeat, setRepeat] = useState(ev?.repeat || "none");
   const [timeError, setTimeError] = useState("");

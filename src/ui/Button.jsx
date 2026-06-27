@@ -15,9 +15,9 @@ const VARIANTS = {
     border: "1px solid var(--danger-border)",
   },
   dangerSolid: {
-    background: "#dc2626",
+    background: "#b91c1c",
     color: "#ffffff",
-    border: "1px solid #dc2626",
+    border: "1px solid #b91c1c",
   },
   ghost: {
     background: "transparent",
@@ -27,7 +27,7 @@ const VARIANTS = {
 };
 
 const SIZES = {
-  md: { padding: "11px 14px", fontSize: 14, borderRadius: 9 },
+  md: { padding: "11px 16px", fontSize: 14, borderRadius: 10 },
   sm: { padding: "6px 10px", fontSize: 12, borderRadius: 6 },
 };
 

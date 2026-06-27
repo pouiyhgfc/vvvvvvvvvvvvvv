@@ -109,15 +109,24 @@ export default function TrackerView({
           ))}
           <div
             style={{
-              display: "flex",
+              display: "inline-flex",
               alignItems: "center",
-              gap: 4,
-              marginTop: 1,
+              gap: 5,
+              marginTop: 3,
+              alignSelf: "flex-start",
+              padding: "5px 10px 5px 8px",
+              borderRadius: 999,
+              background: "var(--accent-bg)",
+              border: "1px solid var(--accent-border)",
             }}
           >
-            <Emoji char="🔥" size={16} />
+            <Emoji char="🔥" size={14} />
             <span
-              style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)" }}
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: "var(--accent-text)",
+              }}
             >
               {streak} dag{streak !== 1 ? "en" : ""} streak
             </span>
@@ -125,41 +134,48 @@ export default function TrackerView({
         </div>
       </div>
 
-      <div
-        className="period-tabs"
-        style={{ display: "flex", gap: 4, padding: "0 12px", marginBottom: 5 }}
-      >
-        {Object.entries(PERIOD_LABELS).map(([k, label]) => {
-          const active = tab === k;
-          const col = PERIOD_COLORS[k];
-          return (
-            <button
-              key={k}
-              onClick={() => setTab(k)}
-              style={{
-                flex: 1,
-                padding: "8px 4px",
-                borderRadius: 9,
-                border: active ? `2px solid ${col}` : "2px solid transparent",
-                background: active ? "var(--card)" : "var(--card2)",
-                color: active ? col : "var(--text-faint)",
-                fontSize: 12,
-                fontWeight: 700,
-                transition: "all .2s",
-                boxShadow: active ? "0 2px 8px rgba(0,0,0,.06)" : "none",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              {label}
-              <span style={{ fontSize: 10, fontWeight: 600, opacity: 0.7 }}>
-                {pDone(k)}/{routines[k].length}
-              </span>
-            </button>
-          );
-        })}
+      <div style={{ padding: "0 12px", marginBottom: 5 }}>
+        <div
+          className="period-tabs"
+          style={{
+            display: "flex",
+            gap: 0,
+            background: "var(--border-soft)",
+            borderRadius: 13,
+            padding: 3,
+          }}
+        >
+          {Object.entries(PERIOD_LABELS).map(([k, label]) => {
+            const active = tab === k;
+            return (
+              <button
+                key={k}
+                onClick={() => setTab(k)}
+                style={{
+                  flex: 1,
+                  padding: "8px 4px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: active ? "var(--card)" : "transparent",
+                  color: active ? "var(--text)" : "var(--text-muted)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  transition: "all .2s",
+                  boxShadow: active ? "0 1px 4px rgba(20,30,25,.07)" : "none",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                {label}
+                <span style={{ fontSize: 10, fontWeight: 600, opacity: 0.7 }}>
+                  {pDone(k)}/{routines[k].length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div
@@ -186,7 +202,7 @@ export default function TrackerView({
                 padding: "10px 11px",
                 borderRadius: 11,
                 borderLeft: `4px solid ${a.border}`,
-                background: done ? a.bg : "var(--card)",
+                background: done ? "var(--sel-bg)" : "var(--card)",
                 boxShadow: "0 1px 2px var(--shadow)",
                 cursor: "pointer",
                 transition: "all .15s",
@@ -199,8 +215,8 @@ export default function TrackerView({
                   width: 22,
                   height: 22,
                   borderRadius: 6,
-                  border: `2px solid ${done ? a.text : "var(--border)"}`,
-                  background: done ? a.text : "var(--card)",
+                  border: `2px solid ${done ? "var(--accent)" : "var(--border)"}`,
+                  background: done ? "var(--accent)" : "var(--card)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -210,7 +226,13 @@ export default function TrackerView({
                 }}
               >
                 {done && (
-                  <span style={{ color: "white", fontSize: 13, lineHeight: 1 }}>
+                  <span
+                    style={{
+                      color: "var(--accent-contrast)",
+                      fontSize: 13,
+                      lineHeight: 1,
+                    }}
+                  >
                     ✓
                   </span>
                 )}

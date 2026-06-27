@@ -38,7 +38,7 @@ export default function MonthView({
           ? "#fde68a"
           : pct < 80
             ? "#bbf7d0"
-            : "#059669";
+            : "#0e7a52";
   const today = new Date();
 
   return (
@@ -175,7 +175,7 @@ export default function MonthView({
           ["#fecaca", "<30%"],
           ["#fde68a", "<60%"],
           ["#bbf7d0", "<80%"],
-          ["#059669", "80%+"],
+          ["#0e7a52", "80%+"],
         ].map(([c, l]) => (
           <div
             key={l}

@@ -6,7 +6,7 @@
 <title>Routine Tracker</title>
 
 <!-- PWA -->
-<meta name="theme-color" content="#064e3b">
+<meta name="theme-color" content="#0a3d2b">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,28 +17,30 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body, #root { height: 100%; }
   :root {
+    --ff-display: 'Schibsted Grotesk Variable', sans-serif;
     --ff-head: 'Outfit Variable', sans-serif; --ff-body: 'DM Sans Variable', sans-serif;
-    --bg:#f8f7f4; --card:#ffffff; --card2:#fafaf9;
-    --text:#1f2937; --text-muted:#6b7280; --text-faint:#9ca3af;
-    --border:#e5e7eb; --border-soft:#f0efeb; --border-mid:#e8e5df;
-    --input-bg:#fafafa; --shadow:rgba(0,0,0,.06);
+    --bg:#f6f5f1; --card:#ffffff; --card2:#fbfaf7;
+    --text:#1a211e; --text-muted:#697069; --text-faint:#a2a8a2;
+    --border:#e9e7e1; --border-soft:#f1efe9; --border-mid:#e9e7e1;
+    --input-bg:#f8f7f3; --shadow:rgba(20,30,25,.06);
     --tint-alpha:18;
-    --accent:#059669; --accent-strong:#047857; --accent-contrast:#ffffff;
-    --accent-bg:#f0fdf4; --accent-border:#bbf7d0; --accent-text:#065f46; --sel-bg:#ecfdf5;
-    --danger-bg:#fef2f2; --danger-border:#fecaca; --danger-text:#b91c1c;
+    --accent:#0e7a52; --accent-strong:#0a5a3c; --accent-contrast:#ffffff;
+    --accent-bg:#eef7f2; --accent-border:#c5e6d6; --accent-text:#0a5a3c; --sel-bg:#f0f8f4;
+    --danger-bg:#fdf3f2; --danger-border:#f3d2cf; --danger-text:#c0392f;
     --purple-bg:#f5f3ff; --purple-border:#ddd6fe; --purple-text:#6d28d9;
-    --heat0:#f0efeb;
+    --heat0:#f1efe9;
   }
   html[data-theme="dark"] {
-    --bg:#0f1311; --card:#1a201d; --card2:#222a26;
-    --text:#e7ece9; --text-muted:#9aa6a0; --text-faint:#6b7770;
-    --border:#2c3531; --border-soft:#242b27; --border-mid:#2c3531;
-    --input-bg:#222a26; --shadow:rgba(0,0,0,.45);
+    --bg:#0e1210; --card:#171c19; --card2:#1f2521;
+    --text:#e8ece9; --text-muted:#98a09a; --text-faint:#646b66;
+    --border:#2a312d; --border-soft:#242b27; --border-mid:#2a312d;
+    --input-bg:#1f2521; --shadow:rgba(0,0,0,.45);
     --tint-alpha:30;
-    --accent-bg:#10241b; --accent-border:#1d4332; --accent-text:#6ee7b7; --sel-bg:#16291f;
-    --danger-bg:#2a1618; --danger-border:#4a2429; --danger-text:#f87171;
+    --accent:#1fa06a; --accent-strong:#5fd6a0; --accent-contrast:#06140d;
+    --accent-bg:#10251b; --accent-border:#1d4534; --accent-text:#5fd6a0; --sel-bg:#13271d;
+    --danger-bg:#2a1614; --danger-border:#4a2521; --danger-text:#f0867c;
     --purple-bg:#1c1830; --purple-border:#352c54; --purple-text:#c4b5fd;
-    --heat0:#222a26;
+    --heat0:#242b27;
   }
   body { font-family: 'DM Sans Variable', sans-serif; background: var(--bg); color: var(--text); transition: background .25s; }
   @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
@@ -53,7 +55,7 @@
   input[type=text],input[type=time],textarea,select{color:var(--text);background:var(--card)}
   input::placeholder,textarea::placeholder{color:var(--text-faint)}
   .routine-item:active{transform:scale(0.98)}
-  .cal-hour-cell:hover{background:rgba(5,150,105,.06)!important}
+  .cal-hour-cell:hover{background:rgba(14,122,82,.06)!important}
   .drag-handle{touch-action:none;cursor:grab}
   .drag-handle:active{cursor:grabbing}
   [data-srow="1"]{transition:transform .18s cubic-bezier(.2,.8,.2,1)}

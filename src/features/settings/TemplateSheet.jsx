@@ -11,7 +11,7 @@ import { Field, TextInput } from "../../ui/Field.jsx";
 export default function TemplateSheet({ template, onSave, onDelete, onClose }) {
   const [title, setTitle] = useState(template?.title || "");
   const [icon, setIcon] = useState(template?.icon || "✅");
-  const [color, setColor] = useState(template?.color || "#059669");
+  const [color, setColor] = useState(template?.color || "#0e7a52");
   const [desc, setDesc] = useState(template?.desc || "");
   const [confirmDel, setConfirmDel] = useState(false);
 

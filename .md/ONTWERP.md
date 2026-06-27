@@ -9,12 +9,19 @@
 Gedefinieerd in de `<style>` van `index.html`, met een licht en een donker thema
 (`html[data-theme="dark"]`). Gebruik altijd tokens, nooit losse hex voor UI-kleur.
 
+Het palet is **Evergreen**: warm-groene neutralen, diep groen accent (`#0e7a52`).
+
 - **Accent:** `--accent` (groen), `--accent-strong`, `--accent-contrast`, plus de
-  vlakken `--accent-bg`, `--accent-border`, `--accent-text`, `--sel-bg`.
+  vlakken `--accent-bg`, `--accent-border`, `--accent-text`, `--sel-bg`. Let op: `--accent`
+  én `--accent-contrast` zijn **thema-bewust** — in dark wordt het accent feller (`#1fa06a`) met
+  dónkere tekst erop (`--accent-contrast: #06140d`). Gebruik dus altijd `--accent-contrast` voor
+  tekst/iconen óp het accent, nooit een harde `#fff`.
 - **Tekst:** `--text`, `--text-muted`, `--text-faint`.
 - **Vlakken/randen:** `--bg`, `--card`, `--card2`, `--border`, `--border-soft`, `--border-mid`, `--input-bg`, `--shadow`.
 - **Danger:** `--danger-bg`, `--danger-border`, `--danger-text`.
-- **Lettertypes:** `--ff-head` (Outfit), `--ff-body` (DM Sans).
+- **Lettertypes (drie tiers):** `--ff-display` (Schibsted Grotesk) voor de **grootste titels**
+  (paginatitel in de header, datum-/weekkop); `--ff-head` (Outfit) voor **kaart- en sectietitels**
+  - nav-labels; `--ff-body` (DM Sans) voor **lopende tekst**.
 
 Uitzondering — letterlijke hex blijft alléén voor **data**: opgeslagen event-/template-kleuren,
 het `EVENT_COLORS`-palet en de maand-heatmap-schaal. Die volgen het accent niet.

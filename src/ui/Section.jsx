@@ -35,7 +35,7 @@ export default function Section({
       style={{
         background: t.bg,
         border: `1px solid ${t.border}`,
-        borderRadius: 10,
+        borderRadius: 12,
         marginBottom: 10,
         overflow: "hidden",
       }}
@@ -65,8 +65,8 @@ export default function Section({
         <h3
           style={{
             fontFamily: "var(--ff-head)",
-            fontSize: 14,
-            fontWeight: 700,
+            fontSize: 15,
+            fontWeight: 600,
             flex: 1,
             color: t.title,
           }}

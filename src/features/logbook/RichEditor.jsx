@@ -24,6 +24,8 @@ export default function RichEditor({ initialContent, onChange, theme }) {
     <BlockNoteView
       editor={editor}
       theme={theme === "dark" ? "dark" : "light"}
+      // Laat de editor naadloos op het Evergreen-vlak zitten i.p.v. een eigen paneelkleur.
+      style={{ "--bn-colors-editor-background": "transparent" }}
       onChange={async () => {
         const doc = editor.document;
         const text = await editor.blocksToMarkdownLossy(doc);

@@ -290,10 +290,11 @@ export default function WeekView({
       >
         <div
           style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: "var(--text-muted)",
-            letterSpacing: 0.3,
+            fontFamily: "var(--ff-display)",
+            fontSize: 15,
+            fontWeight: 600,
+            color: "var(--text)",
+            letterSpacing: "-.01em",
           }}
         >
           {weekLabel}
@@ -588,7 +589,7 @@ export default function WeekView({
                     return dayEvs.map((ev) => {
                       const top = timeToY(ev.startTime);
                       const height = blockH(ev.startTime, ev.endTime);
-                      const c = ev.color || "#059669";
+                      const c = ev.color || "#0e7a52";
                       const isDragging = drag && drag.id === ev.id;
                       const { col, totalCols } = layout.get(ev.id);
                       return (

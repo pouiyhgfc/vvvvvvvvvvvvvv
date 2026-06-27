@@ -42,7 +42,7 @@ export const DEFAULT_CAL_TEMPLATES = [
   { id: "ct1", title: "Hifd", icon: "📖", color: "#dc2626" },
   { id: "ct2", title: "Rekken / Boxen", icon: "🥊", color: "#d97706" },
   { id: "ct3", title: "Arabisch", icon: "🇸🇦", color: "#7c3aed" },
-  { id: "ct4", title: "Quran lezen", icon: "📜", color: "#059669" },
+  { id: "ct4", title: "Quran lezen", icon: "📜", color: "#0e7a52" },
   { id: "ct5", title: "Frans Anki", icon: "🇫🇷", color: "#2563eb" },
   { id: "ct6", title: "School", icon: "🎬", color: "#0891b2" },
 ];
@@ -466,7 +466,7 @@ export const EMOJI_CATEGORIES = [
   },
 ];
 export const EVENT_COLORS = [
-  "#059669",
+  "#0e7a52",
   "#2563eb",
   "#7c3aed",
   "#dc2626",
@@ -480,7 +480,7 @@ export const CAL_HOUR_H = 56;
 export const CAL_START_H = 3;
 export const CAL_END_H = 24;
 export const DEFAULT_NOTEBOOKS = [
-  { id: "logboek", name: "Logboek", icon: "📖", color: "#059669" },
+  { id: "logboek", name: "Logboek", icon: "📖", color: "#0e7a52" },
 ];
 export const DEFAULT_SETTINGS = {
   theme: "light",
