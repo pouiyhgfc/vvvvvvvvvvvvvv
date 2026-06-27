@@ -50,7 +50,8 @@ const nbOf = (e) => e.notebookId || "logboek";
 export default function LogbookView() {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState(null);
-  const [activeNb, setActiveNb] = useState("logboek");
+  // null → valt terug op het eerste notitieboek in de (sorteerbare) volgorde.
+  const [activeNb, setActiveNb] = useState(null);
   const [sheet, setSheet] = useState(null); // dag-notitie (plat tekstveld)
   const [nbSheet, setNbSheet] = useState(null); // "new" | notebook
   const [pageEntry, setPageEntry] = useState(null); // "new" | log-entry
