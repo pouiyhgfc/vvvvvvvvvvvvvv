@@ -1,5 +1,14 @@
-import { useCreateBlockNote } from "@blocknote/react";
+import {
+  useCreateBlockNote,
+  SuggestionMenuController,
+  FormattingToolbar,
+  FormattingToolbarController,
+  getDefaultReactSlashMenuItems,
+  getFormattingToolbarItems,
+} from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
+import { filterSuggestionItems } from "@blocknote/core";
+import { nl } from "@blocknote/core/locales";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import "./richEditor.css";
@@ -33,22 +42,85 @@ const EVERGREEN_TOKENS = {
   "--bn-font-family": "var(--ff-body)",
 };
 
+// Strak & relevant: media-uploads (werken niet zonder backend) en de dubbele
+// toggle-/subkoppen weggelaten. Keys zijn stabiel los van de NL-vertaling.
+const SLASH_KEYS = new Set([
+  "paragraph",
+  "heading",
+  "heading_2",
+  "heading_3",
+  "bullet_list",
+  "numbered_list",
+  "check_list",
+  "quote",
+  "code_block",
+  "divider",
+  "table",
+  "emoji",
+]);
+
+// Gecureerde opmaak-toolbar: tekststijlen, uitlijning, kleur, inspringen, link.
+// Comment-knoppen weg (geen backend); bestand-knoppen tonen toch alleen bij files.
+const TOOLBAR_KEYS = new Set([
+  "blockTypeSelect",
+  "boldStyleButton",
+  "italicStyleButton",
+  "underlineStyleButton",
+  "strikeStyleButton",
+  "textAlignLeftButton",
+  "textAlignCenterButton",
+  "textAlignRightButton",
+  "colorStyleButton",
+  "nestBlockButton",
+  "unnestBlockButton",
+  "createLinkButton",
+  "tableCellMergeButton",
+]);
+
+function CuratedToolbar() {
+  return (
+    <FormattingToolbar>
+      {getFormattingToolbarItems().filter((item) => TOOLBAR_KEYS.has(item.key))}
+    </FormattingToolbar>
+  );
+}
+
 export default function RichEditor({ initialContent, onChange, theme }) {
   const editor = useCreateBlockNote({
     initialContent: toBlocks(initialContent),
+    dictionary: nl,
   });
+
+  const getSlashItems = async (query) =>
+    filterSuggestionItems(
+      getDefaultReactSlashMenuItems(editor).filter((item) =>
+        SLASH_KEYS.has(item.key),
+      ),
+      query,
+    );
+
   return (
     <div className="bn-container">
       <BlockNoteView
         editor={editor}
         theme={theme === "dark" ? "dark" : "light"}
         style={EVERGREEN_TOKENS}
+        // Alleen slash-menu + toolbar vervangen; link-toolbar, zijmenu,
+        // tabel-handvatten en emoji-picker blijven de defaults.
+        slashMenu={false}
+        formattingToolbar={false}
         onChange={async () => {
           const doc = editor.document;
           const text = await editor.blocksToMarkdownLossy(doc);
           onChange({ doc, text });
         }}
-      />
+      >
+        <FormattingToolbarController formattingToolbar={CuratedToolbar} />
+        <SuggestionMenuController
+          triggerCharacter="/"
+          getItems={getSlashItems}
+        />
+      </BlockNoteView>
     </div>
   );
 }
