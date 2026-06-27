@@ -237,11 +237,29 @@ export default function App() {
     setNotifPerm(perm);
     if (perm === "granted") {
       setSettings((s) => ({ ...s, notifEnabled: true }));
-      try {
-        new Notification("🔔 Meldingen aan", {
-          body: "Je krijgt nu herinneringen voor je weekplanning.",
-        });
-      } catch {}
+      // Android-PWA's tonen meldingen alleen via de service worker;
+      // de `new Notification()`-constructor faalt daar stil.
+      const title = "🔔 Meldingen aan";
+      const body = "Je krijgt nu herinneringen voor je weekplanning.";
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.ready
+          .then((reg) =>
+            reg.showNotification(title, {
+              body,
+              icon: "/icon-192.png",
+              badge: "/icon-192.png",
+            }),
+          )
+          .catch(() => {
+            try {
+              new Notification(title, { body });
+            } catch {}
+          });
+      } else {
+        try {
+          new Notification(title, { body });
+        } catch {}
+      }
     } else {
       showToast(
         "Meldingen zijn geblokkeerd. Sta ze toe in de browser-/app-instellingen om herinneringen te krijgen.",
