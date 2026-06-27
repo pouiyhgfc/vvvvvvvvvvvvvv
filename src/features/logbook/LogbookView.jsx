@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { uid } from "../../lib/date.js";
@@ -7,13 +7,23 @@ import {
   MONTHS_NL,
   MOODS,
   DEFAULT_NOTEBOOKS,
+  EVENT_COLORS,
 } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
+import { useSortable, arrMove } from "../../hooks/useSortable.js";
 import Emoji from "../../ui/Emoji.jsx";
 import Button from "../../ui/Button.jsx";
+import DragHandle from "../../ui/DragHandle.jsx";
 import LogEntrySheet from "./LogEntrySheet.jsx";
 import NotebookSheet from "./NotebookSheet.jsx";
 import EntryPage from "./EntryPage.jsx";
+
+function tagColor(tag) {
+  let h = 0;
+  for (let i = 0; i < tag.length; i++)
+    h = (h * 31 + tag.charCodeAt(i)) & 0xffff;
+  return EVENT_COLORS[h % EVENT_COLORS.length];
+}
 
 function fmtDay(str) {
   const d = new Date(str + "T12:00:00");
@@ -75,7 +85,21 @@ export default function LogbookView() {
             _type: "day",
           }))
         : [];
-    return [...log, ...days].sort((a, b) => b.date.localeCompare(a.date));
+    // Log-entries: entries met order staan vast (asc); entries zonder order
+    // krijgen negatief tijdstempel → sorteren vóór geordende entries (nieuwste eerst).
+    const sortedLog = log.sort((a, b) => {
+      const ao =
+        a.order !== undefined
+          ? a.order
+          : -new Date(a.createdAt || a.date + "T00:00").getTime();
+      const bo =
+        b.order !== undefined
+          ? b.order
+          : -new Date(b.createdAt || b.date + "T00:00").getTime();
+      return ao - bo;
+    });
+    const sortedDays = days.sort((a, b) => b.date.localeCompare(a.date));
+    return [...sortedLog, ...sortedDays];
   }, [logEntriesRaw, dayNotesRaw, activeId]);
 
   const allTags = useMemo(() => {
@@ -101,6 +125,21 @@ export default function LogbookView() {
     }
     return list;
   }, [allEntries, search, activeTag]);
+
+  const canSort = !search.trim() && !activeTag;
+
+  const onReorder = useCallback(
+    async (from, to) => {
+      const logOnly = filtered.filter((e) => e._type === "log");
+      const moved = arrMove(logOnly, from, to);
+      await db.logEntries.bulkPut(
+        moved.map(({ _type: _t, ...rest }, i) => ({ ...rest, order: i })),
+      );
+    },
+    [filtered],
+  );
+
+  const { ref: sortRef, onHandleDown } = useSortable(onReorder);
 
   // Dag-notities (uit de tracker) blijven een plat tekstveld; log-entries
   // openen de volledige pagina met de rijke editor (zie EntryPage).
@@ -286,25 +325,30 @@ export default function LogbookView() {
             marginBottom: 12,
           }}
         >
-          {allTags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-              style={{
-                padding: "3px 10px",
-                borderRadius: 99,
-                fontSize: 11,
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-                background:
-                  activeTag === tag ? "var(--accent)" : "var(--border-soft)",
-                color: activeTag === tag ? "white" : "var(--text-muted)",
-              }}
-            >
-              #{tag}
-            </button>
-          ))}
+          {allTags.map((tag) => {
+            const c = tagColor(tag);
+            const isActive = activeTag === tag;
+            return (
+              <button
+                key={tag}
+                onClick={() => setActiveTag(isActive ? null : tag)}
+                style={{
+                  padding: "3px 10px",
+                  borderRadius: 99,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: isActive
+                    ? `1.5px solid ${c}`
+                    : "1px solid var(--border)",
+                  background: isActive ? c + "22" : "var(--card)",
+                  color: isActive ? c : "var(--text-muted)",
+                }}
+              >
+                #{tag}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -329,107 +373,144 @@ export default function LogbookView() {
       )}
 
       {/* Entry-kaarten */}
-      {filtered.map((entry) => (
-        <div
-          key={entry.id}
-          style={cardBase}
-          onClick={() =>
-            entry._type === "day" ? setSheet(entry) : setPageEntry(entry)
-          }
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              flexWrap: "wrap",
-              marginBottom: 6,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--text-muted)",
-              }}
-            >
-              {fmtDay(entry.date)}
-            </span>
-            {entry._type === "day" && (
-              <span
+      <div ref={sortRef}>
+        {(() => {
+          let logIdx = 0;
+          return filtered.map((entry) => {
+            const isLog = entry._type === "log";
+            const idx = isLog ? logIdx++ : -1;
+            return (
+              <div
+                key={entry.id}
+                data-srow={isLog && canSort ? "1" : undefined}
                 style={{
-                  fontSize: 9,
-                  padding: "1px 7px",
-                  borderRadius: 99,
-                  background: "var(--border-soft)",
-                  color: "var(--text-faint)",
-                  fontWeight: 600,
+                  ...cardBase,
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 0,
                 }}
+                onClick={() => (isLog ? setPageEntry(entry) : setSheet(entry))}
               >
-                Dagnotitie
-              </span>
-            )}
-            {entry.mood && <Emoji char={moodEmoji(entry.mood)} size={15} />}
-            <span style={{ flex: 1 }} />
-            <span style={{ fontSize: 15, color: "var(--text-faint)" }}>›</span>
-          </div>
-          {entry.title && (
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: "var(--text)",
-                marginBottom: 3,
-              }}
-            >
-              {entry.title}
-            </div>
-          )}
-          {entry.body?.trim() && (
-            <p
-              style={{
-                fontSize: 13,
-                color: "var(--text-muted)",
-                lineHeight: 1.55,
-                whiteSpace: "pre-wrap",
-                margin: 0,
-                overflow: "hidden",
-                display: "-webkit-box",
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: "vertical",
-              }}
-            >
-              {entry.body}
-            </p>
-          )}
-          {entry.tags?.length > 0 && (
-            <div
-              style={{
-                display: "flex",
-                gap: 4,
-                flexWrap: "wrap",
-                marginTop: 8,
-              }}
-            >
-              {entry.tags.map((tag) => (
-                <span
-                  key={tag}
-                  style={{
-                    fontSize: 10,
-                    padding: "2px 8px",
-                    borderRadius: 99,
-                    background: "var(--border-soft)",
-                    color: "var(--text-muted)",
-                    fontWeight: 600,
-                  }}
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
+                {isLog && canSort && (
+                  <div
+                    style={{
+                      alignSelf: "center",
+                      marginRight: 2,
+                      flexShrink: 0,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <DragHandle
+                      onPointerDown={(e) => onHandleDown(e, idx, entry.id)}
+                    />
+                  </div>
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      flexWrap: "wrap",
+                      marginBottom: 6,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      {fmtDay(entry.date)}
+                    </span>
+                    {!isLog && (
+                      <span
+                        style={{
+                          fontSize: 9,
+                          padding: "1px 7px",
+                          borderRadius: 99,
+                          background: "var(--border-soft)",
+                          color: "var(--text-faint)",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Dagnotitie
+                      </span>
+                    )}
+                    {entry.mood && (
+                      <Emoji char={moodEmoji(entry.mood)} size={15} />
+                    )}
+                    <span style={{ flex: 1 }} />
+                    <span style={{ fontSize: 15, color: "var(--text-faint)" }}>
+                      ›
+                    </span>
+                  </div>
+                  {entry.title && (
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "var(--text)",
+                        marginBottom: 3,
+                      }}
+                    >
+                      {entry.title}
+                    </div>
+                  )}
+                  {entry.body?.trim() && (
+                    <p
+                      style={{
+                        fontSize: 13,
+                        color: "var(--text-muted)",
+                        lineHeight: 1.55,
+                        whiteSpace: "pre-wrap",
+                        margin: 0,
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
+                      {entry.body}
+                    </p>
+                  )}
+                  {entry.tags?.length > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 4,
+                        flexWrap: "wrap",
+                        marginTop: 8,
+                      }}
+                    >
+                      {entry.tags.map((tag) => {
+                        const c = tagColor(tag);
+                        return (
+                          <span
+                            key={tag}
+                            style={{
+                              fontSize: 10,
+                              padding: "2px 8px",
+                              borderRadius: 99,
+                              background: c + "22",
+                              color: c,
+                              border: `1px solid ${c}44`,
+                              fontWeight: 600,
+                            }}
+                          >
+                            #{tag}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          });
+        })()}
+      </div>
 
       {pageEntry && (
         <EntryPage

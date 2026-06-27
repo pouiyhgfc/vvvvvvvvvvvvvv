@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Design-integratie "Evergreen" afgerond — nieuw palet (licht+donker), Schibsted Grotesk als display-font, thema-bewust accent, rijkere header met tegel-nav; build/lint schoon — wacht op visuele/mobiele controle. Zie "Fase Design-integratie" onderaan._
+**Status — huidige fase:** _Structuur-integratie afgerond — prominente datum-kaart, Stats Week/Maand/Jaar, Notities met gekleurde tag-pillen + drag-to-reorder, Maand-tab weg, Log-tab hernoemd naar Notities; build/lint schoon — klaar voor mobiele controle._
 
 ---
 
@@ -384,6 +384,23 @@ git commit -m "Fase 4: Notities/kennisbank-module"
 
 - [x] `npm run build` / `lint` / `deadcode` schoon.
 - [ ] Mobiel (Android): elk scherm in licht én donker; header-tegels leesbaar met rand; dark-mode accentcontrast; editor in het Logboek.
+
+---
+
+## Fase Design-integratie deel 2 — structuur uit mockups (afgerond)
+
+**Doel:** de structurele ideeën uit de mockups overnemen zonder de token-laag te doorbreken.
+
+- [x] **1 — Prominente datum-kaart** (`App.jsx`): grote datum in `--ff-display` + context-subtitel ("Vandaag", "Deze week", …), pijlen stappen per eenheid (dag/week/maand/jaar afhankelijk van view+statsPeriod).
+- [x] **2 — StatsView rebuild** (`StatsView.jsx`): Week/Maand/Jaar-segment; Week = grote Ring + "X van Y" + streak-chip + mini-ringen per gebied + dagstaafjes; Maand = groene-gradient heatmap (aantikken → tracker); Jaar = heatmap + 3 statkaarten + maandbalken.
+- [x] **3 — Header-nav bijgewerkt** (`App.jsx`): Maand-tegel weg, Log→Notities; 5 tegels: Dag · Week · Stats · Notities · Config.
+- [x] **4 — Notities herstijld** (`LogbookView.jsx`): gekleurde tag-pillen (hash→EVENT_COLORS); drag-to-reorder via `useSortable` + additief `order`-veld; dag-notities onderaan, niet sleepbaar.
+- [x] **5 — MonthView verwijderd** (`src/features/month/MonthView.jsx` weg; logica geporteerd naar StatsView).
+
+**Controle:**
+
+- [x] `npm run build` / `lint` schoon.
+- [ ] Mobiel: datum-kaart klopt per view/periode; Stats Week/Maand/Jaar toont juiste data; maand-dag aantikken → tracker; Notities-entries slepen en volgorde blijft na herladen; tag-pillen kleuren correct; bestaande data intact.
 
 ---
 

@@ -7,6 +7,8 @@ import {
   DEFAULT_SETTINGS,
   DEFAULT_NOTEBOOKS,
   buildAreaStyles,
+  MONTHS_NL,
+  DAYS_NL,
 } from "./lib/constants.js";
 import { dk, fmtDate, isToday, getMonday } from "./lib/date.js";
 import { buzz } from "./lib/storage.js";
@@ -16,7 +18,6 @@ import { db } from "./lib/db.js";
 import NavBtn from "./ui/NavBtn.jsx";
 import TrackerView from "./features/tracker/TrackerView.jsx";
 import WeekView from "./features/planner/WeekView.jsx";
-import MonthView from "./features/month/MonthView.jsx";
 import StatsView from "./features/stats/StatsView.jsx";
 import SettingsPanel from "./features/settings/SettingsPanel.jsx";
 import LogbookView from "./features/logbook/LogbookView.jsx";
@@ -65,6 +66,7 @@ export default function App() {
   const [view, setView] = useState("tracker");
   const [pop, setPop] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [statsPeriod, setStatsPeriod] = useState("week");
 
   const key = dk(date);
   const total = Object.values(routines).flat().length;
@@ -165,9 +167,20 @@ export default function App() {
     }
   };
 
-  const go = (n) => {
+  const goNav = (dir) => {
     const d = new Date(date);
-    d.setDate(d.getDate() + n);
+    if (view === "stats" && statsPeriod === "month") {
+      d.setMonth(d.getMonth() + dir);
+    } else if (view === "stats" && statsPeriod === "year") {
+      d.setFullYear(d.getFullYear() + dir);
+    } else if (
+      view === "week" ||
+      (view === "stats" && statsPeriod === "week")
+    ) {
+      d.setDate(d.getDate() + dir * 7);
+    } else {
+      d.setDate(d.getDate() + dir);
+    }
     setDate(d);
   };
 
@@ -467,7 +480,46 @@ export default function App() {
     return { dayCount, kb };
   })();
 
-  const isCurrentWeek = dk(getMonday(date)) === dk(getMonday(new Date()));
+  // Datum-kaart: label + subtitel op basis van actieve view en statsPeriod
+  const getDateCard = () => {
+    if (view === "tracker") {
+      const d = date.getDate();
+      const monthName = MONTHS_NL[date.getMonth()].toLowerCase();
+      const sub = isToday(date) ? "Vandaag" : DAYS_NL[date.getDay()];
+      return { main: `${d} ${monthName}`, sub };
+    }
+    if (view === "week" || (view === "stats" && statsPeriod === "week")) {
+      const mon = getMonday(date);
+      const sun = new Date(mon);
+      sun.setDate(mon.getDate() + 6);
+      const endMonth = MONTHS_NL[sun.getMonth()].toLowerCase();
+      const main =
+        mon.getMonth() === sun.getMonth()
+          ? `${mon.getDate()} – ${sun.getDate()} ${endMonth}`
+          : `${mon.getDate()} ${MONTHS_NL[mon.getMonth()].toLowerCase()} – ${sun.getDate()} ${endMonth}`;
+      const isThisWeek = dk(getMonday(date)) === dk(getMonday(new Date()));
+      return { main, sub: isThisWeek ? "Deze week" : "" };
+    }
+    if (view === "stats" && statsPeriod === "month") {
+      const now = new Date();
+      const isThisMonth =
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear();
+      return {
+        main: `${MONTHS_NL[date.getMonth()]} ${date.getFullYear()}`,
+        sub: isThisMonth ? "Deze maand" : "",
+      };
+    }
+    if (view === "stats" && statsPeriod === "year") {
+      const isThisYear = date.getFullYear() === new Date().getFullYear();
+      return {
+        main: `${date.getFullYear()}`,
+        sub: isThisYear ? "Dit jaar" : "",
+      };
+    }
+    return { main: fmtDate(date), sub: "" };
+  };
+  const { main: dateMain, sub: dateSub } = getDateCard();
 
   return (
     <div
@@ -508,38 +560,25 @@ export default function App() {
           >
             <Emoji char="🌿" size={20} />
           </div>
-          <div>
-            <h1
-              style={{
-                fontFamily: "var(--ff-display)",
-                fontSize: 20,
-                fontWeight: 600,
-                letterSpacing: "-.01em",
-                color: "white",
-                lineHeight: 1.1,
-              }}
-            >
-              Routine
-            </h1>
-            <p
-              style={{
-                fontSize: 12,
-                color: "rgba(255,255,255,.58)",
-                marginTop: 1,
-              }}
-            >
-              {fmtDate(date)}
-              {isToday(date) ? " — Vandaag" : ""}
-            </p>
-          </div>
+          <h1
+            style={{
+              fontFamily: "var(--ff-display)",
+              fontSize: 20,
+              fontWeight: 600,
+              letterSpacing: "-.01em",
+              color: "white",
+              lineHeight: 1.1,
+            }}
+          >
+            Routine
+          </h1>
         </div>
         <div style={{ display: "flex", gap: 0 }}>
           {[
             ["tracker", "✅", "Dag"],
             ["week", "📅", "Week"],
-            ["month", "🗓️", "Maand"],
             ["stats", "📊", "Stats"],
-            ["logbook", "📓", "Log"],
+            ["logbook", "📓", "Notities"],
             ["settings", "⚙️", "Config"],
           ].map(([v, ic, label]) => {
             const active =
@@ -628,40 +667,52 @@ export default function App() {
         />
       )}
 
-      {/* DATE NAV */}
+      {/* DATUM-KAART */}
       {!showSettings && view !== "logbook" && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: 10,
-            padding: "12px 16px",
-            background: "var(--card)",
-            borderBottom: "1px solid var(--border-mid)",
-          }}
-        >
-          <NavBtn onClick={() => go(view === "week" ? -7 : -1)}>◀</NavBtn>
-          <button
-            onClick={() => setDate(new Date())}
+        <div style={{ padding: "12px 14px 0", background: "var(--bg)" }}>
+          <div
             style={{
-              padding: "5px 16px",
-              borderRadius: 8,
-              border: (view === "week" ? isCurrentWeek : isToday(date))
-                ? "2px solid var(--accent)"
-                : "1px solid var(--border)",
-              background: (view === "week" ? isCurrentWeek : isToday(date))
-                ? "var(--sel-bg)"
-                : "var(--card)",
-              fontSize: 13,
-              fontWeight: 600,
-              color: (view === "week" ? isCurrentWeek : isToday(date))
-                ? "var(--accent)"
-                : "#6b7280",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              background: "var(--card)",
+              border: "1px solid var(--border)",
+              borderRadius: 14,
+              padding: "10px 12px",
             }}
           >
-            {view === "week" ? "Deze week" : "Vandaag"}
-          </button>
-          <NavBtn onClick={() => go(view === "week" ? 7 : 1)}>▶</NavBtn>
+            <NavBtn onClick={() => goNav(-1)}>◀</NavBtn>
+            <div
+              style={{ flex: 1, textAlign: "center", cursor: "pointer" }}
+              onClick={() => setDate(new Date())}
+            >
+              <div
+                style={{
+                  fontFamily: "var(--ff-display)",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: "var(--text)",
+                  letterSpacing: "-.01em",
+                  lineHeight: 1.1,
+                }}
+              >
+                {dateMain}
+              </div>
+              {dateSub && (
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "var(--accent)",
+                    fontWeight: 600,
+                    marginTop: 2,
+                  }}
+                >
+                  {dateSub}
+                </div>
+              )}
+            </div>
+            <NavBtn onClick={() => goNav(1)}>▶</NavBtn>
+          </div>
         </div>
       )}
 
@@ -696,23 +747,17 @@ export default function App() {
         />
       )}
 
-      {/* MONTH VIEW */}
-      {view === "month" && !showSettings && (
-        <MonthView
-          date={date}
-          setDate={setDate}
-          setView={setView}
-          routines={routines}
-          allDays={allDays}
-        />
-      )}
-
       {/* STATS VIEW */}
       {view === "stats" && !showSettings && (
         <StatsView
           routines={routines}
           allDays={allDays}
           areaStyles={areaStyles}
+          date={date}
+          setDate={setDate}
+          setView={setView}
+          statsPeriod={statsPeriod}
+          setStatsPeriod={setStatsPeriod}
         />
       )}
 
