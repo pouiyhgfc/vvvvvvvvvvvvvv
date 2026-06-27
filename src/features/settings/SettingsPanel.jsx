@@ -69,6 +69,7 @@ export default function SettingsPanel({
   exportData,
   exportRoutines,
   exportWeekplanning,
+  exportNotities,
   importData,
   dataInfo,
 }) {
@@ -588,6 +589,20 @@ export default function SettingsPanel({
               }}
             >
               📆 Export Weekplanning
+            </button>
+            <button
+              onClick={exportNotities}
+              style={{
+                gridColumn: "1 / -1",
+                padding: "7px 8px",
+                borderRadius: 7,
+                background: "#0891b2",
+                color: "white",
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            >
+              📓 Export Notities
             </button>
           </div>
         </div>

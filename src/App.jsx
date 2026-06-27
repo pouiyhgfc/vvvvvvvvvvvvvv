@@ -325,6 +325,29 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  const exportNotities = async () => {
+    const logEntries = await db.logEntries.toArray();
+    const notebooksBlob = await db.blobs.get("notebooks");
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      type: "notities",
+      logEntries,
+      notebooks: notebooksBlob?.data ?? DEFAULT_NOTEBOOKS,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `notities-${dk(new Date())}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const importData = (file) => {
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -335,9 +358,24 @@ export default function App() {
           !data.routines &&
           !data.days &&
           !data.calEvents &&
-          !data.weekScheduleTemplates
+          !data.weekScheduleTemplates &&
+          !data.logEntries
         ) {
           showToast("❌ Ongeldig backup bestand.");
+          return;
+        }
+        if (type === "notities") {
+          if (!Array.isArray(data.logEntries)) {
+            showToast("❌ Geen notities gevonden in dit bestand.");
+            return;
+          }
+          await db.transaction("rw", db.blobs, db.logEntries, async () => {
+            if (data.logEntries.length)
+              await db.logEntries.bulkPut(data.logEntries);
+            if (Array.isArray(data.notebooks) && data.notebooks.length)
+              await db.blobs.put({ key: "notebooks", data: data.notebooks });
+          });
+          showToast("✓ Notities geïmporteerd.");
           return;
         }
         if (type === "routines") {
@@ -662,6 +700,7 @@ export default function App() {
           exportData={exportData}
           exportRoutines={exportRoutines}
           exportWeekplanning={exportWeekplanning}
+          exportNotities={exportNotities}
           importData={importData}
           dataInfo={dataInfo}
         />
