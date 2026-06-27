@@ -141,6 +141,15 @@ export default function LogbookView() {
 
   const { ref: sortRef, onHandleDown } = useSortable(onReorder);
 
+  const onNbReorder = useCallback(
+    (from, to) => {
+      db.blobs.put({ key: "notebooks", data: arrMove(notebooks, from, to) });
+    },
+    [notebooks],
+  );
+  const { ref: nbSortRef, onHandleDown: nbHandleDown } =
+    useSortable(onNbReorder);
+
   // Dag-notities (uit de tracker) blijven een plat tekstveld; log-entries
   // openen de volledige pagina met de rijke editor (zie EntryPage).
   const saveDayNote = async (data) => {
@@ -210,6 +219,7 @@ export default function LogbookView() {
     <div style={{ padding: "14px 12px 24px", animation: "fadeUp .3s ease" }}>
       {/* Notitieboek-tabs */}
       <div
+        ref={nbSortRef}
         style={{
           display: "flex",
           gap: 6,
@@ -219,18 +229,19 @@ export default function LogbookView() {
           WebkitOverflowScrolling: "touch",
         }}
       >
-        {notebooks.map((n) => {
+        {notebooks.map((n, ni) => {
           const active = n.id === activeId;
           return (
             <button
               key={n.id}
+              data-srow="1"
               onClick={() => (active ? setNbSheet(n) : setActiveNb(n.id))}
               style={{
                 flexShrink: 0,
                 display: "flex",
                 alignItems: "center",
                 gap: 5,
-                padding: "6px 12px",
+                padding: "6px 10px 6px 8px",
                 borderRadius: 99,
                 fontSize: 12,
                 fontWeight: 600,
@@ -242,6 +253,23 @@ export default function LogbookView() {
                 color: active ? "var(--text)" : "var(--text-muted)",
               }}
             >
+              <span
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  nbHandleDown(e, ni, n.id);
+                }}
+                style={{
+                  fontSize: 11,
+                  color: "var(--text-faint)",
+                  lineHeight: 1,
+                  userSelect: "none",
+                  touchAction: "none",
+                  cursor: "grab",
+                  paddingRight: 3,
+                }}
+              >
+                ⠿
+              </span>
               <Emoji char={n.icon} size={14} />
               {n.name}
             </button>
@@ -422,7 +450,11 @@ export default function LogbookView() {
                         color: "var(--text-muted)",
                       }}
                     >
-                      {fmtDay(entry.date)}
+                      {fmtDay(
+                        entry.updatedAt
+                          ? entry.updatedAt.slice(0, 10)
+                          : entry.date,
+                      )}
                     </span>
                     {!isLog && (
                       <span
@@ -457,23 +489,6 @@ export default function LogbookView() {
                     >
                       {entry.title}
                     </div>
-                  )}
-                  {entry.body?.trim() && (
-                    <p
-                      style={{
-                        fontSize: 13,
-                        color: "var(--text-muted)",
-                        lineHeight: 1.55,
-                        whiteSpace: "pre-wrap",
-                        margin: 0,
-                        overflow: "hidden",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: "vertical",
-                      }}
-                    >
-                      {entry.body}
-                    </p>
                   )}
                   {entry.tags?.length > 0 && (
                     <div
