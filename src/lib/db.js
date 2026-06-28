@@ -7,6 +7,7 @@ import {
 } from "./constants.js";
 import { uid } from "./date.js";
 import { SURAHS } from "./surahs.js";
+import { INITIAL_EASE, LEGACY_INTERVALS } from "./hifd.js";
 
 export const db = new Dexie("routine-tracker");
 
@@ -167,6 +168,9 @@ export async function seedHifd() {
       versesKnown: 0,
       status: "todo",
       srsStep: 0,
+      easeFactor: INITIAL_EASE,
+      interval: 0,
+      reps: 0,
       nextDue: null,
       lastReviewed: null,
       lapses: 0,
@@ -177,5 +181,32 @@ export async function seedHifd() {
     await db.meta.put({ key: "hifd_seeded", value: true });
   } catch (err) {
     console.error("[seedHifd]", err);
+  }
+}
+
+// Eenmalige backfill van de SM-2-velden (easeFactor, interval, reps) op
+// bestaande hifd-rijen die nog van het oude vaste-interval-systeem komen.
+// Gememoriseerde surahs houden hun plek in de cyclus: interval wordt afgeleid
+// van de oude srsStep zodat hun nextDue niet ineens reset.
+export async function migrateHifdSrsV2() {
+  try {
+    const already = await db.meta.get("hifd_srs_v2");
+    if (already) return;
+    const rows = await db.hifd.toArray();
+    await db.transaction("rw", db.hifd, async () => {
+      for (const r of rows) {
+        if (r.easeFactor != null) continue;
+        const patch = { easeFactor: INITIAL_EASE, interval: 0, reps: 0 };
+        if (r.status === "memorized") {
+          const step = r.srsStep ?? 0;
+          patch.interval = LEGACY_INTERVALS[step] ?? 1;
+          patch.reps = step + 1;
+        }
+        await db.hifd.update(r.surah, patch);
+      }
+    });
+    await db.meta.put({ key: "hifd_srs_v2", value: true });
+  } catch (err) {
+    console.error("[migrateHifdSrsV2]", err);
   }
 }

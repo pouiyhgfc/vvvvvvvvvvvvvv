@@ -7,12 +7,14 @@ import {
   migrateFromLocalStorage,
   migrateNotesToLogEntries,
   seedHifd,
+  migrateHifdSrsV2,
 } from "./lib/db.js";
 
 (async () => {
   await migrateFromLocalStorage();
   await migrateNotesToLogEntries();
   await seedHifd();
+  await migrateHifdSrsV2();
   if (navigator.storage?.persist) {
     navigator.storage.persist().catch(() => {});
   }

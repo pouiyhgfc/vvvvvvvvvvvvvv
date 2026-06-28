@@ -1,4 +1,4 @@
-export const HEAT = ["#f1efe9", "#d4ede5", "#8ecfb8", "#4db38f", "#0e7a52"];
+const HEAT = ["#f1efe9", "#d4ede5", "#8ecfb8", "#4db38f", "#0e7a52"];
 
 export function heatColor(pct) {
   if (pct === 0) return HEAT[0];

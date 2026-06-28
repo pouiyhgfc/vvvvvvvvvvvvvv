@@ -2,26 +2,39 @@ import { useState, useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { dk, addDays } from "../../lib/date.js";
-import { SURAHS } from "../../lib/surahs.js";
+import { MONTHS_NL, DEFAULT_SETTINGS } from "../../lib/constants.js";
+import { SURAHS, TOTAL_AYAT, surahById } from "../../lib/surahs.js";
 import { heatColor } from "../../lib/heat.js";
-import { INTERVALS } from "../../lib/hifd.js";
-import { DEFAULT_SETTINGS } from "../../lib/constants.js";
+import { nextSrs, INITIAL_EASE } from "../../lib/hifd.js";
 import Ring from "../../ui/Ring.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 import Button from "../../ui/Button.jsx";
 import Emoji from "../../ui/Emoji.jsx";
+import { showToast } from "../../lib/toast.js";
 
 function today() {
   return dk(new Date());
 }
 
+// Korte datum uit een datumsleutel, bv. "12 jul".
+function shortDate(key) {
+  const d = new Date(key + "T00:00");
+  return `${d.getDate()} ${MONTHS_NL[d.getMonth()].slice(0, 3).toLowerCase()}`;
+}
+
 // ─── Recall card (SRS — gememoriseerde surahs) ───────────────────────────────
 
+// Knop-volgorde zwakst → sterkst, met de variant en het voorbeeld-interval.
+const RECALL_BUTTONS = [
+  { label: "Zwak", value: "zwak", variant: "danger" },
+  { label: "Redelijk", value: "redelijk", variant: "secondary" },
+  { label: "Goed", value: "goed", variant: "primary" },
+  { label: "Sterk", value: "sterk", variant: "primary", strong: true },
+];
+
 function RecallCard({ rec, onRate }) {
-  const meta = SURAHS.find((s) => s.id === rec.surah);
+  const meta = surahById(rec.surah);
   if (!meta) return null;
-  const nextInterval =
-    INTERVALS[Math.min(rec.srsStep + 1, INTERVALS.length - 1)];
 
   return (
     <div
@@ -48,26 +61,40 @@ function RecallCard({ rec, onRate }) {
           {meta.name} · #{meta.id} · {meta.verses} verzen
         </div>
         <div style={{ fontSize: 11, color: "var(--accent)", marginTop: 4 }}>
-          <Emoji char="🌙" size={11} /> Revisie · interval wordt {nextInterval}d
-          bij Goed
+          <Emoji char="🌙" size={11} /> Revisie · zeg uit het hoofd op en
+          beoordeel
         </div>
       </div>
       <div style={{ display: "flex", gap: 6 }}>
-        {[
-          { label: "Goed", value: "goed", variant: "primary" },
-          { label: "Redelijk", value: "redelijk", variant: "secondary" },
-          { label: "Zwak", value: "zwak", variant: "danger" },
-        ].map(({ label, value, variant }) => (
-          <Button
-            key={value}
-            variant={variant}
-            size="sm"
-            style={{ flex: 1 }}
-            onClick={() => onRate(rec.surah, value)}
-          >
-            {label}
-          </Button>
-        ))}
+        {RECALL_BUTTONS.map(({ label, value, variant, strong }) => {
+          const days = nextSrs(rec, value).interval;
+          return (
+            <Button
+              key={value}
+              variant={variant}
+              size="sm"
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                lineHeight: 1.1,
+                ...(strong
+                  ? {
+                      background: "var(--accent-strong)",
+                      borderColor: "var(--accent-strong)",
+                    }
+                  : {}),
+              }}
+              onClick={() => onRate(rec.surah, value)}
+            >
+              <span>{label}</span>
+              <span style={{ fontSize: 10, fontWeight: 600, opacity: 0.85 }}>
+                {days}d
+              </span>
+            </Button>
+          );
+        })}
       </div>
     </div>
   );
@@ -75,8 +102,19 @@ function RecallCard({ rec, onRate }) {
 
 // ─── Vandaag ─────────────────────────────────────────────────────────────────
 
+const RATING_LABEL = { goed: "Goed", redelijk: "Redelijk", zwak: "Zwak" };
+const RATING_COLOR = {
+  goed: "var(--accent)",
+  redelijk: "var(--text-muted)",
+  zwak: "var(--danger-text)",
+};
+
 function LearningCard({ rec, onDelta, onLog, onMarkMemorized }) {
-  const meta = SURAHS.find((s) => s.id === rec.surah);
+  const meta = surahById(rec.surah);
+  const logToday = useLiveQuery(
+    () => db.hifdLog.get([rec.surah, today()]),
+    [rec.surah],
+  );
   if (!meta) return null;
   const full = rec.versesKnown >= meta.verses;
 
@@ -117,13 +155,37 @@ function LearningCard({ rec, onDelta, onLog, onMarkMemorized }) {
         </div>
         <div
           style={{
-            fontFamily: "var(--ff-head)",
-            fontWeight: 700,
-            fontSize: 13,
-            color: "var(--accent)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: 4,
           }}
         >
-          {rec.versesKnown} / {meta.verses}
+          <div
+            style={{
+              fontFamily: "var(--ff-head)",
+              fontWeight: 700,
+              fontSize: 13,
+              color: "var(--accent)",
+            }}
+          >
+            {rec.versesKnown} / {meta.verses}
+          </div>
+          {logToday && (
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: RATING_COLOR[logToday.rating] ?? "var(--text-muted)",
+                background: "var(--card2)",
+                border: "1px solid var(--border-soft)",
+                borderRadius: 6,
+                padding: "1px 6px",
+              }}
+            >
+              ✓ {RATING_LABEL[logToday.rating] ?? logToday.rating}
+            </span>
+          )}
         </div>
       </div>
 
@@ -244,6 +306,7 @@ function SectionLabel({ children }) {
 function VandaagView({
   ringPct,
   memorizedCount,
+  versesKnownTotal,
   learningList,
   reviewList,
   onDelta,
@@ -266,7 +329,8 @@ function VandaagView({
       >
         <Ring value={ringPct} size={100} stroke={9} label="gememoriseerd" />
         <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>
-          {memorizedCount} van 114 surahs
+          {memorizedCount} van 114 surahs ·{" "}
+          {versesKnownTotal.toLocaleString("nl-NL")} / {TOTAL_AYAT} verzen
         </div>
       </div>
 
@@ -523,6 +587,71 @@ function SurahSheet({
         )}
       </div>
 
+      {/* SRS-statistieken (alleen gememoriseerd) */}
+      {rec.status === "memorized" && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 8,
+            marginBottom: 16,
+          }}
+        >
+          {[
+            {
+              label: "Sterkte",
+              value: (rec.easeFactor ?? INITIAL_EASE).toFixed(2),
+            },
+            { label: "Interval", value: `${rec.interval ?? 0}d` },
+            { label: "Herhaald", value: rec.reps ?? 0 },
+            { label: "Terugval", value: rec.lapses ?? 0 },
+          ].map((s) => (
+            <div
+              key={s.label}
+              style={{
+                background: "var(--card2)",
+                border: "1px solid var(--border-soft)",
+                borderRadius: 8,
+                padding: "8px 4px",
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "var(--ff-head)",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  color: "var(--text)",
+                }}
+              >
+                {s.value}
+              </div>
+              <div
+                style={{
+                  fontSize: 9,
+                  color: "var(--text-muted)",
+                  marginTop: 2,
+                }}
+              >
+                {s.label}
+              </div>
+            </div>
+          ))}
+          {rec.nextDue && (
+            <div
+              style={{
+                gridColumn: "1 / -1",
+                fontSize: 11,
+                color: "var(--text-muted)",
+                textAlign: "center",
+              }}
+            >
+              Volgende revisie: {rec.nextDue}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Recente sessies */}
       {log.length > 0 && (
         <div style={{ marginBottom: 16 }}>
@@ -649,6 +778,11 @@ export default function HifdView() {
     [hifdRecords],
   );
 
+  const versesKnownTotal = useMemo(
+    () => (hifdRecords || []).reduce((sum, r) => sum + (r.versesKnown ?? 0), 0),
+    [hifdRecords],
+  );
+
   const learningList = useMemo(
     () =>
       (hifdRecords || [])
@@ -674,7 +808,7 @@ export default function HifdView() {
   async function updateVersesKnown(surahId, delta) {
     const rec = hifdMap[surahId];
     if (!rec) return;
-    const meta = SURAHS.find((s) => s.id === surahId);
+    const meta = surahById(surahId);
     const newVal = Math.max(0, Math.min(meta.verses, rec.versesKnown + delta));
     await db.hifd.update(surahId, { versesKnown: newVal });
   }
@@ -690,15 +824,20 @@ export default function HifdView() {
       phase: "learn",
       note: "",
     });
+    const label =
+      { goed: "Goed", redelijk: "Redelijk", zwak: "Zwak" }[rating] ?? rating;
+    showToast(`✓ Sessie gelogd — ${label}`);
   }
 
   async function markMemorized(surahId) {
     const t = today();
-    const meta = SURAHS.find((s) => s.id === surahId);
+    const meta = surahById(surahId);
     await db.hifd.update(surahId, {
       status: "memorized",
       versesKnown: meta?.verses ?? 0,
-      srsStep: 0,
+      easeFactor: INITIAL_EASE,
+      interval: 1,
+      reps: 1,
       dateMemorized: t,
       nextDue: addDays(t, 1),
       lastReviewed: t,
@@ -720,11 +859,13 @@ export default function HifdView() {
 
   async function markFullyMemorized(surahId) {
     const t = today();
-    const meta = SURAHS.find((s) => s.id === surahId);
+    const meta = surahById(surahId);
     await db.hifd.update(surahId, {
       status: "memorized",
       versesKnown: meta?.verses ?? 0,
-      srsStep: 0,
+      easeFactor: INITIAL_EASE,
+      interval: 1,
+      reps: 1,
       dateMemorized: t,
       nextDue: addDays(t, 1),
       lastReviewed: t,
@@ -745,23 +886,14 @@ export default function HifdView() {
     const rec = hifdMap[surahId];
     if (!rec) return;
     const t = today();
-    const meta = SURAHS.find((s) => s.id === surahId);
-    let newStep = rec.srsStep ?? 0;
-    let newLapses = rec.lapses ?? 0;
-    let newNextDue;
-    if (rating === "goed") {
-      newStep = Math.min(newStep + 1, INTERVALS.length - 1);
-      newNextDue = addDays(t, INTERVALS[newStep]);
-    } else if (rating === "redelijk") {
-      newNextDue = addDays(t, INTERVALS[newStep]);
-    } else {
-      newStep = 0;
-      newLapses += 1;
-      newNextDue = addDays(t, 1);
-    }
+    const meta = surahById(surahId);
+    const srs = nextSrs(rec, rating);
+    const newNextDue = addDays(t, srs.interval);
     await db.hifd.update(surahId, {
-      srsStep: newStep,
-      lapses: newLapses,
+      easeFactor: srs.easeFactor,
+      interval: srs.interval,
+      reps: srs.reps,
+      lapses: srs.lapses,
       nextDue: newNextDue,
       lastReviewed: t,
     });
@@ -773,12 +905,12 @@ export default function HifdView() {
       phase: "review",
       note: "",
     });
+    const dagen = srs.interval === 1 ? "1 dag" : `${srs.interval} dagen`;
+    showToast(`✓ Volgende revisie over ${dagen} (${shortDate(newNextDue)})`);
   }
 
   const selectedRec = selectedSurah ? hifdMap[selectedSurah] : null;
-  const selectedMeta = selectedSurah
-    ? SURAHS.find((s) => s.id === selectedSurah)
-    : null;
+  const selectedMeta = selectedSurah ? surahById(selectedSurah) : null;
 
   return (
     <div style={{ paddingBottom: 80 }}>
@@ -818,6 +950,7 @@ export default function HifdView() {
         <VandaagView
           ringPct={ringPct}
           memorizedCount={memorizedCount}
+          versesKnownTotal={versesKnownTotal}
           learningList={learningList}
           reviewList={reviewList}
           onDelta={updateVersesKnown}
