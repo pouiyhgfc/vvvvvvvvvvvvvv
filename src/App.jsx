@@ -21,6 +21,7 @@ import WeekView from "./features/planner/WeekView.jsx";
 import StatsView from "./features/stats/StatsView.jsx";
 import SettingsPanel from "./features/settings/SettingsPanel.jsx";
 import LogbookView from "./features/logbook/LogbookView.jsx";
+import HifdView from "./features/hifd/HifdView.jsx";
 import ToastHost from "./ui/Toast.jsx";
 import Emoji from "./ui/Emoji.jsx";
 
@@ -635,6 +636,7 @@ export default function App() {
             ["week", "📅", "Week"],
             ["stats", "📊", "Stats"],
             ["logbook", "📓", "Notities"],
+            ["hifd", "🌙", "Hifd"],
             ["settings", "⚙️", "Config"],
           ].map(([v, ic, label]) => {
             const active =
@@ -820,6 +822,9 @@ export default function App() {
 
       {/* LOGBOOK VIEW */}
       {view === "logbook" && !showSettings && <LogbookView />}
+
+      {/* HIFD VIEW */}
+      {view === "hifd" && !showSettings && <HifdView />}
 
       <ToastHost />
     </div>

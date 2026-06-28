@@ -68,6 +68,12 @@ export function applyWeekTemplate(tpl, targetMonday) {
   });
 }
 
+export function addDays(dateKey, n) {
+  const d = new Date(dateKey + "T00:00");
+  d.setDate(d.getDate() + n);
+  return dk(d);
+}
+
 export function tMin(t) {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;

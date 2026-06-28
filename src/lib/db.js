@@ -6,6 +6,7 @@ import {
   DEFAULT_SETTINGS,
 } from "./constants.js";
 import { uid } from "./date.js";
+import { SURAHS } from "./surahs.js";
 
 export const db = new Dexie("routine-tracker");
 
@@ -19,6 +20,11 @@ db.version(1).stores({
 
 db.version(2).stores({
   logEntries: "&id, date, createdAt",
+});
+
+db.version(3).stores({
+  hifd: "&surah, status, nextDue",
+  hifdLog: "&[surah+date], surah, date",
 });
 
 export async function migrateFromLocalStorage() {
@@ -144,5 +150,32 @@ export async function migrateNotesToLogEntries() {
     await db.meta.put({ key: "migrated_notes_v1", value: true });
   } catch (err) {
     console.error("[migrateNotesToLogEntries]", err);
+  }
+}
+
+export async function seedHifd() {
+  try {
+    const already = await db.meta.get("hifd_seeded");
+    if (already) return;
+    const count = await db.hifd.count();
+    if (count > 0) {
+      await db.meta.put({ key: "hifd_seeded", value: true });
+      return;
+    }
+    const rows = SURAHS.map((s) => ({
+      surah: s.id,
+      versesKnown: 0,
+      status: "todo",
+      srsStep: 0,
+      nextDue: null,
+      lastReviewed: null,
+      lapses: 0,
+      dateStarted: null,
+      dateMemorized: null,
+    }));
+    await db.hifd.bulkPut(rows);
+    await db.meta.put({ key: "hifd_seeded", value: true });
+  } catch (err) {
+    console.error("[seedHifd]", err);
   }
 }
