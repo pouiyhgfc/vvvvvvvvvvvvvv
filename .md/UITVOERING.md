@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Structuur-integratie afgerond — prominente datum-kaart, Stats Week/Maand/Jaar, Notities met gekleurde tag-pillen + drag-to-reorder, Maand-tab weg, Log-tab hernoemd naar Notities; build/lint schoon — klaar voor mobiele controle._
+**Status — huidige fase:** _Hifd-module voltooid (H1–H4): datalaag (db v3, 114-rijen seed), leer-flow met versteller + daglogging, voortgangsgrid 114→1 met heatmap, spaced repetition (INTERVALS 1/3/7/14/30d) met recall-cards, hifdDailyCap-instelling, en export/import uitgebreid (versie 7). Build/lint schoon._
 
 ---
 
@@ -20,7 +20,7 @@
 - [ ] **Koppelingen** — notities/logboek linken aan focusgebieden of routines.
 - [ ] **Globaal zoeken** — één zoekbalk over logboek + notities tegelijk.
 - [ ] **Commandopalet** — snel naar elk onderdeel of elke notitie springen.
-- [ ] **Hifd-module** — je memorisatiesysteem als aparte feature op deze datalaag.
+- [x] **Hifd-module** — je memorisatiesysteem als aparte feature op deze datalaag.
 - [ ] **Sync telefoon ↔ laptop** — pas als je het echt nodig hebt (Dexie Cloud of export/import-flow).
 - [ ] **Betrouwbaardere meldingen** — Android-installatie of later Capacitor-wrapper.
 - [ ] **Automatische backup-herinnering** — maandelijkse prompt om te exporteren.

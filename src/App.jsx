@@ -276,8 +276,10 @@ export default function App() {
     });
     const logEntries = await db.logEntries.toArray();
     const notebooksBlob = await db.blobs.get("notebooks");
+    const hifdData = await db.hifd.toArray();
+    const hifdLogData = await db.hifdLog.toArray();
     const payload = {
-      version: 6,
+      version: 7,
       exportedAt: new Date().toISOString(),
       routines,
       areas,
@@ -288,6 +290,8 @@ export default function App() {
       days: allDaysForExport,
       logEntries,
       notebooks: notebooksBlob?.data ?? DEFAULT_NOTEBOOKS,
+      hifd: hifdData,
+      hifdLog: hifdLogData,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
@@ -438,11 +442,15 @@ export default function App() {
           db.calEvents,
           db.settings,
           db.logEntries,
+          db.hifd,
+          db.hifdLog,
           async () => {
             if (!mode) {
               await db.days.clear();
               await db.calEvents.clear();
               await db.logEntries.clear();
+              await db.hifd.clear();
+              await db.hifdLog.clear();
             }
             await db.blobs.put({ key: "routines", data: data.routines });
             if (data.calTemplates)
@@ -473,6 +481,10 @@ export default function App() {
               await db.logEntries.bulkPut(data.logEntries);
             if (Array.isArray(data.notebooks) && data.notebooks.length)
               await db.blobs.put({ key: "notebooks", data: data.notebooks });
+            if (Array.isArray(data.hifd) && data.hifd.length)
+              await db.hifd.bulkPut(data.hifd);
+            if (Array.isArray(data.hifdLog) && data.hifdLog.length)
+              await db.hifdLog.bulkPut(data.hifdLog);
           },
         );
         showToast(
