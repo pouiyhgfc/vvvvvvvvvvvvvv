@@ -4,6 +4,8 @@ import { db } from "../../lib/db.js";
 import { dk, addDays } from "../../lib/date.js";
 import { SURAHS } from "../../lib/surahs.js";
 import { heatColor } from "../../lib/heat.js";
+import { INTERVALS } from "../../lib/hifd.js";
+import { DEFAULT_SETTINGS } from "../../lib/constants.js";
 import Ring from "../../ui/Ring.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 import Button from "../../ui/Button.jsx";
@@ -11,6 +13,64 @@ import Emoji from "../../ui/Emoji.jsx";
 
 function today() {
   return dk(new Date());
+}
+
+// ─── Recall card (SRS — gememoriseerde surahs) ───────────────────────────────
+
+function RecallCard({ rec, onRate }) {
+  const meta = SURAHS.find((s) => s.id === rec.surah);
+  if (!meta) return null;
+  const nextInterval =
+    INTERVALS[Math.min(rec.srsStep + 1, INTERVALS.length - 1)];
+
+  return (
+    <div
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--accent-border)",
+        borderRadius: 12,
+        padding: "16px",
+        marginBottom: 10,
+      }}
+    >
+      <div style={{ marginBottom: 12 }}>
+        <div
+          style={{
+            fontFamily: "var(--ff-head)",
+            fontWeight: 700,
+            fontSize: 16,
+            color: "var(--text)",
+          }}
+        >
+          {meta.tr}
+        </div>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3 }}>
+          {meta.name} · #{meta.id} · {meta.verses} verzen
+        </div>
+        <div style={{ fontSize: 11, color: "var(--accent)", marginTop: 4 }}>
+          <Emoji char="🌙" size={11} /> Revisie · interval wordt {nextInterval}d
+          bij Goed
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 6 }}>
+        {[
+          { label: "Goed", value: "goed", variant: "primary" },
+          { label: "Redelijk", value: "redelijk", variant: "secondary" },
+          { label: "Zwak", value: "zwak", variant: "danger" },
+        ].map(({ label, value, variant }) => (
+          <Button
+            key={value}
+            variant={variant}
+            size="sm"
+            style={{ flex: 1 }}
+            onClick={() => onRate(rec.surah, value)}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // ─── Vandaag ─────────────────────────────────────────────────────────────────
@@ -163,14 +223,36 @@ function LearningCard({ rec, onDelta, onLog, onMarkMemorized }) {
   );
 }
 
+function SectionLabel({ children }) {
+  return (
+    <div
+      style={{
+        fontFamily: "var(--ff-head)",
+        fontWeight: 700,
+        fontSize: 13,
+        color: "var(--text-muted)",
+        marginBottom: 10,
+        textTransform: "uppercase",
+        letterSpacing: ".04em",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function VandaagView({
   ringPct,
   memorizedCount,
   learningList,
+  reviewList,
   onDelta,
   onLog,
   onMarkMemorized,
+  onRate,
 }) {
+  const empty = learningList.length === 0 && reviewList.length === 0;
+
   return (
     <div style={{ padding: "0 16px" }}>
       {/* Ring */}
@@ -188,33 +270,20 @@ function VandaagView({
         </div>
       </div>
 
-      {/* Bezig */}
-      {learningList.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            color: "var(--text-muted)",
-            fontSize: 14,
-            padding: "24px 0",
-          }}
-        >
-          Geen surahs in leerproces. Start via Voortgang.
+      {/* Te reviseren */}
+      {reviewList.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionLabel>Te reviseren</SectionLabel>
+          {reviewList.map((rec) => (
+            <RecallCard key={rec.surah} rec={rec} onRate={onRate} />
+          ))}
         </div>
-      ) : (
-        <>
-          <div
-            style={{
-              fontFamily: "var(--ff-head)",
-              fontWeight: 700,
-              fontSize: 13,
-              color: "var(--text-muted)",
-              marginBottom: 10,
-              textTransform: "uppercase",
-              letterSpacing: ".04em",
-            }}
-          >
-            Bezig met leren
-          </div>
+      )}
+
+      {/* Bezig */}
+      {learningList.length > 0 && (
+        <div>
+          <SectionLabel>Bezig met leren</SectionLabel>
           {learningList.map((rec) => (
             <LearningCard
               key={rec.surah}
@@ -224,7 +293,20 @@ function VandaagView({
               onMarkMemorized={onMarkMemorized}
             />
           ))}
-        </>
+        </div>
+      )}
+
+      {empty && (
+        <div
+          style={{
+            textAlign: "center",
+            color: "var(--text-muted)",
+            fontSize: 14,
+            padding: "32px 0",
+          }}
+        >
+          Niets voor vandaag. Start via Voortgang.
+        </div>
       )}
     </div>
   );
@@ -538,6 +620,10 @@ export default function HifdView() {
   const [tab, setTab] = useState("vandaag");
   const [selectedSurah, setSelectedSurah] = useState(null);
 
+  const settingsRecord = useLiveQuery(() => db.settings.get("singleton"));
+  const dailyCap =
+    settingsRecord?.hifdDailyCap ?? DEFAULT_SETTINGS.hifdDailyCap;
+
   const hifdRecords = useLiveQuery(() => db.hifd.toArray(), []);
   const hifdMap = useMemo(() => {
     const m = {};
@@ -570,6 +656,18 @@ export default function HifdView() {
         .sort((a, b) => a.surah - b.surah),
     [hifdRecords],
   );
+
+  const reviewList = useMemo(() => {
+    const t = today();
+    return (hifdRecords || [])
+      .filter(
+        (r) => r.status === "memorized" && r.nextDue != null && r.nextDue <= t,
+      )
+      .sort((a, b) =>
+        a.nextDue < b.nextDue ? -1 : a.nextDue > b.nextDue ? 1 : 0,
+      )
+      .slice(0, dailyCap);
+  }, [hifdRecords, dailyCap]);
 
   const ringPct = Math.round((memorizedCount / 114) * 100);
 
@@ -643,6 +741,40 @@ export default function HifdView() {
     setSelectedSurah(null);
   }
 
+  async function rateReview(surahId, rating) {
+    const rec = hifdMap[surahId];
+    if (!rec) return;
+    const t = today();
+    const meta = SURAHS.find((s) => s.id === surahId);
+    let newStep = rec.srsStep ?? 0;
+    let newLapses = rec.lapses ?? 0;
+    let newNextDue;
+    if (rating === "goed") {
+      newStep = Math.min(newStep + 1, INTERVALS.length - 1);
+      newNextDue = addDays(t, INTERVALS[newStep]);
+    } else if (rating === "redelijk") {
+      newNextDue = addDays(t, INTERVALS[newStep]);
+    } else {
+      newStep = 0;
+      newLapses += 1;
+      newNextDue = addDays(t, 1);
+    }
+    await db.hifd.update(surahId, {
+      srsStep: newStep,
+      lapses: newLapses,
+      nextDue: newNextDue,
+      lastReviewed: t,
+    });
+    await db.hifdLog.put({
+      surah: surahId,
+      date: t,
+      versesKnown: meta?.verses ?? rec.versesKnown,
+      rating,
+      phase: "review",
+      note: "",
+    });
+  }
+
   const selectedRec = selectedSurah ? hifdMap[selectedSurah] : null;
   const selectedMeta = selectedSurah
     ? SURAHS.find((s) => s.id === selectedSurah)
@@ -687,9 +819,11 @@ export default function HifdView() {
           ringPct={ringPct}
           memorizedCount={memorizedCount}
           learningList={learningList}
+          reviewList={reviewList}
           onDelta={updateVersesKnown}
           onLog={logLearnSession}
           onMarkMemorized={markMemorized}
+          onRate={rateReview}
         />
       )}
 

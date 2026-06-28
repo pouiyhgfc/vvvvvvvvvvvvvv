@@ -487,4 +487,5 @@ export const DEFAULT_SETTINGS = {
   notifEnabled: false,
   notifLeadMin: 10,
   streakPct: 50,
+  hifdDailyCap: 4,
 };

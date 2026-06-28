@@ -420,6 +420,45 @@ export default function SettingsPanel({
             {total} routines afvinken telt als een voltooide dag voor je streak.
           </div>
         </div>
+        <div
+          style={{
+            paddingTop: 12,
+            borderTop: "1px solid var(--border-soft)",
+            marginTop: 12,
+          }}
+        >
+          <label
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: "var(--text)",
+              display: "block",
+              marginBottom: 6,
+            }}
+          >
+            🌙 Hifd revisies per dag: {settings.hifdDailyCap ?? 4}
+          </label>
+          <input
+            type="range"
+            min={1}
+            max={10}
+            step={1}
+            value={settings.hifdDailyCap ?? 4}
+            onChange={(e) =>
+              setSettings((s) => ({ ...s, hifdDailyCap: +e.target.value }))
+            }
+          />
+          <div
+            style={{
+              fontSize: 10,
+              color: "var(--text-muted)",
+              marginTop: 4,
+              lineHeight: 1.4,
+            }}
+          >
+            Maximaal aantal gememoriseerde surahs ter revisie per dag.
+          </div>
+        </div>
       </Section>
 
       {/* FOCUSGEBIEDEN */}
