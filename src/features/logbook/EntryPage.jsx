@@ -79,11 +79,16 @@ export default function EntryPage({
     doc: entry?.doc ?? null,
     text: entry?.body ?? "",
   });
+  // Pas opslaan/updatedAt aanpassen als er echt iets bewerkt is — niet bij
+  // alleen openen of sluiten zonder wijziging.
+  const dirtyRef = useRef(false);
 
   const initialContent = entry?.doc ?? entry?.body ?? undefined;
   const entryDate = entry?.date || dateProp || dk(new Date());
 
   const persist = useCallback(async () => {
+    // Geen wijziging sinds laden → niets opslaan (geen onnodige updatedAt-bump).
+    if (!dirtyRef.current) return;
     const { doc, text } = contentRef.current;
     const hasContent = title.trim() || (text && text.trim());
     if (!idRef.current) {
@@ -111,6 +116,7 @@ export default function EntryPage({
         updatedAt: new Date().toISOString(),
       });
     }
+    dirtyRef.current = false;
   }, [title, tags, notebookId, dateProp]);
 
   useEffect(() => {
@@ -120,6 +126,7 @@ export default function EntryPage({
 
   const onEditorChange = ({ doc, text }) => {
     contentRef.current = { doc, text };
+    dirtyRef.current = true;
     setContentVersion((v) => v + 1);
   };
   const close = async () => {
@@ -202,7 +209,10 @@ export default function EntryPage({
           {/* Grote titel */}
           <TextInput
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              dirtyRef.current = true;
+              setTitle(e.target.value);
+            }}
             placeholder="Titel…"
             style={{
               width: "100%",
@@ -240,7 +250,10 @@ export default function EntryPage({
             <span style={{ color: "var(--border)", fontSize: 14 }}>·</span>
             <TextInput
               value={tags}
-              onChange={(e) => setTags(e.target.value)}
+              onChange={(e) => {
+                dirtyRef.current = true;
+                setTags(e.target.value);
+              }}
               placeholder="tags (komma-gescheiden)"
               style={{
                 flex: 1,
