@@ -309,12 +309,17 @@ function VandaagView({
   versesKnownTotal,
   learningList,
   reviewList,
+  dailyCap,
+  reviewsDoneToday,
+  dueCount,
   onDelta,
   onLog,
   onMarkMemorized,
   onRate,
 }) {
-  const empty = learningList.length === 0 && reviewList.length === 0;
+  const capReached = reviewsDoneToday >= dailyCap;
+  const hasReviewSection = reviewList.length > 0 || dueCount > 0;
+  const empty = learningList.length === 0 && !hasReviewSection;
 
   return (
     <div style={{ padding: "0 16px" }}>
@@ -335,12 +340,48 @@ function VandaagView({
       </div>
 
       {/* Te reviseren */}
-      {reviewList.length > 0 && (
+      {hasReviewSection && (
         <div style={{ marginBottom: 20 }}>
-          <SectionLabel>Te reviseren</SectionLabel>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+            }}
+          >
+            <SectionLabel>Te reviseren</SectionLabel>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: capReached ? "var(--accent)" : "var(--text-muted)",
+              }}
+            >
+              {reviewsDoneToday}/{dailyCap} vandaag
+            </span>
+          </div>
           {reviewList.map((rec) => (
             <RecallCard key={rec.surah} rec={rec} onRate={onRate} />
           ))}
+          {reviewList.length === 0 && capReached && (
+            <div
+              style={{
+                background: "var(--accent-bg)",
+                border: "1px solid var(--accent-border)",
+                borderRadius: 12,
+                padding: "14px 16px",
+                fontSize: 13,
+                color: "var(--accent-text)",
+                textAlign: "center",
+              }}
+            >
+              <Emoji char="✅" size={13} /> Daglimiet bereikt ({dailyCap}/
+              {dailyCap}).{" "}
+              {dueCount > 0
+                ? `Nog ${dueCount} ${dueCount === 1 ? "surah wacht" : "surahs wachten"} tot morgen.`
+                : "Kom morgen terug."}
+            </div>
+          )}
         </div>
       )}
 
@@ -791,6 +832,29 @@ export default function HifdView() {
     [hifdRecords],
   );
 
+  // Aantal revisies dat vandaag al beoordeeld is — bepaalt de resterende
+  // plekken binnen de daglimiet. Zonder dit zou elke afgehandelde revisie een
+  // nieuwe due-surah in beeld schuiven en kon je meer dan dailyCap per dag doen.
+  const reviewsDoneToday = useLiveQuery(async () => {
+    const t = today();
+    const logs = await db.hifdLog.where("date").equals(t).toArray();
+    return logs.reduce((n, l) => (l.phase === "review" ? n + 1 : n), 0);
+  }, []);
+
+  // Pas tonen zodra de telling geladen is (null → 0 plekken) zodat er nooit
+  // kort te veel kaarten verschijnen waarop je per ongeluk kunt tikken.
+  const remainingReviews =
+    reviewsDoneToday == null ? 0 : Math.max(0, dailyCap - reviewsDoneToday);
+
+  // Alle surahs die vandaag toe zijn (nog niet beoordeeld vandaag → nextDue
+  // ligt nog in het verleden/vandaag), los van de daglimiet.
+  const dueCount = useMemo(() => {
+    const t = today();
+    return (hifdRecords || []).filter(
+      (r) => r.status === "memorized" && r.nextDue != null && r.nextDue <= t,
+    ).length;
+  }, [hifdRecords]);
+
   const reviewList = useMemo(() => {
     const t = today();
     return (hifdRecords || [])
@@ -800,8 +864,8 @@ export default function HifdView() {
       .sort((a, b) =>
         a.nextDue < b.nextDue ? -1 : a.nextDue > b.nextDue ? 1 : 0,
       )
-      .slice(0, dailyCap);
-  }, [hifdRecords, dailyCap]);
+      .slice(0, remainingReviews);
+  }, [hifdRecords, remainingReviews]);
 
   const ringPct = Math.round((memorizedCount / 114) * 100);
 
@@ -953,6 +1017,9 @@ export default function HifdView() {
           versesKnownTotal={versesKnownTotal}
           learningList={learningList}
           reviewList={reviewList}
+          dailyCap={dailyCap}
+          reviewsDoneToday={reviewsDoneToday ?? 0}
+          dueCount={dueCount}
           onDelta={updateVersesKnown}
           onLog={logLearnSession}
           onMarkMemorized={markMemorized}
