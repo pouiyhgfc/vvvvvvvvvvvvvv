@@ -31,11 +31,6 @@ export function useSortable(onReorder) {
       return { el, center: b.top + b.height / 2, height: b.height };
     });
 
-    const docEl = document.documentElement;
-    const prevBody = document.body.style.overflow;
-    const prevHtml = docEl.style.overflow;
-    const prevOB = docEl.style.overscrollBehavior;
-
     const clearRows = () => {
       rows.forEach((r) => {
         r.el.style.transform = "";
@@ -49,7 +44,7 @@ export function useSortable(onReorder) {
       if (!s) return;
       const self = s.rows[s.index];
       if (!self) return; // rij weg (re-render): negeer
-      if (ev.cancelable) ev.preventDefault(); // browser-scroll tegenhouden tijdens sleep
+      if (ev.cancelable) ev.preventDefault();
       s.dy = ev.clientY - s.startY;
       const cur = self.center + s.dy;
       let to = 0;
@@ -73,14 +68,20 @@ export function useSortable(onReorder) {
       });
     };
 
+    // Scrollen tegenhouden tijdens de sleep. preventDefault op touchmove is de
+    // betrouwbare manier op mobiel (vooral iOS); pointer-events/touch-action
+    // alleen volstaan daar niet. We vergrendelen bewust GEEN body-overflow:
+    // dat veroorzaakt een herberekening die de aanraking kan annuleren.
+    const blockTouch = (ev) => {
+      if (ev.cancelable) ev.preventDefault();
+    };
+
     const end = () => {
       const s = st.current;
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", end);
       window.removeEventListener("pointercancel", end);
-      document.body.style.overflow = prevBody;
-      docEl.style.overflow = prevHtml;
-      docEl.style.overscrollBehavior = prevOB;
+      window.removeEventListener("touchmove", blockTouch);
       clearRows();
       st.current = null;
       teardownRef.current = null;
@@ -100,17 +101,13 @@ export function useSortable(onReorder) {
     teardownRef.current = end;
     setDragId(id);
 
-    // Pagina-scroll vergrendelen tijdens het slepen zodat de lijst niet meebeweegt.
-    document.body.style.overflow = "hidden";
-    docEl.style.overflow = "hidden";
-    docEl.style.overscrollBehavior = "contain";
-
     // Listeners NU koppelen (synchroon), niet via een useEffect na re-render —
     // anders kaapt de mobiele browser de eerste bewegingen als scroll en breekt
     // de sleep af (pointercancel) voordat onze handler actief is.
     window.addEventListener("pointermove", move, { passive: false });
     window.addEventListener("pointerup", end);
     window.addEventListener("pointercancel", end);
+    window.addEventListener("touchmove", blockTouch, { passive: false });
 
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
