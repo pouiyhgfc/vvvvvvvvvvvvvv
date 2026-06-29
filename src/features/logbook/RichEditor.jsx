@@ -109,10 +109,15 @@ export default function RichEditor({ initialContent, onChange, theme }) {
         // tabel-handvatten en emoji-picker blijven de defaults.
         slashMenu={false}
         formattingToolbar={false}
-        onChange={async () => {
+        onChange={() => {
+          // Eerst synchroon de doc + wijziging melden, zodat bij direct sluiten
+          // (Terug-knop) de bewerking gegarandeerd is gemarkeerd. De markdown-
+          // tekst is async en komt er daarna achteraan.
           const doc = editor.document;
-          const text = await editor.blocksToMarkdownLossy(doc);
-          onChange({ doc, text });
+          onChange({ doc });
+          editor
+            .blocksToMarkdownLossy(doc)
+            .then((text) => onChange({ doc, text }));
         }}
       >
         <FormattingToolbarController formattingToolbar={CuratedToolbar} />

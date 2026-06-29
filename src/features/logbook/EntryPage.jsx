@@ -125,7 +125,12 @@ export default function EntryPage({
   }, [persist, contentVersion]);
 
   const onEditorChange = ({ doc, text }) => {
-    contentRef.current = { doc, text };
+    // text kan (nog) ontbreken bij de synchrone melding — dan de vorige tekst
+    // behouden; de async markdown-conversie vult 'm vlak erna alsnog aan.
+    contentRef.current = {
+      doc,
+      text: text !== undefined ? text : contentRef.current.text,
+    };
     dirtyRef.current = true;
     setContentVersion((v) => v + 1);
   };
