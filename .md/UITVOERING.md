@@ -444,10 +444,12 @@ A → B → C → F → E; Fase D (BlockNote-upgrade) is bewust uitgesteld tot e
 
 ### Fase C — logboek-UX
 
-- [x] C1 — Body-preview op entry-kaarten
+- [ ] ~~C1 — Body-preview op entry-kaarten~~ — gebouwd, maar de eigenaar wil geen
+      beschrijving/preview onder de titel op de kaarten; weer verwijderd.
 - [x] C2 — Zichtbare opslag-status in `EntryPage`
 - [x] C3 — Race-fix: `body` kan achterlopen op `doc`
-- [x] **Fase C afgerond** — `npm run build` + `npm run lint` schoon.
+- [x] **Fase C afgerond** (C1 bewust overgeslagen op verzoek) — `npm run build` +
+      `npm run lint` + `npm run deadcode` schoon.
 
 ### Fase F — nieuwe features
 

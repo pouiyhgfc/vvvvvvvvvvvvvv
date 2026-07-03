@@ -58,18 +58,6 @@ function stripBlockIds(blocks) {
   }));
 }
 
-// Lichte markdown-strip voor de kaart-preview: haalt kop-/lijst-/quote-tekens
-// aan het begin van elke regel weg, geen volledige markdown-parser nodig.
-function previewText(body) {
-  if (!body) return "";
-  return body
-    .split("\n")
-    .map((line) => line.replace(/^\s{0,3}(#{1,6}\s+|[-*]\s+|>\s+)/, ""))
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 export default function LogbookView() {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState(null);
@@ -524,22 +512,6 @@ export default function LogbookView() {
                       }}
                     >
                       {entry.title}
-                    </div>
-                  )}
-                  {previewText(entry.body) && (
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: "var(--text-muted)",
-                        lineHeight: 1.4,
-                        marginBottom: 3,
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {previewText(entry.body)}
                     </div>
                   )}
                   {entry.tags?.length > 0 && (
