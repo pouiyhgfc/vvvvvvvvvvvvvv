@@ -40,6 +40,27 @@ export default defineConfig({
             purpose: "any maskable",
           },
         ],
+        shortcuts: [
+          {
+            name: "Nieuwe notitie",
+            url: "/?action=new-note",
+            icons: [
+              { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+            ],
+          },
+          {
+            name: "Vandaag",
+            url: "/?action=today",
+            icons: [
+              { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+            ],
+          },
+        ],
+        share_target: {
+          action: "/share",
+          method: "GET",
+          params: { title: "title", text: "text", url: "url" },
+        },
       },
     }),
   ],

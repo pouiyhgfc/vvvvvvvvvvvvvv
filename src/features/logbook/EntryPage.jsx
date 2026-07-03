@@ -65,14 +65,18 @@ function TrashIcon() {
 
 // Volledige eigen pagina met de rijke editor. Slaat automatisch op (debounced
 // + bij Terug). Maakt een nieuwe entry pas aan zodra er inhoud is.
+// `draft`: optionele voorinvulling voor een nieuwe entry ({ title?, body?, doc? }),
+// bv. vanuit een sjabloon of een gedeelde link — markeert de entry direct als
+// dirty zodat de auto-save 'm aanmaakt. Zonder draft is het gedrag ongewijzigd.
 export default function EntryPage({
   entry,
   notebookId,
   date: dateProp,
   theme,
+  draft,
   onClose,
 }) {
-  const [title, setTitle] = useState(entry?.title || "");
+  const [title, setTitle] = useState(entry?.title || draft?.title || "");
   const [tags, setTags] = useState(entry?.tags?.join(", ") || "");
   const [created, setCreated] = useState(!!entry?.id);
   const [confirmDel, setConfirmDel] = useState(false);
@@ -81,12 +85,13 @@ export default function EntryPage({
 
   const idRef = useRef(entry?.id || null);
   const contentRef = useRef({
-    doc: entry?.doc ?? null,
-    text: entry?.body ?? "",
+    doc: entry?.doc ?? draft?.doc ?? null,
+    text: entry?.body ?? draft?.body ?? "",
   });
   // Pas opslaan/updatedAt aanpassen als er echt iets bewerkt is — niet bij
-  // alleen openen of sluiten zonder wijziging.
-  const dirtyRef = useRef(false);
+  // alleen openen of sluiten zonder wijziging. Met een draft is er al
+  // inhoud, dus die telt meteen als een wijziging die opgeslagen moet worden.
+  const dirtyRef = useRef(!!draft);
   const savedTimerRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -97,7 +102,8 @@ export default function EntryPage({
 
   useEffect(() => () => clearTimeout(savedTimerRef.current), []);
 
-  const initialContent = entry?.doc ?? entry?.body ?? undefined;
+  const initialContent =
+    entry?.doc ?? entry?.body ?? draft?.doc ?? draft?.body ?? undefined;
   const entryDate = entry?.date || dateProp || dk(new Date());
 
   const persist = useCallback(async () => {
