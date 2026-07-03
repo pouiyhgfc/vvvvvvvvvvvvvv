@@ -23,6 +23,7 @@ import SettingsPanel from "./features/settings/SettingsPanel.jsx";
 import LogbookView from "./features/logbook/LogbookView.jsx";
 import HifdView from "./features/hifd/HifdView.jsx";
 import ToastHost from "./ui/Toast.jsx";
+import ConfirmDialog from "./ui/ConfirmDialog.jsx";
 import Emoji from "./ui/Emoji.jsx";
 
 export default function App() {
@@ -68,6 +69,7 @@ export default function App() {
   const [pop, setPop] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [statsPeriod, setStatsPeriod] = useState("week");
+  const [pendingImport, setPendingImport] = useState(null);
 
   const key = dk(date);
   const total = Object.values(routines).flat().length;
@@ -434,67 +436,77 @@ export default function App() {
           showToast("❌ Ongeldig backup bestand.");
           return;
         }
-        const mode = confirm("OK = Samenvoegen\nAnnuleer = Volledig vervangen");
-        await db.transaction(
-          "rw",
-          db.blobs,
-          db.days,
-          db.calEvents,
-          db.settings,
-          db.logEntries,
-          db.hifd,
-          db.hifdLog,
-          async () => {
-            if (!mode) {
-              await db.days.clear();
-              await db.calEvents.clear();
-              await db.logEntries.clear();
-              await db.hifd.clear();
-              await db.hifdLog.clear();
-            }
-            await db.blobs.put({ key: "routines", data: data.routines });
-            if (data.calTemplates)
-              await db.blobs.put({
-                key: "calTemplates",
-                data: data.calTemplates,
-              });
-            if (data.weekScheduleTemplates)
-              await db.blobs.put({
-                key: "weekTemplates",
-                data: data.weekScheduleTemplates,
-              });
-            if (data.calEvents && data.calEvents.length)
-              await db.calEvents.bulkPut(data.calEvents);
-            if (data.settings)
-              await db.settings.put({
-                id: "singleton",
-                ...DEFAULT_SETTINGS,
-                ...data.settings,
-              });
-            if (Array.isArray(data.areas) && data.areas.length)
-              await db.blobs.put({ key: "areas", data: data.areas });
-            const dayEntries = Object.entries(data.days).map(
-              ([d, dayData]) => ({ date: d, ...dayData }),
-            );
-            if (dayEntries.length) await db.days.bulkPut(dayEntries);
-            if (Array.isArray(data.logEntries) && data.logEntries.length)
-              await db.logEntries.bulkPut(data.logEntries);
-            if (Array.isArray(data.notebooks) && data.notebooks.length)
-              await db.blobs.put({ key: "notebooks", data: data.notebooks });
-            if (Array.isArray(data.hifd) && data.hifd.length)
-              await db.hifd.bulkPut(data.hifd);
-            if (Array.isArray(data.hifdLog) && data.hifdLog.length)
-              await db.hifdLog.bulkPut(data.hifdLog);
-          },
-        );
-        showToast(
-          `✓ Import gelukt! ${Object.keys(data.days).length} dagen geïmporteerd.`,
-        );
+        setPendingImport(data);
       } catch (err) {
         showToast("❌ Fout bij importeren: " + err.message);
       }
     };
     reader.readAsText(file);
+  };
+
+  const performFullImport = async (data, merge) => {
+    try {
+      await db.transaction(
+        "rw",
+        db.blobs,
+        db.days,
+        db.calEvents,
+        db.settings,
+        db.logEntries,
+        db.hifd,
+        db.hifdLog,
+        async () => {
+          if (!merge) {
+            await db.days.clear();
+            await db.calEvents.clear();
+            await db.logEntries.clear();
+            await db.hifd.clear();
+            await db.hifdLog.clear();
+          }
+          await db.blobs.put({ key: "routines", data: data.routines });
+          if (data.calTemplates)
+            await db.blobs.put({
+              key: "calTemplates",
+              data: data.calTemplates,
+            });
+          if (data.weekScheduleTemplates)
+            await db.blobs.put({
+              key: "weekTemplates",
+              data: data.weekScheduleTemplates,
+            });
+          if (data.calEvents && data.calEvents.length)
+            await db.calEvents.bulkPut(data.calEvents);
+          if (data.settings)
+            await db.settings.put({
+              id: "singleton",
+              ...DEFAULT_SETTINGS,
+              ...data.settings,
+            });
+          if (Array.isArray(data.areas) && data.areas.length)
+            await db.blobs.put({ key: "areas", data: data.areas });
+          const dayEntries = Object.entries(data.days).map(([d, dayData]) => ({
+            date: d,
+            ...dayData,
+          }));
+          if (dayEntries.length) await db.days.bulkPut(dayEntries);
+          if (Array.isArray(data.logEntries) && data.logEntries.length)
+            await db.logEntries.bulkPut(data.logEntries);
+          if (Array.isArray(data.notebooks) && data.notebooks.length)
+            await db.blobs.put({ key: "notebooks", data: data.notebooks });
+          if (Array.isArray(data.hifd) && data.hifd.length)
+            await db.hifd.bulkPut(data.hifd);
+          if (Array.isArray(data.hifdLog) && data.hifdLog.length)
+            await db.hifdLog.bulkPut(data.hifdLog);
+        },
+      );
+      showToast(
+        `✓ Import gelukt! ${Object.keys(data.days).length} dagen geïmporteerd.`,
+      );
+    } catch (err) {
+      showToast("❌ Fout bij importeren: " + err.message);
+    } finally {
+      setPendingImport(null);
+    }
   };
 
   const clearAllDays = async () => {
@@ -837,6 +849,27 @@ export default function App() {
 
       {/* HIFD VIEW */}
       {view === "hifd" && !showSettings && <HifdView />}
+
+      {pendingImport && (
+        <ConfirmDialog
+          title="Backup importeren"
+          message="Wil je deze backup samenvoegen met je huidige data, of je huidige data volledig vervangen?"
+          danger={false}
+          actions={[
+            {
+              label: "Samenvoegen",
+              variant: "primary",
+              onClick: () => performFullImport(pendingImport, true),
+            },
+            {
+              label: "Volledig vervangen",
+              variant: "dangerSolid",
+              onClick: () => performFullImport(pendingImport, false),
+            },
+          ]}
+          onCancel={() => setPendingImport(null)}
+        />
+      )}
 
       <ToastHost />
     </div>

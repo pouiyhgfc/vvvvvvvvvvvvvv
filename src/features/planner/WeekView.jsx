@@ -17,6 +17,7 @@ import {
   CAL_END_H,
 } from "../../lib/constants.js";
 import EventModal from "./EventModal.jsx";
+import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import Emoji from "../../ui/Emoji.jsx";
 
 // Assign a column slot to each event so overlapping events sit side by side.
@@ -92,6 +93,8 @@ export default function WeekView({
 }) {
   const [modal, setModal] = useState(null);
   const [showTplPicker, setShowTplPicker] = useState(false);
+  const [pendingMove, setPendingMove] = useState(null);
+  const [pendingReplaceTpl, setPendingReplaceTpl] = useState(null);
   const gridRef = useRef(null);
   const dragRef = useRef(null);
   // Suppresses hour-cell tap after releasing an event (ghost-click guard)
@@ -224,39 +227,7 @@ export default function WeekView({
     let ne = Math.min(CAL_END_H * 60, ns + dur);
     setDrag(null);
     if (ev.repeat && ev.repeat !== "none") {
-      const whole = confirm(
-        `"${ev.title}" is een herhalend event.\n\nOK = hele reeks verplaatsen\nAnnuleren = alleen ${ev.date} verplaatsen`,
-      );
-      if (whole) {
-        setCalEvents((prev) =>
-          prev.map((x) =>
-            x.id === ev.id
-              ? { ...x, date: newDate, startTime: minT(ns), endTime: minT(ne) }
-              : x,
-          ),
-        );
-      } else {
-        // Exclude this occurrence from the series; add a one-time copy at the new slot.
-        setCalEvents((prev) => [
-          ...prev.map((x) =>
-            x.id === ev.id
-              ? { ...x, exDates: [...(x.exDates || []), ev.date] }
-              : x,
-          ),
-          {
-            id: uid(),
-            date: newDate,
-            title: ev.title,
-            icon: ev.icon,
-            color: ev.color,
-            desc: ev.desc || "",
-            startTime: minT(ns),
-            endTime: minT(ne),
-            repeat: "none",
-            exDates: [],
-          },
-        ]);
-      }
+      setPendingMove({ ev, newDate, ns, ne });
     } else {
       setCalEvents((prev) =>
         prev.map((x) =>
@@ -266,6 +237,39 @@ export default function WeekView({
         ),
       );
     }
+  };
+  const applyMoveWhole = () => {
+    const { ev, newDate, ns, ne } = pendingMove;
+    setCalEvents((prev) =>
+      prev.map((x) =>
+        x.id === ev.id
+          ? { ...x, date: newDate, startTime: minT(ns), endTime: minT(ne) }
+          : x,
+      ),
+    );
+    setPendingMove(null);
+  };
+  const applyMoveSingle = () => {
+    const { ev, newDate, ns, ne } = pendingMove;
+    // Exclude this occurrence from the series; add a one-time copy at the new slot.
+    setCalEvents((prev) => [
+      ...prev.map((x) =>
+        x.id === ev.id ? { ...x, exDates: [...(x.exDates || []), ev.date] } : x,
+      ),
+      {
+        id: uid(),
+        date: newDate,
+        title: ev.title,
+        icon: ev.icon,
+        color: ev.color,
+        desc: ev.desc || "",
+        startTime: minT(ns),
+        endTime: minT(ne),
+        repeat: "none",
+        exDates: [],
+      },
+    ]);
+    setPendingMove(null);
   };
   const evCancel = () => {
     const s = dragRef.current;
@@ -386,47 +390,22 @@ export default function WeekView({
                     cursor: "pointer",
                   }}
                 >
-                  ➕
+                  <Emoji char="➕" size={10} />
                 </button>
                 <button
-                  onClick={() => {
-                    if (
-                      !confirm(
-                        `"${tpl.name}" inladen en huidige week vervangen?`,
-                      )
-                    )
-                      return;
-                    const mon = getMonday(date);
-                    const sun = new Date(mon);
-                    sun.setDate(mon.getDate() + 6);
-                    const monStr = dk(mon),
-                      sunStr = dk(sun);
-                    const newEvs = applyWeekTemplate(tpl, mon);
-                    setCalEvents((prev) => [
-                      ...prev.filter(
-                        (e) =>
-                          !(
-                            e.date >= monStr &&
-                            e.date <= sunStr &&
-                            (!e.repeat || e.repeat === "none")
-                          ),
-                      ),
-                      ...newEvs,
-                    ]);
-                    setShowTplPicker(false);
-                  }}
+                  onClick={() => setPendingReplaceTpl(tpl)}
                   style={{
                     padding: "4px 8px",
                     borderRadius: 5,
                     background: "var(--accent)",
-                    color: "white",
+                    color: "var(--accent-contrast)",
                     fontSize: 10,
                     fontWeight: 600,
                     border: "none",
                     cursor: "pointer",
                   }}
                 >
-                  🔄
+                  <Emoji char="🔄" size={10} />
                 </button>
               </div>
             ))}
@@ -491,7 +470,7 @@ export default function WeekView({
                       style={{
                         fontSize: 12,
                         fontWeight: 700,
-                        color: today ? "white" : "var(--text)",
+                        color: today ? "var(--accent-contrast)" : "var(--text)",
                       }}
                     >
                       {d.getDate()}
@@ -748,6 +727,56 @@ export default function WeekView({
           onSave={modal.mode === "add" ? addEvent : updateEvent}
           onDelete={deleteEvent}
           onClose={() => setModal(null)}
+        />
+      )}
+      {pendingMove && (
+        <ConfirmDialog
+          title="Herhalend event verplaatsen"
+          message={`"${pendingMove.ev.title}" is een herhalend event.`}
+          danger={false}
+          actions={[
+            {
+              label: "Hele reeks verplaatsen",
+              variant: "primary",
+              onClick: applyMoveWhole,
+            },
+            {
+              label: `Alleen ${pendingMove.ev.date} verplaatsen`,
+              variant: "secondary",
+              onClick: applyMoveSingle,
+            },
+          ]}
+          onCancel={() => setPendingMove(null)}
+        />
+      )}
+      {pendingReplaceTpl && (
+        <ConfirmDialog
+          title="Weekschema vervangen?"
+          message={`"${pendingReplaceTpl.name}" inladen en huidige week vervangen?`}
+          confirmLabel="Vervangen"
+          danger={false}
+          onConfirm={() => {
+            const mon = getMonday(date);
+            const sun = new Date(mon);
+            sun.setDate(mon.getDate() + 6);
+            const monStr = dk(mon),
+              sunStr = dk(sun);
+            const newEvs = applyWeekTemplate(pendingReplaceTpl, mon);
+            setCalEvents((prev) => [
+              ...prev.filter(
+                (e) =>
+                  !(
+                    e.date >= monStr &&
+                    e.date <= sunStr &&
+                    (!e.repeat || e.repeat === "none")
+                  ),
+              ),
+              ...newEvs,
+            ]);
+            setShowTplPicker(false);
+            setPendingReplaceTpl(null);
+          }}
+          onCancel={() => setPendingReplaceTpl(null)}
         />
       )}
     </div>
