@@ -46,7 +46,15 @@ export default function RoutineSheet({
               </Button>
             )}
             <Button onClick={save} disabled={!name.trim()} style={{ flex: 1 }}>
-              {routine ? "💾 Opslaan" : "✓ Toevoegen"}
+              {routine ? (
+                <>
+                  <Emoji char="💾" size={14} /> Opslaan
+                </>
+              ) : (
+                <>
+                  <Emoji char="✅" size={14} /> Toevoegen
+                </>
+              )}
             </Button>
           </>
         }

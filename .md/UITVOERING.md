@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Hifd-module voltooid (H1–H4): datalaag (db v3, 114-rijen seed), leer-flow met versteller + daglogging, voortgangsgrid 114→1 met heatmap, spaced repetition (INTERVALS 1/3/7/14/30d) met recall-cards, hifdDailyCap-instelling, en export/import uitgebreid (versie 7). Build/lint schoon._
+**Status — huidige fase:** _Bezig met Fase A (audit-fixes) van het mobiele-editor-plan. Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan en `Fase Mobiele editor + audit` hieronder voor de voortgang._
 
 ---
 
@@ -401,6 +401,59 @@ git commit -m "Fase 4: Notities/kennisbank-module"
 
 - [x] `npm run build` / `lint` schoon.
 - [ ] Mobiel: datum-kaart klopt per view/periode; Stats Week/Maand/Jaar toont juiste data; maand-dag aantikken → tracker; Notities-entries slepen en volgorde blijft na herladen; tag-pillen kleuren correct; bestaande data intact.
+
+---
+
+## Fase Mobiele editor + audit (bezig)
+
+**Doel:** de rijke editor volledig bruikbaar maken op touch (eigen vaste werkbalk i.p.v.
+hover/typ-triggers) en een reeks audit-bugs oplossen. Volledig plan met details,
+API-verificatie en controles per stap: `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md`. Volgorde:
+A → B → C → F → E; Fase D (BlockNote-upgrade) is bewust uitgesteld tot expliciet verzoek.
+
+### Fase A — audit-fixes
+
+- [ ] A1 — Zoeken in logboek matcht ook de titel
+- [ ] A2 — `confirm()` in WeekView → `ConfirmDialog`
+- [ ] A3 — Import samenvoegen/vervangen → `ConfirmDialog`
+- [ ] A4 — "Wis ALLES" wist echt alles (incl. Hifd-reseed)
+- [ ] A5 — Boot-robuustheid: migratie mag app-start niet blokkeren
+- [ ] A6 — Hardcoded UI-kleuren → tokens
+- [ ] A7 — Hifd-log datacollision fix (db-migratie v4/v5, **backup verplicht vooraf**)
+- [ ] A8 — Kale emoji's in JSX → `<Emoji>`
+- [ ] **Fase A afgerond**
+
+### Fase B — mobiele editor-werkbalk
+
+- [ ] B0 — BlockNote-API geverifieerd tegen 0.51.4
+- [ ] B1 — `MobileToolbar.jsx`: vaste werkbalk boven het toetsenbord
+- [ ] B2 — Contextuele tabel-bediening
+- [ ] B3 — Documentatie (`ONTWERP.md` + hier)
+- [ ] **Fase B afgerond**
+
+### Fase C — logboek-UX
+
+- [ ] C1 — Body-preview op entry-kaarten
+- [ ] C2 — Zichtbare opslag-status in `EntryPage`
+- [ ] C3 — Race-fix: `body` kan achterlopen op `doc`
+- [ ] **Fase C afgerond**
+
+### Fase F — nieuwe features
+
+- [ ] F1 — PWA app-shortcuts + share-target (incl. `draft`-prop op `EntryPage`)
+- [ ] F2 — Entry-sjablonen in het logboek
+- [ ] **Fase F afgerond**
+
+### Fase E — opschoonronde
+
+- [ ] E1 — Backup/export-logica uit `App.jsx` naar `src/lib/backup.js`
+- [ ] E2 — `notify.js` leesbaar maken + dood pad opruimen
+- [ ] E3 — Knip + lint-sweep
+- [ ] **Fase E afgerond**
+
+### Fase D — BlockNote-upgrade
+
+- [ ] **Bewust uitgesteld** — alleen op expliciet verzoek van de eigenaar, eigen branch.
 
 ---
 

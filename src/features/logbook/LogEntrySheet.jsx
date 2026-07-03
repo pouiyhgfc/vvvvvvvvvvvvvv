@@ -45,7 +45,15 @@ export default function LogEntrySheet({ entry, onSave, onDelete, onClose }) {
               </Button>
             )}
             <Button onClick={save} disabled={!body.trim()} style={{ flex: 1 }}>
-              {entry ? "💾 Opslaan" : "✓ Toevoegen"}
+              {entry ? (
+                <>
+                  <Emoji char="💾" size={14} /> Opslaan
+                </>
+              ) : (
+                <>
+                  <Emoji char="✅" size={14} /> Toevoegen
+                </>
+              )}
             </Button>
           </>
         }

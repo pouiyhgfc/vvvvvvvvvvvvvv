@@ -307,9 +307,15 @@ export default function WeekView({
               fontWeight: 600,
               padding: "3px 9px",
               borderRadius: 6,
-              background: showTplPicker ? "#dc2626" : "#7c3aed",
-              color: "white",
-              border: "none",
+              background: showTplPicker
+                ? "var(--danger-bg)"
+                : "var(--purple-bg)",
+              color: showTplPicker
+                ? "var(--danger-text)"
+                : "var(--purple-text)",
+              border: showTplPicker
+                ? "1px solid var(--danger-border)"
+                : "1px solid var(--purple-border)",
               cursor: "pointer",
             }}
           >
@@ -372,11 +378,11 @@ export default function WeekView({
                   style={{
                     padding: "4px 8px",
                     borderRadius: 5,
-                    background: "#7c3aed",
-                    color: "white",
+                    background: "var(--purple-bg)",
+                    color: "var(--purple-text)",
                     fontSize: 10,
                     fontWeight: 600,
-                    border: "none",
+                    border: "1px solid var(--purple-border)",
                     cursor: "pointer",
                   }}
                 >

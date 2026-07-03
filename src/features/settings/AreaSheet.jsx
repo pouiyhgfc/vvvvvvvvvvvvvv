@@ -31,7 +31,15 @@ export default function AreaSheet({ area, onSave, onDelete, onClose }) {
               </Button>
             )}
             <Button onClick={save} disabled={!name.trim()} style={{ flex: 1 }}>
-              {area ? "💾 Opslaan" : "✓ Toevoegen"}
+              {area ? (
+                <>
+                  <Emoji char="💾" size={14} /> Opslaan
+                </>
+              ) : (
+                <>
+                  <Emoji char="✅" size={14} /> Toevoegen
+                </>
+              )}
             </Button>
           </>
         }

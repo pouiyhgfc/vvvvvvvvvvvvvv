@@ -134,7 +134,15 @@ export default function EventModal({
               disabled={!title.trim()}
               style={{ flex: 1 }}
             >
-              {isEdit ? "💾 Opslaan" : "✓ Toevoegen"}
+              {isEdit ? (
+                <>
+                  <Emoji char="💾" size={14} /> Opslaan
+                </>
+              ) : (
+                <>
+                  <Emoji char="✅" size={14} /> Toevoegen
+                </>
+              )}
             </Button>
           </>
         }

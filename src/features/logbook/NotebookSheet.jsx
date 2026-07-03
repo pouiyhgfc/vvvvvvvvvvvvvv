@@ -33,7 +33,15 @@ export default function NotebookSheet({ notebook, onSave, onDelete, onClose }) {
               </Button>
             )}
             <Button onClick={save} disabled={!name.trim()} style={{ flex: 1 }}>
-              {notebook ? "💾 Opslaan" : "✓ Toevoegen"}
+              {notebook ? (
+                <>
+                  <Emoji char="💾" size={14} /> Opslaan
+                </>
+              ) : (
+                <>
+                  <Emoji char="✅" size={14} /> Toevoegen
+                </>
+              )}
             </Button>
           </>
         }

@@ -121,6 +121,7 @@ export default function LogbookView() {
       const q = search.toLowerCase();
       list = list.filter(
         (e) =>
+          e.title?.toLowerCase().includes(q) ||
           e.body?.toLowerCase().includes(q) ||
           e.tags?.some((t) => t.toLowerCase().includes(q)) ||
           dateSearchString(e.date).includes(q),

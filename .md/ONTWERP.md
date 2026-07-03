@@ -109,5 +109,4 @@ De Logboek-tab is een werkruimte met **notitieboeken** ([LogbookView.jsx](src/fe
 
 - De import-keuze "samenvoegen vs. vervangen" (`App.jsx` → `importData`) is nog een native
   `confirm()`; lastig veilig om te bouwen midden in het `FileReader`-inlezen.
-- Emoji's in losse knop-labels (bv. "💾 Opslaan") renderen nog als OS-emoji; mag later via `<Emoji>`.
 - De BlockNote-editor-chunk (~1,7 MB) wordt geprecached door de PWA (offline-voordeel, maar zwaardere service-worker-install). Optioneel later uitsluiten via `manualChunks` + `globIgnores`.

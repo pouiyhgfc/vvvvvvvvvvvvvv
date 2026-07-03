@@ -387,7 +387,7 @@ export default function TrackerView({
             boxShadow: "0 1px 3px var(--shadow)",
           }}
         >
-          <span style={{ fontSize: 18 }}>{todayEntry ? "📖" : "📝"}</span>
+          <Emoji char={todayEntry ? "📖" : "📝"} size={18} />
           {todayEntry
             ? "Logboek voor vandaag openen"
             : "Nieuw logboek voor vandaag aanmaken"}

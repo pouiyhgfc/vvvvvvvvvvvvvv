@@ -29,7 +29,7 @@ const addBtn = {
   padding: "3px 10px",
   borderRadius: 6,
   background: "var(--accent)",
-  color: "white",
+  color: "var(--accent-contrast)",
   fontWeight: 600,
 };
 const introP = {
@@ -257,7 +257,7 @@ export default function SettingsPanel({
             <div
               style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}
             >
-              🌙 Donkere modus
+              <Emoji char="🌙" size={13} /> Donkere modus
             </div>
             <div
               style={{
@@ -395,7 +395,7 @@ export default function SettingsPanel({
               marginBottom: 6,
             }}
           >
-            🔥 Streak-drempel: {settings.streakPct}%
+            <Emoji char="🔥" size={12} /> Streak-drempel: {settings.streakPct}%
           </label>
           <input
             type="range"
@@ -436,7 +436,8 @@ export default function SettingsPanel({
               marginBottom: 6,
             }}
           >
-            🌙 Hifd revisies per dag: {settings.hifdDailyCap ?? 4}
+            <Emoji char="🌙" size={12} /> Hifd revisies per dag:{" "}
+            {settings.hifdDailyCap ?? 4}
           </label>
           <input
             type="range"
@@ -698,7 +699,7 @@ export default function SettingsPanel({
             }}
             style={addBtn}
           >
-            💾 Huidig opslaan
+            <Emoji char="💾" size={11} /> Huidig opslaan
           </button>
         }
       >
@@ -928,7 +929,7 @@ export default function SettingsPanel({
           onClose={() => setSavingWeek(false)}
           footer={
             <Button full disabled={!weekName.trim()} onClick={saveCurrentWeek}>
-              💾 Opslaan
+              <Emoji char="💾" size={14} /> Opslaan
             </Button>
           }
         >

@@ -33,7 +33,7 @@ export default function WeekTemplateSheet({
               disabled={!name.trim() || name.trim() === tpl.name}
               style={{ flex: 1 }}
             >
-              💾 Naam opslaan
+              <Emoji char="💾" size={14} /> Naam opslaan
             </Button>
           </>
         }
@@ -48,14 +48,14 @@ export default function WeekTemplateSheet({
         <Field label="Inladen in de huidige week">
           <div style={{ display: "flex", gap: 8 }}>
             <Button variant="secondary" style={{ flex: 1 }} onClick={onLoad}>
-              ➕ Toevoegen
+              <Emoji char="➕" size={14} /> Toevoegen
             </Button>
             <Button
               variant="secondary"
               style={{ flex: 1 }}
               onClick={() => setConfirm("replace")}
             >
-              🔄 Vervangen
+              <Emoji char="🔄" size={14} /> Vervangen
             </Button>
           </div>
         </Field>

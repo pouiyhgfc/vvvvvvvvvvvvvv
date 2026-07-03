@@ -40,7 +40,15 @@ export default function TemplateSheet({ template, onSave, onDelete, onClose }) {
               </Button>
             )}
             <Button onClick={save} disabled={!title.trim()} style={{ flex: 1 }}>
-              {template ? "💾 Opslaan" : "✓ Toevoegen"}
+              {template ? (
+                <>
+                  <Emoji char="💾" size={14} /> Opslaan
+                </>
+              ) : (
+                <>
+                  <Emoji char="✅" size={14} /> Toevoegen
+                </>
+              )}
             </Button>
           </>
         }
