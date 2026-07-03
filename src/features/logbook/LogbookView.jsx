@@ -47,6 +47,17 @@ function dateSearchString(str) {
 
 const nbOf = (e) => e.notebookId || "logboek";
 
+// Verwijdert recursief block-id's uit een sjabloon-doc (diepe kopie), zodat
+// een nieuwe entry altijd verse id's krijgt en nooit block-id's deelt met
+// het sjabloon of met eerder uit hetzelfde sjabloon gemaakte entries.
+function stripBlockIds(blocks) {
+  if (!Array.isArray(blocks)) return blocks;
+  return blocks.map(({ id: _id, children, ...rest }) => ({
+    ...rest,
+    ...(children ? { children: stripBlockIds(children) } : {}),
+  }));
+}
+
 // Lichte markdown-strip voor de kaart-preview: haalt kop-/lijst-/quote-tekens
 // aan het begin van elke regel weg, geen volledige markdown-parser nodig.
 function previewText(body) {
@@ -66,11 +77,15 @@ export default function LogbookView() {
   const [activeNb, setActiveNb] = useState(null);
   const [sheet, setSheet] = useState(null); // dag-notitie (plat tekstveld)
   const [nbSheet, setNbSheet] = useState(null); // "new" | notebook
-  const [pageEntry, setPageEntry] = useState(null); // "new" | log-entry
+  const [pageEntry, setPageEntry] = useState(null); // "new" | { _draft } | log-entry
   const [sortNbSheet, setSortNbSheet] = useState(false);
+  const [templatePicker, setTemplatePicker] = useState(false);
+  const [confirmDeleteTpl, setConfirmDeleteTpl] = useState(null);
 
   const settingsRec = useLiveQuery(() => db.settings.get("singleton"));
   const theme = settingsRec?.theme ?? "light";
+  const entryTemplatesBlob = useLiveQuery(() => db.blobs.get("entryTemplates"));
+  const entryTemplates = entryTemplatesBlob?.data ?? [];
   const notebooksBlob = useLiveQuery(() => db.blobs.get("notebooks"));
   const notebooks = notebooksBlob?.data ?? DEFAULT_NOTEBOOKS;
   const activeNotebook =
@@ -330,7 +345,14 @@ export default function LogbookView() {
           <Emoji char={activeNotebook?.icon ?? "📖"} size={20} />
           {activeNotebook?.name ?? "Logboek"}
         </h2>
-        <Button size="sm" onClick={() => setPageEntry("new")}>
+        <Button
+          size="sm"
+          onClick={() =>
+            entryTemplates.length
+              ? setTemplatePicker(true)
+              : setPageEntry("new")
+          }
+        >
           + Nieuw
         </Button>
       </div>
@@ -559,10 +581,101 @@ export default function LogbookView() {
 
       {pageEntry && (
         <EntryPage
-          entry={pageEntry === "new" ? null : pageEntry}
+          entry={pageEntry === "new" || pageEntry._draft ? null : pageEntry}
           notebookId={activeId}
           theme={theme}
+          draft={pageEntry._draft}
           onClose={() => setPageEntry(null)}
+        />
+      )}
+      {templatePicker && (
+        <Sheet title="Nieuwe entry" onClose={() => setTemplatePicker(false)}>
+          <div
+            onClick={() => {
+              setPageEntry("new");
+              setTemplatePicker(false);
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 4px",
+              borderBottom: "1px solid var(--border-soft)",
+              cursor: "pointer",
+            }}
+          >
+            <Emoji char="📄" size={18} />
+            <span
+              style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}
+            >
+              Leeg document
+            </span>
+          </div>
+          {entryTemplates.map((tpl) => (
+            <div
+              key={tpl.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "10px 4px",
+                borderBottom: "1px solid var(--border-soft)",
+              }}
+            >
+              <div
+                onClick={() => {
+                  setPageEntry({ _draft: { doc: stripBlockIds(tpl.doc) } });
+                  setTemplatePicker(false);
+                }}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  cursor: "pointer",
+                  minWidth: 0,
+                }}
+              >
+                <Emoji char={tpl.icon} size={18} />
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "var(--text)",
+                  }}
+                >
+                  {tpl.name}
+                </span>
+              </div>
+              <button
+                onClick={() => setConfirmDeleteTpl(tpl)}
+                aria-label="Sjabloon verwijderen"
+                style={{
+                  color: "var(--text-faint)",
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
+                  padding: 4,
+                }}
+              >
+                <Emoji char="🗑️" size={14} />
+              </button>
+            </div>
+          ))}
+        </Sheet>
+      )}
+      {confirmDeleteTpl && (
+        <ConfirmDialog
+          title="Sjabloon verwijderen?"
+          message={`"${confirmDeleteTpl.name}" wordt verwijderd.`}
+          onCancel={() => setConfirmDeleteTpl(null)}
+          onConfirm={async () => {
+            await db.blobs.put({
+              key: "entryTemplates",
+              data: entryTemplates.filter((t) => t.id !== confirmDeleteTpl.id),
+            });
+            setConfirmDeleteTpl(null);
+          }}
         />
       )}
       {sheet && (

@@ -317,6 +317,7 @@ export default function App() {
     });
     const logEntries = await db.logEntries.toArray();
     const notebooksBlob = await db.blobs.get("notebooks");
+    const entryTemplatesBlob = await db.blobs.get("entryTemplates");
     const hifdData = await db.hifd.toArray();
     const hifdLogData = await db.hifdLogV2.toArray();
     const payload = {
@@ -331,6 +332,7 @@ export default function App() {
       days: allDaysForExport,
       logEntries,
       notebooks: notebooksBlob?.data ?? DEFAULT_NOTEBOOKS,
+      entryTemplates: entryTemplatesBlob?.data ?? [],
       hifd: hifdData,
       hifdLog: hifdLogData,
     };
@@ -392,12 +394,14 @@ export default function App() {
   const exportNotities = async () => {
     const logEntries = await db.logEntries.toArray();
     const notebooksBlob = await db.blobs.get("notebooks");
+    const entryTemplatesBlob = await db.blobs.get("entryTemplates");
     const payload = {
       version: 1,
       exportedAt: new Date().toISOString(),
       type: "notities",
       logEntries,
       notebooks: notebooksBlob?.data ?? DEFAULT_NOTEBOOKS,
+      entryTemplates: entryTemplatesBlob?.data ?? [],
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
@@ -438,6 +442,14 @@ export default function App() {
               await db.logEntries.bulkPut(data.logEntries);
             if (Array.isArray(data.notebooks) && data.notebooks.length)
               await db.blobs.put({ key: "notebooks", data: data.notebooks });
+            if (
+              Array.isArray(data.entryTemplates) &&
+              data.entryTemplates.length
+            )
+              await db.blobs.put({
+                key: "entryTemplates",
+                data: data.entryTemplates,
+              });
           });
           showToast("✓ Notities geïmporteerd.");
           return;
@@ -532,6 +544,11 @@ export default function App() {
             await db.logEntries.bulkPut(data.logEntries);
           if (Array.isArray(data.notebooks) && data.notebooks.length)
             await db.blobs.put({ key: "notebooks", data: data.notebooks });
+          if (Array.isArray(data.entryTemplates) && data.entryTemplates.length)
+            await db.blobs.put({
+              key: "entryTemplates",
+              data: data.entryTemplates,
+            });
           if (Array.isArray(data.hifd) && data.hifd.length)
             await db.hifd.bulkPut(data.hifd);
           if (Array.isArray(data.hifdLog) && data.hifdLog.length)

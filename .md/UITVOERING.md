@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Fase A, B en C (audit-fixes, mobiele editor-werkbalk, logboek-UX) van het mobiele-editor-plan afgerond; bezig met Fase F (nieuwe features). Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan en `Fase Mobiele editor + audit` hieronder voor de voortgang._
+**Status — huidige fase:** _Fase A, B, C en F (audit-fixes, mobiele editor-werkbalk, logboek-UX, nieuwe features) van het mobiele-editor-plan afgerond; bezig met Fase E (opschoonronde). Fase D (BlockNote-upgrade) bewust uitgesteld. Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan en `Fase Mobiele editor + audit` hieronder voor de voortgang._
 
 ---
 
@@ -451,9 +451,13 @@ A → B → C → F → E; Fase D (BlockNote-upgrade) is bewust uitgesteld tot e
 
 ### Fase F — nieuwe features
 
-- [ ] F1 — PWA app-shortcuts + share-target (incl. `draft`-prop op `EntryPage`)
-- [ ] F2 — Entry-sjablonen in het logboek
-- [ ] **Fase F afgerond**
+- [x] F1 — PWA app-shortcuts + share-target (incl. `draft`-prop op `EntryPage`)
+- [x] F2 — Entry-sjablonen in het logboek
+- [x] **Fase F afgerond** — `npm run build`, `npm run lint`, `npm run deadcode` schoon.
+      **Nog te verifiëren door de eigenaar:** PWA opnieuw installeren/updaten op de telefoon
+      zodat de manifest-shortcuts en share-target zichtbaar worden; shortcuts en delen-naar
+      testen; sjabloon opslaan → "+ Nieuw" toont de keuze-sheet → nieuwe entry uit sjabloon
+      aanmaken → sjabloon bewerken beïnvloedt eerder gemaakte entries niet.
 
 ### Fase E — opschoonronde
 

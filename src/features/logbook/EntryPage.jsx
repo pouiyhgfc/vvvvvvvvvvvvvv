@@ -6,10 +6,16 @@ import {
   lazy,
   Suspense,
 } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { uid, dk } from "../../lib/date.js";
 import { DAYS_NL, MONTHS_NL } from "../../lib/constants.js";
+import { showToast } from "../../lib/toast.js";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
+import Sheet from "../../ui/Sheet.jsx";
+import Button from "../../ui/Button.jsx";
+import IconField from "../../ui/IconField.jsx";
+import Emoji from "../../ui/Emoji.jsx";
 import { TextInput } from "../../ui/Field.jsx";
 
 const RichEditor = lazy(() => import("./RichEditor.jsx"));
@@ -82,6 +88,9 @@ export default function EntryPage({
   const [confirmDel, setConfirmDel] = useState(false);
   const [contentVersion, setContentVersion] = useState(0);
   const [saveState, setSaveState] = useState("idle"); // "idle" | "saving" | "saved"
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [tplName, setTplName] = useState("");
+  const [tplIcon, setTplIcon] = useState("📄");
 
   const idRef = useRef(entry?.id || null);
   const contentRef = useRef({
@@ -177,6 +186,28 @@ export default function EntryPage({
     onClose();
   };
 
+  const templatesBlob = useLiveQuery(() => db.blobs.get("entryTemplates"));
+  const saveAsTemplate = async () => {
+    if (!tplName.trim()) return;
+    const current = templatesBlob?.data ?? [];
+    await db.blobs.put({
+      key: "entryTemplates",
+      data: [
+        ...current,
+        {
+          id: uid(),
+          name: tplName.trim(),
+          icon: tplIcon,
+          doc: contentRef.current.doc,
+        },
+      ],
+    });
+    showToast("✓ Sjabloon opgeslagen");
+    setShowSaveTemplate(false);
+    setTplName("");
+    setTplIcon("📄");
+  };
+
   return (
     <div
       style={{
@@ -229,6 +260,26 @@ export default function EntryPage({
           {saveState === "saving" && "Opslaan…"}
           {saveState === "saved" && "Opgeslagen ✓"}
         </span>
+        <button
+          onClick={() => setShowSaveTemplate(true)}
+          aria-label="Meer opties"
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 99,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--text-muted)",
+            border: "none",
+            background: "none",
+            cursor: "pointer",
+            fontSize: 18,
+            fontWeight: 700,
+          }}
+        >
+          ⋯
+        </button>
         {created && (
           <button
             onClick={() => setConfirmDel(true)}
@@ -352,6 +403,36 @@ export default function EntryPage({
           onCancel={() => setConfirmDel(false)}
           onConfirm={remove}
         />
+      )}
+
+      {showSaveTemplate && (
+        <Sheet
+          title="Opslaan als sjabloon"
+          onClose={() => setShowSaveTemplate(false)}
+          footer={
+            <Button full disabled={!tplName.trim()} onClick={saveAsTemplate}>
+              <Emoji char="💾" size={14} /> Opslaan
+            </Button>
+          }
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <IconField value={tplIcon} onChange={setTplIcon} />
+            <TextInput
+              value={tplName}
+              autoFocus
+              onChange={(e) => setTplName(e.target.value)}
+              placeholder="Naam sjabloon..."
+              style={{ flex: 1, minWidth: 140 }}
+            />
+          </div>
+        </Sheet>
       )}
     </div>
   );
