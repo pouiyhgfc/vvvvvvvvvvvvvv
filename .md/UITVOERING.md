@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Fase A en B (audit-fixes + mobiele editor-werkbalk) van het mobiele-editor-plan afgerond; bezig met Fase C (logboek-UX). Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan en `Fase Mobiele editor + audit` hieronder voor de voortgang._
+**Status — huidige fase:** _Fase A, B en C (audit-fixes, mobiele editor-werkbalk, logboek-UX) van het mobiele-editor-plan afgerond; bezig met Fase F (nieuwe features). Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan en `Fase Mobiele editor + audit` hieronder voor de voortgang._
 
 ---
 
@@ -444,10 +444,10 @@ A → B → C → F → E; Fase D (BlockNote-upgrade) is bewust uitgesteld tot e
 
 ### Fase C — logboek-UX
 
-- [ ] C1 — Body-preview op entry-kaarten
-- [ ] C2 — Zichtbare opslag-status in `EntryPage`
-- [ ] C3 — Race-fix: `body` kan achterlopen op `doc`
-- [ ] **Fase C afgerond**
+- [x] C1 — Body-preview op entry-kaarten
+- [x] C2 — Zichtbare opslag-status in `EntryPage`
+- [x] C3 — Race-fix: `body` kan achterlopen op `doc`
+- [x] **Fase C afgerond** — `npm run build` + `npm run lint` schoon.
 
 ### Fase F — nieuwe features
 

@@ -1,3 +1,4 @@
+import { forwardRef, useImperativeHandle } from "react";
 import {
   useCreateBlockNote,
   SuggestionMenuController,
@@ -90,11 +91,22 @@ function CuratedToolbar() {
   );
 }
 
-export default function RichEditor({ initialContent, onChange, theme }) {
+const RichEditor = forwardRef(function RichEditor(
+  { initialContent, onChange, theme },
+  ref,
+) {
   const editor = useCreateBlockNote({
     initialContent: toBlocks(initialContent),
     dictionary: nl,
   });
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getMarkdown: () => editor.blocksToMarkdownLossy(editor.document),
+    }),
+    [editor],
+  );
 
   const getSlashItems = async (query) =>
     filterSuggestionItems(
@@ -136,4 +148,6 @@ export default function RichEditor({ initialContent, onChange, theme }) {
       </BlockNoteView>
     </div>
   );
-}
+});
+
+export default RichEditor;

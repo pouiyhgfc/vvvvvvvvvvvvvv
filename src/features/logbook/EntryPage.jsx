@@ -77,6 +77,7 @@ export default function EntryPage({
   const [created, setCreated] = useState(!!entry?.id);
   const [confirmDel, setConfirmDel] = useState(false);
   const [contentVersion, setContentVersion] = useState(0);
+  const [saveState, setSaveState] = useState("idle"); // "idle" | "saving" | "saved"
 
   const idRef = useRef(entry?.id || null);
   const contentRef = useRef({
@@ -86,6 +87,15 @@ export default function EntryPage({
   // Pas opslaan/updatedAt aanpassen als er echt iets bewerkt is — niet bij
   // alleen openen of sluiten zonder wijziging.
   const dirtyRef = useRef(false);
+  const savedTimerRef = useRef(null);
+  const editorRef = useRef(null);
+
+  const markDirty = () => {
+    dirtyRef.current = true;
+    setSaveState("saving");
+  };
+
+  useEffect(() => () => clearTimeout(savedTimerRef.current), []);
 
   const initialContent = entry?.doc ?? entry?.body ?? undefined;
   const entryDate = entry?.date || dateProp || dk(new Date());
@@ -121,6 +131,9 @@ export default function EntryPage({
       });
     }
     dirtyRef.current = false;
+    setSaveState("saved");
+    clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setSaveState("idle"), 1500);
   }, [title, tags, notebookId, dateProp]);
 
   useEffect(() => {
@@ -135,10 +148,21 @@ export default function EntryPage({
       doc,
       text: text !== undefined ? text : contentRef.current.text,
     };
-    dirtyRef.current = true;
+    markDirty();
     setContentVersion((v) => v + 1);
   };
   const close = async () => {
+    // Race-fix: bij direct sluiten na de laatste toetsaanslag kan de async
+    // markdown-conversie van RichEditor nog niet zijn aangekomen. Vraag 'm
+    // hier alsnog op, zodat persist() de nieuwste tekst opslaat.
+    if (dirtyRef.current) {
+      try {
+        const text = await editorRef.current?.getMarkdown();
+        if (text !== undefined) contentRef.current.text = text;
+      } catch {
+        // Val terug op de laatst bekende tekst.
+      }
+    }
     await persist();
     onClose();
   };
@@ -188,6 +212,17 @@ export default function EntryPage({
         >
           <ChevronIcon />
         </button>
+        <span
+          style={{
+            flex: 1,
+            textAlign: "center",
+            fontSize: 11,
+            color: "var(--text-faint)",
+          }}
+        >
+          {saveState === "saving" && "Opslaan…"}
+          {saveState === "saved" && "Opgeslagen ✓"}
+        </span>
         {created && (
           <button
             onClick={() => setConfirmDel(true)}
@@ -223,7 +258,7 @@ export default function EntryPage({
           <TextInput
             value={title}
             onChange={(e) => {
-              dirtyRef.current = true;
+              markDirty();
               setTitle(e.target.value);
             }}
             placeholder="Titel…"
@@ -264,7 +299,7 @@ export default function EntryPage({
             <TextInput
               value={tags}
               onChange={(e) => {
-                dirtyRef.current = true;
+                markDirty();
                 setTags(e.target.value);
               }}
               placeholder="tags (komma-gescheiden)"
@@ -295,6 +330,7 @@ export default function EntryPage({
             }
           >
             <RichEditor
+              ref={editorRef}
               initialContent={initialContent}
               onChange={onEditorChange}
               theme={theme}
