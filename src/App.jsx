@@ -279,9 +279,9 @@ export default function App() {
     const logEntries = await db.logEntries.toArray();
     const notebooksBlob = await db.blobs.get("notebooks");
     const hifdData = await db.hifd.toArray();
-    const hifdLogData = await db.hifdLog.toArray();
+    const hifdLogData = await db.hifdLogV2.toArray();
     const payload = {
-      version: 7,
+      version: 8,
       exportedAt: new Date().toISOString(),
       routines,
       areas,
@@ -454,14 +454,14 @@ export default function App() {
         db.settings,
         db.logEntries,
         db.hifd,
-        db.hifdLog,
+        db.hifdLogV2,
         async () => {
           if (!merge) {
             await db.days.clear();
             await db.calEvents.clear();
             await db.logEntries.clear();
             await db.hifd.clear();
-            await db.hifdLog.clear();
+            await db.hifdLogV2.clear();
           }
           await db.blobs.put({ key: "routines", data: data.routines });
           if (data.calTemplates)
@@ -496,7 +496,9 @@ export default function App() {
           if (Array.isArray(data.hifd) && data.hifd.length)
             await db.hifd.bulkPut(data.hifd);
           if (Array.isArray(data.hifdLog) && data.hifdLog.length)
-            await db.hifdLog.bulkPut(data.hifdLog);
+            await db.hifdLogV2.bulkPut(
+              data.hifdLog.map((r) => ({ ...r, phase: r.phase || "learn" })),
+            );
         },
       );
       showToast(
@@ -524,7 +526,7 @@ export default function App() {
       db.calEvents,
       db.logEntries,
       db.hifd,
-      db.hifdLog,
+      db.hifdLogV2,
       db.meta,
       async () => {
         await db.settings.put({ id: "singleton", ...DEFAULT_SETTINGS });
@@ -540,7 +542,7 @@ export default function App() {
         await db.calEvents.clear();
         await db.logEntries.clear();
         await db.hifd.clear();
-        await db.hifdLog.clear();
+        await db.hifdLogV2.clear();
         await db.meta.delete("hifd_seeded");
       },
     );

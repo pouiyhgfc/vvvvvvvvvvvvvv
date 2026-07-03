@@ -28,6 +28,21 @@ db.version(3).stores({
   hifdLog: "&[surah+date], surah, date",
 });
 
+// v3's hifdLog-sleutel [surah+date] laat maar één record per surah per dag
+// toe, ongeacht fase — een leersessie en een revisie op dezelfde dag
+// overschrijven elkaar. Fase in de sleutel opnemen lost dat op; Dexie kan
+// de primary key van een bestaande tabel niet wijzigen, dus via een
+// tabel-vervanging (hifdLogV2 erbij, daarna hifdLog weg).
+db.version(4)
+  .stores({ hifdLogV2: "&[surah+date+phase], surah, date" })
+  .upgrade(async (tx) => {
+    const rows = await tx.table("hifdLog").toArray();
+    await tx
+      .table("hifdLogV2")
+      .bulkPut(rows.map((r) => ({ ...r, phase: r.phase || "learn" })));
+  });
+db.version(5).stores({ hifdLog: null });
+
 // Parseert een localStorage-item veilig: één corrupt item mag de rest van de
 // migratie niet meeslepen (valt terug op `fallback` i.p.v. te throwen).
 function safeParse(raw, fallback) {

@@ -112,7 +112,7 @@ const RATING_COLOR = {
 function LearningCard({ rec, onDelta, onLog, onMarkMemorized }) {
   const meta = surahById(rec.surah);
   const logToday = useLiveQuery(
-    () => db.hifdLog.get([rec.surah, today()]),
+    () => db.hifdLogV2.get([rec.surah, today(), "learn"]),
     [rec.surah],
   );
   if (!meta) return null;
@@ -804,7 +804,7 @@ export default function HifdView() {
   const selectedLog = useLiveQuery(
     () =>
       selectedSurah
-        ? db.hifdLog
+        ? db.hifdLogV2
             .where("surah")
             .equals(selectedSurah)
             .reverse()
@@ -837,7 +837,7 @@ export default function HifdView() {
   // nieuwe due-surah in beeld schuiven en kon je meer dan dailyCap per dag doen.
   const reviewsDoneToday = useLiveQuery(async () => {
     const t = today();
-    const logs = await db.hifdLog.where("date").equals(t).toArray();
+    const logs = await db.hifdLogV2.where("date").equals(t).toArray();
     return logs.reduce((n, l) => (l.phase === "review" ? n + 1 : n), 0);
   }, []);
 
@@ -880,7 +880,7 @@ export default function HifdView() {
   async function logLearnSession(surahId, rating) {
     const rec = hifdMap[surahId];
     if (!rec) return;
-    await db.hifdLog.put({
+    await db.hifdLogV2.put({
       surah: surahId,
       date: today(),
       versesKnown: rec.versesKnown,
@@ -906,7 +906,7 @@ export default function HifdView() {
       nextDue: addDays(t, 1),
       lastReviewed: t,
     });
-    await db.hifdLog.put({
+    await db.hifdLogV2.put({
       surah: surahId,
       date: t,
       versesKnown: meta?.verses ?? 0,
@@ -961,7 +961,7 @@ export default function HifdView() {
       nextDue: newNextDue,
       lastReviewed: t,
     });
-    await db.hifdLog.put({
+    await db.hifdLogV2.put({
       surah: surahId,
       date: t,
       versesKnown: meta?.verses ?? rec.versesKnown,

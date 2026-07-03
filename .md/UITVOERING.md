@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Bezig met Fase A (audit-fixes) van het mobiele-editor-plan. Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan en `Fase Mobiele editor + audit` hieronder voor de voortgang._
+**Status — huidige fase:** _Fase A (audit-fixes) van het mobiele-editor-plan afgerond; bezig met Fase B (mobiele editor-werkbalk). Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan en `Fase Mobiele editor + audit` hieronder voor de voortgang._
 
 ---
 
@@ -413,15 +413,19 @@ A → B → C → F → E; Fase D (BlockNote-upgrade) is bewust uitgesteld tot e
 
 ### Fase A — audit-fixes
 
-- [ ] A1 — Zoeken in logboek matcht ook de titel
-- [ ] A2 — `confirm()` in WeekView → `ConfirmDialog`
-- [ ] A3 — Import samenvoegen/vervangen → `ConfirmDialog`
-- [ ] A4 — "Wis ALLES" wist echt alles (incl. Hifd-reseed)
-- [ ] A5 — Boot-robuustheid: migratie mag app-start niet blokkeren
-- [ ] A6 — Hardcoded UI-kleuren → tokens
-- [ ] A7 — Hifd-log datacollision fix (db-migratie v4/v5, **backup verplicht vooraf**)
-- [ ] A8 — Kale emoji's in JSX → `<Emoji>`
-- [ ] **Fase A afgerond**
+- [x] A1 — Zoeken in logboek matcht ook de titel
+- [x] A2 — `confirm()` in WeekView → `ConfirmDialog`
+- [x] A3 — Import samenvoegen/vervangen → `ConfirmDialog`
+- [x] A4 — "Wis ALLES" wist echt alles (incl. Hifd-reseed)
+- [x] A5 — Boot-robuustheid: migratie mag app-start niet blokkeren
+- [x] A6 — Hardcoded UI-kleuren → tokens
+- [x] A7 — Hifd-log datacollision fix (db-migratie v4/v5, backup vooraf bevestigd door eigenaar)
+- [x] A8 — Kale emoji's in JSX → `<Emoji>` (incl. de "Opslaan"/"Toevoegen"-knoplabels in alle sheets)
+- [x] **Fase A afgerond** — `npm run build` + `npm run lint` schoon na elke stap. Export-versie
+      is nu 8. **Nog te verifiëren door de eigenaar (kan niet lokaal getest worden zonder
+      browser/echte data):** na de A7-migratie tonen de Voortgang-tab en de log-historie in de
+      SurahSheet dezelfde aantallen als vóór de migratie; een oude backup (versie ≤7) importeert
+      zonder fouten.
 
 ### Fase B — mobiele editor-werkbalk
 
