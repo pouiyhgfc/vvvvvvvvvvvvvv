@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Fase A, B, C en F (audit-fixes, mobiele editor-werkbalk, logboek-UX, nieuwe features) van het mobiele-editor-plan afgerond; bezig met Fase E (opschoonronde). Fase D (BlockNote-upgrade) bewust uitgesteld. Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan en `Fase Mobiele editor + audit` hieronder voor de voortgang._
+**Status — huidige fase:** _Mobiele-editor-plan afgerond: Fase A (audit-fixes), B (mobiele editor-werkbalk), C (logboek-UX), F (PWA-shortcuts/share/sjablonen) en E (opschoonronde) zijn allemaal klaar; build/lint/deadcode schoon. Fase D (BlockNote-upgrade) bewust uitgesteld tot expliciet verzoek. Diverse punten wachten nog op handmatige verificatie door de eigenaar op een echt Android-toestel (zie de losse fases hieronder voor details). Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan._
 
 ---
 
@@ -461,10 +461,14 @@ A → B → C → F → E; Fase D (BlockNote-upgrade) is bewust uitgesteld tot e
 
 ### Fase E — opschoonronde
 
-- [ ] E1 — Backup/export-logica uit `App.jsx` naar `src/lib/backup.js`
-- [ ] E2 — `notify.js` leesbaar maken + dood pad opruimen
-- [ ] E3 — Knip + lint-sweep
-- [ ] **Fase E afgerond**
+- [x] E1 — Backup/export-logica uit `App.jsx` naar `src/lib/backup.js`
+- [x] E2 — `notify.js` leesbaar maken + dood pad opruimen (TimestampTrigger bevestigd
+      stopgezet door Chrome, verwijderd met waarom-commentaar)
+- [x] E3 — Knip + lint-sweep
+- [x] **Fase E afgerond** — `npm run build`, `npm run lint`, `npm run deadcode` schoon.
+      **Nog te verifiëren door de eigenaar:** alle vier exports + import getest op de
+      telefoon (routine-backup, routines, weekplanning, notities); meldingen werken nog
+      zoals voorheen (alleen bij open app, elke 30s gecheckt).
 
 ### Fase D — BlockNote-upgrade
 
