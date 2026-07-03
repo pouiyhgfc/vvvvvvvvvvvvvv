@@ -14,6 +14,10 @@ import { TextInput } from "../../ui/Field.jsx";
 
 const RichEditor = lazy(() => import("./RichEditor.jsx"));
 
+const IS_TOUCH =
+  typeof window !== "undefined" &&
+  window.matchMedia("(pointer: coarse)").matches;
+
 const parseTags = (str) =>
   str
     .split(",")
@@ -209,7 +213,11 @@ export default function EntryPage({
       {/* Scroll-zone: titel + meta + editor */}
       <div style={{ flex: 1, overflowY: "auto" }}>
         <div
-          style={{ maxWidth: 720, margin: "0 auto", padding: "20px 16px 48px" }}
+          style={{
+            maxWidth: 720,
+            margin: "0 auto",
+            padding: `20px 16px ${IS_TOUCH ? 104 : 48}px`,
+          }}
         >
           {/* Grote titel */}
           <TextInput

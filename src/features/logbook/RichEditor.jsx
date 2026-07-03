@@ -12,6 +12,11 @@ import { nl } from "@blocknote/core/locales";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import "./richEditor.css";
+import MobileToolbar from "./MobileToolbar.jsx";
+
+const IS_TOUCH =
+  typeof window !== "undefined" &&
+  window.matchMedia("(pointer: coarse)").matches;
 
 // Normaliseert initialContent naar BlockNote-blocks (of undefined voor leeg).
 // Valt terug op string-conversie zodat oude platte-tekst entries niet crashen.
@@ -120,11 +125,14 @@ export default function RichEditor({ initialContent, onChange, theme }) {
             .then((text) => onChange({ doc, text }));
         }}
       >
-        <FormattingToolbarController formattingToolbar={CuratedToolbar} />
+        {!IS_TOUCH && (
+          <FormattingToolbarController formattingToolbar={CuratedToolbar} />
+        )}
         <SuggestionMenuController
           triggerCharacter="/"
           getItems={getSlashItems}
         />
+        <MobileToolbar editor={editor} />
       </BlockNoteView>
     </div>
   );
