@@ -14,7 +14,7 @@ import { dk, fmtDate, isToday, getMonday } from "./lib/date.js";
 import { buzz } from "./lib/storage.js";
 import { showToast } from "./lib/toast.js";
 import { useNotifications } from "./lib/notify.js";
-import { db } from "./lib/db.js";
+import { db, seedHifd } from "./lib/db.js";
 import NavBtn from "./ui/NavBtn.jsx";
 import TrackerView from "./features/tracker/TrackerView.jsx";
 import WeekView from "./features/planner/WeekView.jsx";
@@ -522,6 +522,10 @@ export default function App() {
       db.blobs,
       db.days,
       db.calEvents,
+      db.logEntries,
+      db.hifd,
+      db.hifdLog,
+      db.meta,
       async () => {
         await db.settings.put({ id: "singleton", ...DEFAULT_SETTINGS });
         await db.blobs.put({ key: "areas", data: DEFAULT_AREAS });
@@ -531,10 +535,16 @@ export default function App() {
           data: DEFAULT_CAL_TEMPLATES,
         });
         await db.blobs.put({ key: "weekTemplates", data: [] });
+        await db.blobs.put({ key: "notebooks", data: DEFAULT_NOTEBOOKS });
         await db.days.clear();
         await db.calEvents.clear();
+        await db.logEntries.clear();
+        await db.hifd.clear();
+        await db.hifdLog.clear();
+        await db.meta.delete("hifd_seeded");
       },
     );
+    await seedHifd();
     const keysToDelete = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
