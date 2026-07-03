@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Fase A (audit-fixes) van het mobiele-editor-plan afgerond; bezig met Fase B (mobiele editor-werkbalk). Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan en `Fase Mobiele editor + audit` hieronder voor de voortgang._
+**Status — huidige fase:** _Fase A en B (audit-fixes + mobiele editor-werkbalk) van het mobiele-editor-plan afgerond; bezig met Fase C (logboek-UX). Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan en `Fase Mobiele editor + audit` hieronder voor de voortgang._
 
 ---
 
@@ -429,11 +429,18 @@ A → B → C → F → E; Fase D (BlockNote-upgrade) is bewust uitgesteld tot e
 
 ### Fase B — mobiele editor-werkbalk
 
-- [ ] B0 — BlockNote-API geverifieerd tegen 0.51.4
-- [ ] B1 — `MobileToolbar.jsx`: vaste werkbalk boven het toetsenbord
-- [ ] B2 — Contextuele tabel-bediening
-- [ ] B3 — Documentatie (`ONTWERP.md` + hier)
-- [ ] **Fase B afgerond**
+- [x] B0 — BlockNote-API geverifieerd tegen 0.51.4 (afwijking: slash-menu opent via
+      `editor.getExtension("suggestionMenu")?.openSuggestionMenu(...)`, niet
+      `editor.openSuggestionMenu()`; zie commentaarblok bovenin `MobileToolbar.jsx`)
+- [x] B1 — `MobileToolbar.jsx`: vaste werkbalk boven het toetsenbord
+- [x] B2 — Contextuele tabel-bediening
+- [x] B3 — Documentatie (`ONTWERP.md` + hier)
+- [x] **Fase B afgerond** — `npm run build` + `npm run lint` schoon. **Nog te verifiëren door
+      de eigenaar op een echt toestel** (geen headless-browsertool beschikbaar in de
+      uitvoeromgeving voor touch-emulatie): werkbalk verschijnt bij focus en plakt boven het
+      toetsenbord; tikken op knoppen sluit het toetsenbord niet; alle bloktypen/stijlen/
+      lijsten/in-uitspringen/undo-redo werken; tabel-sectie verschijnt in een tabel; desktop
+      ongewijzigd; donker thema klopt.
 
 ### Fase C — logboek-UX
 
