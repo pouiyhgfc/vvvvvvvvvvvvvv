@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from "react";
+import Emoji from "../../ui/Emoji.jsx";
 
 // Geverifieerd tegen de geïnstalleerde BlockNote 0.51.4-typings (2026-07-03):
 // node_modules/@blocknote/core/types/src/editor/BlockNoteEditor.d.ts,
@@ -77,6 +78,20 @@ function ToolbarButton({ active, disabled, onClick, label, style, children }) {
     </button>
   );
 }
+
+// Tabelcommando's: geen nette publieke BlockNote-API in 0.51, dus via de
+// onderliggende TipTap-commands (bevestigd in prosemirror-tables-typings).
+// Glyphs zijn typografische tekens (net als de bestaande ✓/✕-uitzonderingen),
+// behalve de prullenbak die via <Emoji> gaat.
+const TABLE_ACTIONS = [
+  { label: "Rij boven invoegen", glyph: "R↑", cmd: "addRowBefore" },
+  { label: "Rij onder invoegen", glyph: "R↓", cmd: "addRowAfter" },
+  { label: "Kolom links invoegen", glyph: "K←", cmd: "addColumnBefore" },
+  { label: "Kolom rechts invoegen", glyph: "K→", cmd: "addColumnAfter" },
+  { label: "Rij wissen", glyph: "R✕", cmd: "deleteRow" },
+  { label: "Kolom wissen", glyph: "K✕", cmd: "deleteColumn" },
+  { label: "Kopregel aan/uit", glyph: "▤", cmd: "toggleHeaderRow" },
+];
 
 const HEADING_LEVELS = [1, 2, 3];
 const STYLE_BUTTONS = [
@@ -285,6 +300,26 @@ export default function MobileToolbar({ editor }) {
       <ToolbarButton label="Opnieuw" onClick={() => editor.redo()}>
         ↷
       </ToolbarButton>
+      {block?.type === "table" && (
+        <>
+          <Divider />
+          {TABLE_ACTIONS.map((a) => (
+            <ToolbarButton
+              key={a.cmd}
+              label={a.label}
+              onClick={() => editor._tiptapEditor.commands[a.cmd]()}
+            >
+              {a.glyph}
+            </ToolbarButton>
+          ))}
+          <ToolbarButton
+            label="Tabel wissen"
+            onClick={() => editor._tiptapEditor.commands.deleteTable()}
+          >
+            <Emoji char="🗑️" size={14} />
+          </ToolbarButton>
+        </>
+      )}
     </div>
   );
 }
