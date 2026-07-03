@@ -96,15 +96,6 @@
   font-size: 12px;
 }
 
-/* Ruimere celpadding op touch zodat tikken in een cel betrouwbaar wordt. */
-@media (pointer: coarse) {
-  .bn-container [data-content-type="table"] .tableWrapper th,
-  .bn-container [data-content-type="table"] .tableWrapper td {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
-}
-
 /* ── Quote ── */
 .bn-container .bn-block-content[data-content-type="quote"] {
   border-left: 3px solid var(--accent);

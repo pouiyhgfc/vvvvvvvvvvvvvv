@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Mobiele-editor-plan afgerond: Fase A (audit-fixes), B (mobiele editor-werkbalk), C (logboek-UX), F (PWA-shortcuts/share/sjablonen) en E (opschoonronde) zijn allemaal klaar; build/lint/deadcode schoon. Fase D (BlockNote-upgrade) bewust uitgesteld tot expliciet verzoek. Diverse punten wachten nog op handmatige verificatie door de eigenaar op een echt Android-toestel (zie de losse fases hieronder voor details). Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het volledige plan._
+**Status — huidige fase:** _Mobiele-editor-plan afgerond: Fase A (audit-fixes), C (logboek-UX, C1 op verzoek niet gedaan), F (PWA-shortcuts/share/sjablonen) en E (opschoonronde) staan; build/lint/deadcode schoon. Fase B (mobiele editor-werkbalk) is gebouwd maar daarna volledig teruggedraaid — crashte op de telefoon en was onduidelijk; staat nu als open backlog-idee. Fase D (BlockNote-upgrade) bewust uitgesteld. Diverse punten wachten nog op handmatige verificatie door de eigenaar op een echt Android-toestel. Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het oorspronkelijke plan._
 
 ---
 
@@ -24,6 +24,9 @@
 - [ ] **Sync telefoon ↔ laptop** — pas als je het echt nodig hebt (Dexie Cloud of export/import-flow).
 - [ ] **Betrouwbaardere meldingen** — Android-installatie of later Capacitor-wrapper.
 - [ ] **Automatische backup-herinnering** — maandelijkse prompt om te exporteren.
+- [ ] **Mobiele editor-werkbalk** — de rijke editor blijft lastig te bedienen op touch (slash-menu,
+      opmaakbalk). Eerdere poging (`MobileToolbar.jsx`) crashte op de telefoon en werd
+      teruggedraaid; opnieuw oppakken vraagt eerst een duidelijk beeld van wat er precies misging.
 
 _Nieuw idee toevoegen? Vraag Claude: "zet dit als idee in de backlog van UITVOERING.md." Uitwerken? Vraag: "werk backlog-idee X uit tot een volledige fase onderaan."_
 
@@ -427,20 +430,22 @@ A → B → C → F → E; Fase D (BlockNote-upgrade) is bewust uitgesteld tot e
       SurahSheet dezelfde aantallen als vóór de migratie; een oude backup (versie ≤7) importeert
       zonder fouten.
 
-### Fase B — mobiele editor-werkbalk
+### Fase B — mobiele editor-werkbalk (teruggedraaid)
 
-- [x] B0 — BlockNote-API geverifieerd tegen 0.51.4 (afwijking: slash-menu opent via
-      `editor.getExtension("suggestionMenu")?.openSuggestionMenu(...)`, niet
-      `editor.openSuggestionMenu()`; zie commentaarblok bovenin `MobileToolbar.jsx`)
-- [x] B1 — `MobileToolbar.jsx`: vaste werkbalk boven het toetsenbord
-- [x] B2 — Contextuele tabel-bediening
-- [x] B3 — Documentatie (`ONTWERP.md` + hier)
-- [x] **Fase B afgerond** — `npm run build` + `npm run lint` schoon. **Nog te verifiëren door
-      de eigenaar op een echt toestel** (geen headless-browsertool beschikbaar in de
-      uitvoeromgeving voor touch-emulatie): werkbalk verschijnt bij focus en plakt boven het
-      toetsenbord; tikken op knoppen sluit het toetsenbord niet; alle bloktypen/stijlen/
-      lijsten/in-uitspringen/undo-redo werken; tabel-sectie verschijnt in een tabel; desktop
-      ongewijzigd; donker thema klopt.
+- [x] B0 — BlockNote-API geverifieerd tegen 0.51.4
+- [x] B1 — `MobileToolbar.jsx`: vaste werkbalk boven het toetsenbord — **gebouwd, maar op de
+      telefoon crashte de editor er vaak mee en de werkbalk was onduidelijk. Op verzoek van de
+      eigenaar volledig teruggedraaid**: `MobileToolbar.jsx` verwijderd, `RichEditor.jsx` en
+      `EntryPage.jsx` weer naar het gedrag van vóór Fase B (altijd de zwevende
+      `FormattingToolbarController` + typen van `/` voor het slash-menu, ook op touch), de
+      touch-tabel-CSS uit `richEditor.css` en de vermelding in `ONTWERP.md` ook weg.
+- [x] B2 — Contextuele tabel-bediening — teruggedraaid samen met B1.
+- [x] B3 — Documentatie — teruggedraaid samen met B1.
+- [x] **Fase B afgerond (teruggedraaid)** — `npm run build` + `npm run lint` +
+      `npm run deadcode` schoon. De editor gedraagt zich op elk apparaat weer exact als vóór
+      dit hele plan. Een mobiele werkbalk blijft een open probleem — bij een volgende poging
+      eerst met de eigenaar overleggen wat er precies misging (crash-moment, foutmelding)
+      vóórdat er weer code voor gebouwd wordt.
 
 ### Fase C — logboek-UX
 

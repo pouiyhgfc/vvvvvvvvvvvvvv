@@ -93,10 +93,6 @@ Doel: emoji's renderen op élk toestel identiek (vlaggen renderen anders per And
 - **Lijst bewerken:** rij is weergave-only (slepen via `DragHandle` + tik om te bewerken).
   Toevoegen/bewerken/verwijderen gebeurt in een `Sheet`. Zie `ui/SortableList.jsx`.
 - **Instellingen:** elke sectie in een `Section` (accordion). Korte secties mogen `defaultOpen`.
-- **Editor op touch:** op `matchMedia("(pointer: coarse)")` draait de rijke editor op de vaste
-  `MobileToolbar` (boven het toetsenbord, via de VisualViewport-API) i.p.v. hover-menu's en het
-  typen van `/`; de zwevende `FormattingToolbarController` is desktop-only. Zie
-  [MobileToolbar.jsx](src/features/logbook/MobileToolbar.jsx).
 
 ## Notitieboeken & rijke editor
 
