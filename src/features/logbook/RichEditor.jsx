@@ -93,7 +93,15 @@ const RichEditor = forwardRef(function RichEditor(
 ) {
   const editor = useCreateBlockNote({
     initialContent: toBlocks(initialContent),
-    dictionary: nl,
+    // Eigen plaatshouder: de NL-default zegt alleen "typ '/'", maar getypte "/"
+    // werkt niet op Android (IME-compositie) — daar is de +-knop de ingang.
+    dictionary: {
+      ...nl,
+      placeholders: {
+        ...nl.placeholders,
+        default: "Voer tekst in — commando's via de +-knop of '/'",
+      },
+    },
     // Zet de geavanceerde tabel-features aan; zonder deze optie is de
     // merge-knop in de toolbar een dode knop.
     tables: {

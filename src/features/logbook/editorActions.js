@@ -72,7 +72,12 @@ export function removeBlock(editor, block) {
 
 export function openSlashMenu(editor) {
   editor.focus();
+  // deleteTriggerCharacter: true = simuleert exact het typen van "/" (voegt het
+  // teken in en verwijdert het weer bij het kiezen van een item). Dit is de
+  // geverifieerde vorm; zonder het ingevoegde teken kan het menu zijn anker
+  // missen en niet verschijnen. Nodig op Android: getypte "/" komt daar via
+  // IME-compositie binnen en triggert ProseMirror's handleTextInput niet.
   editor
     .getExtension("suggestionMenu")
-    ?.openSuggestionMenu("/", { deleteTriggerCharacter: false });
+    ?.openSuggestionMenu("/", { deleteTriggerCharacter: true });
 }
