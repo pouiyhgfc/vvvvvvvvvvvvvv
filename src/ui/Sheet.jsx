@@ -2,7 +2,16 @@ import { useEffect, useRef } from "react";
 
 // Gedeelde bottom-sheet modal (de weekplanner-popup, veralgemeniseerd).
 // Sluit op backdrop-klik en Escape; vergrendelt de achtergrond-scroll.
-export default function Sheet({ title, subtitle, onClose, children, footer }) {
+// `backdrop="light"`: nauwelijks gedimde achtergrond, voor sheets waarbij je
+// de inhoud erachter wilt blijven zien (zoals het blok-menu in de editor).
+export default function Sheet({
+  title,
+  subtitle,
+  onClose,
+  children,
+  footer,
+  backdrop = "dark",
+}) {
   // Negeer een "spook"-klik (touch genereert ~300ms later nog een klik die
   // anders op de backdrop landt en de net-geopende sheet meteen sluit).
   const openedAt = useRef(null);
@@ -27,7 +36,8 @@ export default function Sheet({ title, subtitle, onClose, children, footer }) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,.55)",
+        background:
+          backdrop === "light" ? "rgba(0,0,0,.15)" : "rgba(0,0,0,.55)",
         zIndex: 200,
         display: "flex",
         alignItems: "flex-end",

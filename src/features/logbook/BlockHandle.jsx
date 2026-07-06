@@ -19,11 +19,15 @@ function DotsIcon() {
 // gedropt wordt (t.o.v. het verticale midden). Coördinaten relatief aan de
 // container, want de drop-indicator wordt daarbinnen absoluut geplaatst.
 function findDropTarget(editor, container, x, y, sourceId) {
+  // Droppen op (of ín) het gesleepte blok zelf is ongeldig: het doel zou mee
+  // verwijderd worden en het blok zou verloren gaan.
+  const sourceEl = editor.domElement?.querySelector(`[data-id="${sourceId}"]`);
   const els = document.elementsFromPoint(x, y);
   let el = null;
   for (const n of els) {
     const withId = n.closest?.("[data-id]");
     if (withId && editor.domElement?.contains(withId)) {
+      if (sourceEl?.contains(withId)) return null;
       el = withId;
       break;
     }
@@ -179,14 +183,15 @@ export default function BlockHandle({ editor, containerRef }) {
 
   return (
     <>
+      {/* Horizontaal in de linkergoot van de editor (54px padding-inline):
+          eerst +, dan ⠿ — naast de eerste regel, niet over de tekst eronder. */}
       {pos && (
         <div
           style={{
             position: "absolute",
             top: pos.top,
-            left: -4,
+            left: 0,
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
             zIndex: 40,
           }}
