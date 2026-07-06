@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Sheet from "../../ui/Sheet.jsx";
 import Emoji from "../../ui/Emoji.jsx";
 import { showToast } from "../../lib/toast.js";
@@ -115,21 +116,33 @@ const Row = ({ children }) => (
 );
 
 export default function BlockMenuSheet({ editor, block, onClose }) {
-  // Voer een actie uit en geef daarna de focus terug aan de editor, zodat de
-  // cursor niet wegspringt. De sheet sluit ALTIJD — ook als de actie faalt
-  // (anders blijft het menu hangen); een mislukte actie meldt zich via toast.
-  const act = (fn) => {
+  // Live kopie van het blok: bij open-blijvende acties (type/opmaak/kleur)
+  // ververst deze zodat de actieve staat in het menu meebeweegt.
+  const [current, setCurrent] = useState(block);
+
+  const run = (fn) => {
     try {
       fn();
     } catch {
       showToast("Actie mislukt");
-    } finally {
-      editor.focus();
-      onClose();
     }
   };
 
-  const isTable = block.type === "table";
+  // Open-blijvend (Type/Opmaak/Kleur/Tabel): meerdere keuzes achter elkaar.
+  const apply = (fn) => {
+    run(fn);
+    setCurrent((c) => editor.getBlock(c.id) ?? c);
+  };
+
+  // Sluitend (Acties): voer uit, focus terug naar de editor, sheet dicht.
+  // De sheet sluit ALTIJD — ook als de actie faalt (anders blijft hij hangen).
+  const act = (fn) => {
+    run(fn);
+    editor.focus();
+    onClose();
+  };
+
+  const isTable = current.type === "table";
 
   return (
     <Sheet title="Blok" onClose={onClose} backdrop="light">
@@ -139,8 +152,8 @@ export default function BlockMenuSheet({ editor, block, onClose }) {
           <Chip
             key={t.label}
             label={t.label}
-            active={isActiveType(block, t)}
-            onClick={() => act(() => setBlockType(editor, t.type, t.props))}
+            active={isActiveType(current, t)}
+            onClick={() => apply(() => setBlockType(editor, t.type, t.props))}
           >
             {t.label}
           </Chip>
@@ -154,7 +167,7 @@ export default function BlockMenuSheet({ editor, block, onClose }) {
             key={s.key}
             label={s.label}
             style={{ minWidth: 48, ...s.css }}
-            onClick={() => act(() => toggleStyle(editor, s.key))}
+            onClick={() => apply(() => toggleStyle(editor, s.key))}
           >
             {s.glyph}
           </Chip>
@@ -168,7 +181,7 @@ export default function BlockMenuSheet({ editor, block, onClose }) {
             key={c.value}
             type="button"
             aria-label={c.label}
-            onClick={() => act(() => setBlockColor(editor, block, c.value))}
+            onClick={() => apply(() => setBlockColor(editor, current, c.value))}
             style={{
               width: 40,
               height: 40,
@@ -194,15 +207,18 @@ export default function BlockMenuSheet({ editor, block, onClose }) {
 
       <SectionLabel>Acties</SectionLabel>
       <Row>
-        <Chip label="Omhoog" onClick={() => act(() => moveUp(editor, block))}>
+        <Chip label="Omhoog" onClick={() => act(() => moveUp(editor, current))}>
           ↑ Omhoog
         </Chip>
-        <Chip label="Omlaag" onClick={() => act(() => moveDown(editor, block))}>
+        <Chip
+          label="Omlaag"
+          onClick={() => act(() => moveDown(editor, current))}
+        >
           ↓ Omlaag
         </Chip>
         <Chip
           label="Dupliceren"
-          onClick={() => act(() => duplicateBlock(editor, block))}
+          onClick={() => act(() => duplicateBlock(editor, current))}
         >
           Dupliceren
         </Chip>
@@ -210,7 +226,7 @@ export default function BlockMenuSheet({ editor, block, onClose }) {
           label="Kopiëren"
           onClick={() =>
             act(() => {
-              copyBlock(editor, block);
+              copyBlock(editor, current);
               showToast("✓ Blok gekopieerd");
             })
           }
@@ -224,7 +240,7 @@ export default function BlockMenuSheet({ editor, block, onClose }) {
             background: "var(--danger-bg)",
             color: "var(--danger-text)",
           }}
-          onClick={() => act(() => removeBlock(editor, block))}
+          onClick={() => act(() => removeBlock(editor, current))}
         >
           <Emoji char="🗑️" size={14} /> Verwijderen
         </Chip>
@@ -238,7 +254,7 @@ export default function BlockMenuSheet({ editor, block, onClose }) {
               <Chip
                 key={a.cmd}
                 label={a.label}
-                onClick={() => act(() => runTableCommand(editor, a.cmd))}
+                onClick={() => apply(() => runTableCommand(editor, a.cmd))}
               >
                 {a.glyph}
               </Chip>
