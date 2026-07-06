@@ -58,7 +58,7 @@ export default function Sheet({
           // (frosted glass), zodat de inhoud erachter zichtbaar blijft.
           background:
             backdrop === "light"
-              ? "color-mix(in srgb, var(--card) 60%, transparent)"
+              ? "color-mix(in srgb, var(--card) 30%, transparent)"
               : "var(--card)",
           ...(backdrop === "light"
             ? {
