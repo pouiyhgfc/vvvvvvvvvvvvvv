@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Mobiele-editor-plan afgerond: Fase A (audit-fixes), C (logboek-UX, C1 op verzoek niet gedaan), F (PWA-shortcuts/share/sjablonen) en E (opschoonronde) staan; build/lint/deadcode schoon. Fase B (mobiele editor-werkbalk) is gebouwd maar daarna volledig teruggedraaid — crashte op de telefoon en was onduidelijk; staat nu als open backlog-idee. Fase D (BlockNote-upgrade) bewust uitgesteld. Diverse punten wachten nog op handmatige verificatie door de eigenaar op een echt Android-toestel. Zie `.md/PLAN-MOBIELE-EDITOR-EN-AUDIT.md` voor het oorspronkelijke plan._
+**Status — huidige fase:** _Touch blok-handvat (⠿) gebouwd — de vervanger voor de teruggedraaide `MobileToolbar`. Eigen handvat bij het actieve blok (BlockNote's zijmenu is hover-only + native HTML5-drag → touch-dood): **tik** = bottom-sheet met blok-acties (turn into / dupliceren / kopiëren / omhoog-omlaag / kleur / opmaak / tabel-acties / verwijderen), **ingedrukt houden** = vrij verslepen met ghost + drop-indicator. Plus: dode merge-knop gerepareerd (`tables`-optie aan), private tabel-API ingekapseld (`tableCommands.js`), gedeelde editor-acties (`editorActions.js`), betrouwbare "/"-ingang via "+"-knop, grotere kolom-resize-hitzone. Build/lint/deadcode schoon. **Wacht op verificatie op een echt Android-toestel** (handvat-positie, tik vs long-press, verslepen, "/"). Zie `.md/PLAN-NOTION-EDITOR.md` + `.md/STAPPENPLAN-NOTION-EDITOR.md`._
 
 ---
 
@@ -24,9 +24,9 @@
 - [ ] **Sync telefoon ↔ laptop** — pas als je het echt nodig hebt (Dexie Cloud of export/import-flow).
 - [ ] **Betrouwbaardere meldingen** — Android-installatie of later Capacitor-wrapper.
 - [ ] **Automatische backup-herinnering** — maandelijkse prompt om te exporteren.
-- [ ] **Mobiele editor-werkbalk** — de rijke editor blijft lastig te bedienen op touch (slash-menu,
-      opmaakbalk). Eerdere poging (`MobileToolbar.jsx`) crashte op de telefoon en werd
-      teruggedraaid; opnieuw oppakken vraagt eerst een duidelijk beeld van wat er precies misging.
+- [x] **Mobiele editor-werkbalk** — opgelost via het touch blok-handvat (⠿) i.p.v. een vaste balk:
+      tik = blok-menu (sheet), ingedrukt houden = verslepen. De oude `MobileToolbar`-balk crashte
+      (VisualViewport + vaste positionering); de nieuwe aanpak vermijdt dat. Zie de fase onderaan.
 
 _Nieuw idee toevoegen? Vraag Claude: "zet dit als idee in de backlog van UITVOERING.md." Uitwerken? Vraag: "werk backlog-idee X uit tot een volledige fase onderaan."_
 
@@ -507,6 +507,46 @@ git commit -m "Fase N: <korte omschrijving>"
 
 - [ ] **Fase N afgerond en gecommit**
 ```
+
+---
+
+## Fase — Touch blok-handvat (⠿): tik-menu + long-press verslepen
+
+**Wat het doet:** vervangt de teruggedraaide `MobileToolbar`. BlockNote's eigen zijmenu is
+hover-gedreven en zijn slepen is native HTML5-drag → allebei dood op touch. Daarom een eigen
+handvat bij het actieve blok (`sideMenu={false}`). **Tik op ⠿** = bottom-sheet met blok-acties;
+**ingedrukt houden** = vrij verslepen (ghost volgt de vinger, drop-indicator toont de landingsplek,
+loslaten herordent via remove+insert). Een **"+"** naast ⠿ opent het slash-menu programmatisch
+(betrouwbaar op touch, waar getypt "/" door een IME kan worden ingeslikt).
+
+**Nieuwe/gewijzigde bestanden:**
+
+- `src/features/logbook/editorActions.js` — gedeelde, geverifieerde editor-acties (bindingen hersteld uit git `fae4d31`).
+- `src/features/logbook/tableCommands.js` — private tabel-API (`_tiptapEditor.commands`) ingekapseld met guard.
+- `src/features/logbook/BlockHandle.jsx` — handvat op het actieve blok + pointer-based tik/long-press + verslepen.
+- `src/features/logbook/BlockMenuSheet.jsx` — bottom-sheet (turn into / opmaak / kleur / acties / tabel).
+- `RichEditor.jsx` — `sideMenu={false}`, `tables`-optie aan (dode merge-knop gerepareerd), handvat gemount.
+- `richEditor.css` — container `position: relative`; grotere kolom-resize-hitzone.
+
+**Controle (afvinken) — vraagt een echt Android-toestel:**
+
+- [ ] Handvat verschijnt netjes links van het actieve blok (positie klopt bij scrollen/typen).
+- [ ] Tik op ⠿ → sheet opent; elke actie werkt; cursor springt niet weg.
+- [ ] Ingedrukt houden → ghost + drop-indicator → loslaten herordent correct.
+- [ ] "/" typen én de "+"-knop openen beide het slash-menu.
+- [ ] Bestaande entry met tabel laadt nog (na `tables`-optie); merge/split werkt.
+
+**Bewuste keuzes / beperkingen:**
+
+- Blok verwijderen in de sheet gaat direct (geen `ConfirmDialog`) — het is een lichte, met undo
+  omkeerbare editor-actie, geen entiteit-verwijdering. Zeg het als je hier tóch een bevestiging wilt.
+- Verslepen v1 mikt op siblings op hetzelfde niveau; in/uit nesting slepen is nog niet gedekt.
+- Auto-scroll bij de schermrand tijdens slepen (C4) is overgeslagen — later toe te voegen.
+
+**Commit (voorstel):**
+`Touch blok-handvat: tik-menu (sheet) + long-press verslepen; tabel-optie aan, editor-acties gedeeld`
+
+- [x] **Fase afgerond** (build/lint/deadcode schoon; wacht op toestel-verificatie)
 
 ---
 

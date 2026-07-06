@@ -2,6 +2,11 @@
    Geïmporteerd in RichEditor.jsx (lazy chunk — niet in de hoofdbundel).
    Alle waarden via tokens → licht/donker automatisch. */
 
+/* Anker voor het absoluut gepositioneerde BlockHandle (⠿ + "+"). */
+.bn-container {
+  position: relative;
+}
+
 /* ── Koppen ── */
 .bn-container
   .bn-block-content[data-content-type="heading"][data-level="1"]
@@ -94,6 +99,14 @@
   font-family: var(--ff-head);
   font-weight: 600;
   font-size: 12px;
+}
+
+/* Kolombreedte-handvat op touch beter raakbaar maken: onzichtbaar groter
+   raakvlak via ::after, zonder het zichtbare pilletje te vergroten. */
+.bn-container .bn-resize-handle::after {
+  content: "";
+  position: absolute;
+  inset: -10px -12px;
 }
 
 /* ── Quote ── */

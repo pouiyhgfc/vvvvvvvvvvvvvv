@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import {
   useCreateBlockNote,
   SuggestionMenuController,
@@ -8,6 +8,7 @@ import {
   getFormattingToolbarItems,
 } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
+import BlockHandle from "./BlockHandle.jsx";
 import { filterSuggestionItems } from "@blocknote/core";
 import { nl } from "@blocknote/core/locales";
 import "@blocknote/core/fonts/inter.css";
@@ -93,6 +94,14 @@ const RichEditor = forwardRef(function RichEditor(
   const editor = useCreateBlockNote({
     initialContent: toBlocks(initialContent),
     dictionary: nl,
+    // Zet de geavanceerde tabel-features aan; zonder deze optie is de
+    // merge-knop in de toolbar een dode knop.
+    tables: {
+      splitCells: true,
+      cellBackgroundColor: true,
+      cellTextColor: true,
+      headers: true,
+    },
   });
 
   useImperativeHandle(
@@ -103,6 +112,8 @@ const RichEditor = forwardRef(function RichEditor(
     [editor],
   );
 
+  const containerRef = useRef(null);
+
   const getSlashItems = async (query) =>
     filterSuggestionItems(
       getDefaultReactSlashMenuItems(editor).filter((item) =>
@@ -112,15 +123,17 @@ const RichEditor = forwardRef(function RichEditor(
     );
 
   return (
-    <div className="bn-container">
+    <div className="bn-container" ref={containerRef}>
       <BlockNoteView
         editor={editor}
         theme={theme === "dark" ? "dark" : "light"}
         style={EVERGREEN_TOKENS}
-        // Alleen slash-menu + toolbar vervangen; link-toolbar, zijmenu,
-        // tabel-handvatten en emoji-picker blijven de defaults.
+        // Slash-menu, opmaak-toolbar én zijmenu vervangen door eigen touch-UI
+        // (BlockHandle); het default-zijmenu is hover-gedreven en werkt niet op
+        // touch. Link-toolbar, tabel-handvatten en emoji-picker blijven default.
         slashMenu={false}
         formattingToolbar={false}
+        sideMenu={false}
         onChange={() => {
           // Eerst synchroon de doc + wijziging melden, zodat bij direct sluiten
           // (Terug-knop) de bewerking gegarandeerd is gemarkeerd. De markdown-
@@ -138,6 +151,7 @@ const RichEditor = forwardRef(function RichEditor(
           getItems={getSlashItems}
         />
       </BlockNoteView>
+      <BlockHandle editor={editor} containerRef={containerRef} />
     </div>
   );
 });
