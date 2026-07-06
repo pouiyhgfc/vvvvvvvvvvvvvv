@@ -74,14 +74,14 @@ export function removeBlock(editor, block) {
   editor.removeBlocks([block]);
 }
 
+// Opent het slash-menu zonder een "/" in de tekst te zetten
+// (deleteTriggerCharacter: false heeft een eigen anker-pad in de plugin).
+// Nodig op Android: getypte "/" komt daar via IME-compositie binnen en
+// triggert ProseMirror's handleTextInput niet. Let op: de aanroepende knop
+// moet preventDefault doen op pointerdown, anders verliest de editor focus
+// en sluit de focus-wissel het menu direct weer.
 export function openSlashMenu(editor) {
-  editor.focus();
-  // deleteTriggerCharacter: true = simuleert exact het typen van "/" (voegt het
-  // teken in en verwijdert het weer bij het kiezen van een item). Dit is de
-  // geverifieerde vorm; zonder het ingevoegde teken kan het menu zijn anker
-  // missen en niet verschijnen. Nodig op Android: getypte "/" komt daar via
-  // IME-compositie binnen en triggert ProseMirror's handleTextInput niet.
   editor
     .getExtension("suggestionMenu")
-    ?.openSuggestionMenu("/", { deleteTriggerCharacter: true });
+    ?.openSuggestionMenu("/", { deleteTriggerCharacter: false });
 }

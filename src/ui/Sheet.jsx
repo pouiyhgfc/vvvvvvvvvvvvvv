@@ -37,7 +37,7 @@ export default function Sheet({
         position: "fixed",
         inset: 0,
         background:
-          backdrop === "light" ? "rgba(0,0,0,.15)" : "rgba(0,0,0,.55)",
+          backdrop === "light" ? "rgba(0,0,0,.08)" : "rgba(0,0,0,.55)",
         zIndex: 200,
         display: "flex",
         alignItems: "flex-end",
@@ -58,7 +58,7 @@ export default function Sheet({
           // (frosted glass), zodat de inhoud erachter zichtbaar blijft.
           background:
             backdrop === "light"
-              ? "color-mix(in srgb, var(--card) 82%, transparent)"
+              ? "color-mix(in srgb, var(--card) 60%, transparent)"
               : "var(--card)",
           ...(backdrop === "light"
             ? {

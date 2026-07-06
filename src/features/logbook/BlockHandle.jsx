@@ -205,6 +205,9 @@ export default function BlockHandle({ editor, containerRef }) {
           <button
             type="button"
             aria-label="Nieuw blok invoegen"
+            // preventDefault: de editor mag geen focus verliezen, anders
+            // sluit de focus-wissel het net geopende slash-menu meteen weer.
+            onPointerDown={(e) => e.preventDefault()}
             onClick={() => openSlashMenu(editor)}
             style={btnStyle}
           >
