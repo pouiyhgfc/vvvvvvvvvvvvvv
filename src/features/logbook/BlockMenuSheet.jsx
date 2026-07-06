@@ -164,14 +164,25 @@ export default function BlockMenuSheet({ editor, block, onClose }) {
             aria-label={c.label}
             onClick={() => act(() => setBlockColor(editor, block, c.value))}
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 99,
+              width: 40,
+              height: 40,
+              borderRadius: 10,
               cursor: "pointer",
-              border: "1px solid var(--border)",
+              border: "1px solid var(--border-mid)",
               background: c.hex ?? "var(--card2)",
+              // De pastels zijn altijd licht, dus de letter is vast donker
+              // (thema-onafhankelijk, hoort bij de data-kleur zelf).
+              color: c.hex ? "#403f3d" : "var(--text)",
+              fontFamily: "var(--ff-head)",
+              fontSize: 15,
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-          />
+          >
+            {c.hex ? "A" : "✕"}
+          </button>
         ))}
       </Row>
 

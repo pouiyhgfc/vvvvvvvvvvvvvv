@@ -155,7 +155,13 @@ export default function BlockHandle({ editor, containerRef }) {
     }
     endDrag();
     if (p.target) {
-      moveBlock(editor, p.block, p.target.id, p.target.placement);
+      // moveBlock is atomair: gooit hij (ongeldig doel), dan is er niets
+      // gewijzigd — de sleep eindigt dan gewoon zonder effect.
+      try {
+        moveBlock(editor, p.block, p.target.id, p.target.placement);
+      } catch {
+        /* document intact gebleven */
+      }
     }
     editor.focus();
   };

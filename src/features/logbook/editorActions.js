@@ -53,13 +53,16 @@ export function duplicateBlock(editor, block) {
   editor.insertBlocks([cloneWithoutIds(block)], block, "after");
 }
 
-// Verplaatst een blok naar een doelpositie (vrij slepen). Eerst de kopie
-// invoegen en pas daarna het origineel verwijderen: als het invoegen faalt is
-// er zo niets verloren (andersom raakte een blok kwijt bij een ongeldig doel).
+// Verplaatst een blok naar een doelpositie (vrij slepen). Verwijderen +
+// invoegen in ÉÉN transactie (BlockNote's eigen interne drop-patroon): faalt
+// er iets, dan wordt niets toegepast — geen halve verplaatsing die het blok
+// dupliceert of kwijtraakt.
 export function moveBlock(editor, block, targetId, placement) {
   if (!targetId || targetId === block.id) return;
-  editor.insertBlocks([cloneWithoutIds(block)], targetId, placement);
-  editor.removeBlocks([block]);
+  editor.transact(() => {
+    editor.removeBlocks([block]);
+    editor.insertBlocks([cloneWithoutIds(block)], targetId, placement);
+  });
 }
 
 export async function copyBlock(editor, block) {

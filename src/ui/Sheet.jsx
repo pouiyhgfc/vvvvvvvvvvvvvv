@@ -54,7 +54,18 @@ export default function Sheet({
     >
       <div
         style={{
-          background: "var(--card)",
+          // Bij een lichte backdrop is het paneel zelf ook semi-transparant
+          // (frosted glass), zodat de inhoud erachter zichtbaar blijft.
+          background:
+            backdrop === "light"
+              ? "color-mix(in srgb, var(--card) 82%, transparent)"
+              : "var(--card)",
+          ...(backdrop === "light"
+            ? {
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+              }
+            : null),
           borderRadius: "16px 16px 0 0",
           padding: 20,
           width: "100%",
