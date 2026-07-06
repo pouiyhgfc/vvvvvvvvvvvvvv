@@ -55,11 +55,17 @@ export default function Sheet({
       <div
         style={{
           // Bij een lichte backdrop is het paneel zelf ook semi-transparant
-          // (zonder blur), zodat de inhoud erachter zichtbaar blijft.
+          // met een heel lichte blur: je ziet vrijwel alles erachter.
           background:
             backdrop === "light"
               ? "color-mix(in srgb, var(--card) 30%, transparent)"
               : "var(--card)",
+          ...(backdrop === "light"
+            ? {
+                backdropFilter: "blur(2px)",
+                WebkitBackdropFilter: "blur(2px)",
+              }
+            : null),
           borderRadius: "16px 16px 0 0",
           padding: 20,
           width: "100%",

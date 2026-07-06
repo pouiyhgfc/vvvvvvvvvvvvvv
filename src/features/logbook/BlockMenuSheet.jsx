@@ -116,11 +116,17 @@ const Row = ({ children }) => (
 
 export default function BlockMenuSheet({ editor, block, onClose }) {
   // Voer een actie uit en geef daarna de focus terug aan de editor, zodat de
-  // cursor niet wegspringt; sluit de sheet.
+  // cursor niet wegspringt. De sheet sluit ALTIJD — ook als de actie faalt
+  // (anders blijft het menu hangen); een mislukte actie meldt zich via toast.
   const act = (fn) => {
-    fn();
-    editor.focus();
-    onClose();
+    try {
+      fn();
+    } catch {
+      showToast("Actie mislukt");
+    } finally {
+      editor.focus();
+      onClose();
+    }
   };
 
   const isTable = block.type === "table";
