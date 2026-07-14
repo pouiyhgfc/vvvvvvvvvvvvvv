@@ -173,64 +173,76 @@ export default function BlockMenuSheet({
 
   return (
     <Sheet title="Blok" onClose={onClose} backdrop="light">
-      <SectionLabel>Type</SectionLabel>
-      <Row>
-        {TYPES.map((t) => (
-          <Chip
-            key={t.label}
-            label={t.label}
-            active={isActiveType(current, t)}
-            onClick={() => apply(() => setBlockType(editor, t.type, t.props))}
-          >
-            {t.label}
-          </Chip>
-        ))}
-      </Row>
+      {/* Tekst-secties (Type/Opmaak/Kleur) alleen voor niet-tabellen. Een
+          "Turn into", kleur of opmaak op een tabel-blok draait updateBlock op
+          de tabel en vernietigt de tabel-inhoud. Tabellen krijgen daarom alleen
+          de generieke Acties + de Tabel-sectie hieronder. */}
+      {!isTable && (
+        <>
+          <SectionLabel>Type</SectionLabel>
+          <Row>
+            {TYPES.map((t) => (
+              <Chip
+                key={t.label}
+                label={t.label}
+                active={isActiveType(current, t)}
+                onClick={() =>
+                  apply(() => setBlockType(editor, t.type, t.props))
+                }
+              >
+                {t.label}
+              </Chip>
+            ))}
+          </Row>
 
-      <SectionLabel>Opmaak</SectionLabel>
-      <Row>
-        {STYLES.map((s) => (
-          <Chip
-            key={s.key}
-            label={s.label}
-            style={{ minWidth: 48, ...s.css }}
-            onClick={() => apply(() => toggleStyle(editor, s.key))}
-          >
-            {s.glyph}
-          </Chip>
-        ))}
-      </Row>
+          <SectionLabel>Opmaak</SectionLabel>
+          <Row>
+            {STYLES.map((s) => (
+              <Chip
+                key={s.key}
+                label={s.label}
+                style={{ minWidth: 48, ...s.css }}
+                onClick={() => apply(() => toggleStyle(editor, s.key))}
+              >
+                {s.glyph}
+              </Chip>
+            ))}
+          </Row>
 
-      <SectionLabel>Kleur</SectionLabel>
-      <Row>
-        {COLORS.map((c) => (
-          <button
-            key={c.value}
-            type="button"
-            aria-label={c.label}
-            onClick={() => apply(() => setBlockColor(editor, current, c.value))}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
-              cursor: "pointer",
-              border: "1px solid var(--border-mid)",
-              background: c.hex ?? "var(--card2)",
-              // De pastels zijn altijd licht, dus de letter is vast donker
-              // (thema-onafhankelijk, hoort bij de data-kleur zelf).
-              color: c.hex ? "#403f3d" : "var(--text)",
-              fontFamily: "var(--ff-head)",
-              fontSize: 15,
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {c.hex ? "A" : "✕"}
-          </button>
-        ))}
-      </Row>
+          <SectionLabel>Kleur</SectionLabel>
+          <Row>
+            {COLORS.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                aria-label={c.label}
+                onClick={() =>
+                  apply(() => setBlockColor(editor, current, c.value))
+                }
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10,
+                  cursor: "pointer",
+                  border: "1px solid var(--border-mid)",
+                  background: c.hex ?? "var(--card2)",
+                  // De pastels zijn altijd licht, dus de letter is vast donker
+                  // (thema-onafhankelijk, hoort bij de data-kleur zelf).
+                  color: c.hex ? "#403f3d" : "var(--text)",
+                  fontFamily: "var(--ff-head)",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {c.hex ? "A" : "✕"}
+              </button>
+            ))}
+          </Row>
+        </>
+      )}
 
       <SectionLabel>Acties</SectionLabel>
       <Row>

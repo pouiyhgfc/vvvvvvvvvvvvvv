@@ -554,11 +554,16 @@ loslaten herordent via remove+insert). Een **"+"** naast ⠿ opent het slash-men
 
 **Wat het doet:** vier gemelde problemen in de logboek-editor opgelost.
 
-- **Bug 1 — tabel kopiëren brak.** `copyBlock` schreef alléén verliesvrije markdown naar
-  het klembord; een tabel reist zo niet terug en plakte kapot/leeg. Vervangen door
-  `copyBlocks` dat **HTML** (`blocksToFullHTML`, tabellen rond-reizen wél) én markdown
-  (`text/plain`) schrijft via `navigator.clipboard.write` + `ClipboardItem`. De copy-actie
-  wordt nu **geawait** vóór `editor.focus()`/sluiten (was fire-and-forget → afgebroken schrijf).
+- **Bug 1 — tabel raakte kwijt via het blok-menu.** Twee oorzaken:
+  1. **Hoofdoorzaak (blok-sheet):** de sheet toonde óók voor een tabel de tekst-secties
+     (Type/Opmaak/Kleur). Tik je daar "Tekst" (of een kleur/opmaak), dan draait
+     `updateBlock(tabel, {type:"paragraph"})` → de tabel-inhoud wordt vernietigd. Nu staan
+     Type/Opmaak/Kleur achter `!isTable`; een tabel krijgt alleen de generieke Acties + de
+     Tabel-sectie. (Naast onze ⠿ blijft BlockNote's eigen `TableHandles` bestaan voor
+     rij/kolom op desktop — dat waren de "twee zes-puntjes-menu's".)
+  2. **Kopiëren:** `copyBlock` schreef alléén verliesvrije markdown; een tabel reist zo niet
+     terug. Vervangen door `copyBlocks` dat **HTML** (`blocksToFullHTML`) én markdown schrijft
+     via `ClipboardItem`, en wordt **geawait** vóór `focus()`/sluiten.
 - **Bug 3 — alleen het bovenste blok werd gekopieerd.** De selectie wordt nu in
   `BlockHandle.onPointerDown` vastgelegd (vóór het tikken de selectie laat vallen) en
   doorgegeven aan de sheet; "Kopiëren" neemt een meervoudige selectie mee, anders het cursor-blok.
