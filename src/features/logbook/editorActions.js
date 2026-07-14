@@ -65,9 +65,26 @@ export function moveBlock(editor, block, targetId, placement) {
   });
 }
 
-export async function copyBlock(editor, block) {
-  const md = await editor.blocksToMarkdownLossy([block]);
-  await navigator.clipboard?.writeText(md);
+// Kopieert één of meer blokken naar het klembord als HTML én platte tekst.
+// - HTML (blocksToFullHTML): tabellen reizen NIET verliesvrij naar markdown, dus
+//   zonder HTML plakt een gekopieerde tabel kapot terug. HTML rond-reist wel.
+// - text/plain (markdown): zodat plakken in een ander programma leesbaar blijft.
+// De aanroeper moet dit awaiten vóór het editor.focus()/sluiten aanroept, anders
+// wordt de asynchrone klembord-schrijf halverwege afgebroken.
+export async function copyBlocks(editor, blocks) {
+  if (!blocks?.length) return;
+  const html = editor.blocksToFullHTML(blocks);
+  const text = await editor.blocksToMarkdownLossy(blocks);
+  if (navigator.clipboard?.write && typeof ClipboardItem === "function") {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        "text/html": new Blob([html], { type: "text/html" }),
+        "text/plain": new Blob([text], { type: "text/plain" }),
+      }),
+    ]);
+  } else {
+    await navigator.clipboard?.writeText(text);
+  }
 }
 
 export function removeBlock(editor, block) {

@@ -55,7 +55,7 @@ function findDropTarget(editor, container, x, y, sourceId) {
 // Tik op ⠿ = blok-menu; ingedrukt houden = vrij verslepen.
 export default function BlockHandle({ editor, containerRef }) {
   const [pos, setPos] = useState(null); // { top } | null
-  const [sheetBlock, setSheetBlock] = useState(null);
+  const [sheetTarget, setSheetTarget] = useState(null); // { block, selectionBlocks } | null
   const [ghost, setGhost] = useState(null); // { x, y } tijdens slepen
   const [indicator, setIndicator] = useState(null); // { top, left, width }
   const rafRef = useRef(0);
@@ -114,6 +114,10 @@ export default function BlockHandle({ editor, containerRef }) {
     e.currentTarget.setPointerCapture?.(e.pointerId);
     press.current = {
       block,
+      // De actieve selectie NU vastleggen (vóór het tikken op het handvat de
+      // focus/selectie in de editor laat vallen). Zo kan "Kopiëren" een
+      // meervoudige selectie meenemen i.p.v. alleen het cursor-blok.
+      selectionBlocks: editor.getSelection()?.blocks ?? null,
       dragging: false,
       target: null,
       startX: e.clientX,
@@ -150,7 +154,8 @@ export default function BlockHandle({ editor, containerRef }) {
     e.currentTarget.releasePointerCapture?.(e.pointerId);
     if (!p) return;
     if (!p.dragging) {
-      setSheetBlock(p.block); // tik → blok-menu
+      // tik → blok-menu (met de bij pointerdown vastgelegde selectie)
+      setSheetTarget({ block: p.block, selectionBlocks: p.selectionBlocks });
       return;
     }
     endDrag();
@@ -270,11 +275,12 @@ export default function BlockHandle({ editor, containerRef }) {
         </div>
       )}
 
-      {sheetBlock && (
+      {sheetTarget && (
         <BlockMenuSheet
           editor={editor}
-          block={sheetBlock}
-          onClose={() => setSheetBlock(null)}
+          block={sheetTarget.block}
+          selectionBlocks={sheetTarget.selectionBlocks}
+          onClose={() => setSheetTarget(null)}
         />
       )}
     </>

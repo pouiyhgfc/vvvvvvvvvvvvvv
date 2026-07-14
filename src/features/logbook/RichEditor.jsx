@@ -116,6 +116,8 @@ const RichEditor = forwardRef(function RichEditor(
     ref,
     () => ({
       getMarkdown: () => editor.blocksToMarkdownLossy(editor.document),
+      undo: () => editor.undo(),
+      redo: () => editor.redo(),
     }),
     [editor],
   );

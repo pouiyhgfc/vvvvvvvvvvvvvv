@@ -7,6 +7,7 @@ import {
   MONTHS_NL,
   MOODS,
   DEFAULT_NOTEBOOKS,
+  BUILTIN_ENTRY_TEMPLATES,
   EVENT_COLORS,
 } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
@@ -15,6 +16,7 @@ import Emoji from "../../ui/Emoji.jsx";
 import Button from "../../ui/Button.jsx";
 import DragHandle from "../../ui/DragHandle.jsx";
 import Sheet from "../../ui/Sheet.jsx";
+import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import LogEntrySheet from "./LogEntrySheet.jsx";
 import NotebookSheet from "./NotebookSheet.jsx";
 import EntryPage from "./EntryPage.jsx";
@@ -74,6 +76,9 @@ export default function LogbookView() {
   const theme = settingsRec?.theme ?? "light";
   const entryTemplatesBlob = useLiveQuery(() => db.blobs.get("entryTemplates"));
   const entryTemplates = entryTemplatesBlob?.data ?? [];
+  // Ingebouwde sjablonen staan altijd bovenaan de kiezer; door de gebruiker
+  // opgeslagen sjablonen erna. Alleen die laatste zijn verwijderbaar.
+  const pickerTemplates = [...BUILTIN_ENTRY_TEMPLATES, ...entryTemplates];
   const notebooksBlob = useLiveQuery(() => db.blobs.get("notebooks"));
   const notebooks = notebooksBlob?.data ?? DEFAULT_NOTEBOOKS;
   const activeNotebook =
@@ -333,14 +338,7 @@ export default function LogbookView() {
           <Emoji char={activeNotebook?.icon ?? "📖"} size={20} />
           {activeNotebook?.name ?? "Logboek"}
         </h2>
-        <Button
-          size="sm"
-          onClick={() =>
-            entryTemplates.length
-              ? setTemplatePicker(true)
-              : setPageEntry("new")
-          }
-        >
+        <Button size="sm" onClick={() => setTemplatePicker(true)}>
           + Nieuw
         </Button>
       </div>
@@ -583,7 +581,7 @@ export default function LogbookView() {
               Leeg document
             </span>
           </div>
-          {entryTemplates.map((tpl) => (
+          {pickerTemplates.map((tpl) => (
             <div
               key={tpl.id}
               style={{
@@ -619,19 +617,21 @@ export default function LogbookView() {
                   {tpl.name}
                 </span>
               </div>
-              <button
-                onClick={() => setConfirmDeleteTpl(tpl)}
-                aria-label="Sjabloon verwijderen"
-                style={{
-                  color: "var(--text-faint)",
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer",
-                  padding: 4,
-                }}
-              >
-                <Emoji char="🗑️" size={14} />
-              </button>
+              {!tpl.builtin && (
+                <button
+                  onClick={() => setConfirmDeleteTpl(tpl)}
+                  aria-label="Sjabloon verwijderen"
+                  style={{
+                    color: "var(--text-faint)",
+                    border: "none",
+                    background: "none",
+                    cursor: "pointer",
+                    padding: 4,
+                  }}
+                >
+                  <Emoji char="🗑️" size={14} />
+                </button>
+              )}
             </div>
           ))}
         </Sheet>

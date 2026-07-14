@@ -482,6 +482,54 @@ export const CAL_END_H = 24;
 export const DEFAULT_NOTEBOOKS = [
   { id: "logboek", name: "Logboek", icon: "📖", color: "#0e7a52" },
 ];
+
+// Kort helpertje om de sjabloon-doc leesbaar te houden.
+const p = (text, styles = {}) => ({
+  type: "paragraph",
+  content: text ? [{ type: "text", text, styles }] : [],
+});
+const numberedWithQuestion = (title, question) => ({
+  type: "numberedListItem",
+  content: [{ type: "text", text: title, styles: { bold: true } }],
+  children: [p(question)],
+});
+
+// Ingebouwde entry-sjablonen: staan altijd in de "Nieuwe entry"-kiezer, naast
+// door de gebruiker opgeslagen sjablonen. `builtin: true` markeert ze zodat ze
+// niet verwijderd kunnen worden. De doc is een BlockNote-document (blocks-JSON);
+// LogbookView strript de block-id's bij het aanmaken van een entry.
+export const BUILTIN_ENTRY_TEMPLATES = [
+  {
+    id: "builtin-reflectie",
+    name: "Reflectie",
+    icon: "🎯",
+    builtin: true,
+    doc: [
+      {
+        type: "heading",
+        props: { level: 2 },
+        content: [{ type: "text", text: "Vandaag:", styles: {} }],
+      },
+      p(""),
+      numberedWithQuestion(
+        "De Feitelijke Observatie:",
+        "Welke specifieke handeling is ongepland uitgevoerd, of welke vastgestelde routine is genegeerd?",
+      ),
+      numberedWithQuestion(
+        "De Foutieve Logica (Het Excuus):",
+        "Welke exacte gedachte, welk argument of welke mate van vermoeidheid werd op het moment van falen gebruikt om de afwijking te legitimeren?",
+      ),
+      numberedWithQuestion(
+        "De Ontkrachting (De Vernietiging):",
+        "Welke harde data en langetermijndoelstellingen bewijzen onomstotelijk dat het zojuist geformuleerde excuus ongeldig en destructief is?",
+      ),
+      numberedWithQuestion(
+        "Het Preventie-Protocol (De 'Als-Dan' Regel):",
+        "Wat is de gedetailleerde, fysieke actie die onmiddellijk wordt uitgevoerd zodra deze specifieke trigger of dit excuus zich in de toekomst opnieuw voordoet?",
+      ),
+    ],
+  },
+];
 export const DEFAULT_SETTINGS = {
   theme: "light",
   notifEnabled: false,

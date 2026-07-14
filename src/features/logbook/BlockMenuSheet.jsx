@@ -9,7 +9,7 @@ import {
   moveUp,
   moveDown,
   duplicateBlock,
-  copyBlock,
+  copyBlocks,
   removeBlock,
 } from "./editorActions.js";
 import {
@@ -115,7 +115,12 @@ const Row = ({ children }) => (
   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{children}</div>
 );
 
-export default function BlockMenuSheet({ editor, block, onClose }) {
+export default function BlockMenuSheet({
+  editor,
+  block,
+  selectionBlocks,
+  onClose,
+}) {
   // Live kopie van het blok: bij open-blijvende acties (type/opmaak/kleur)
   // ververst deze zodat de actieve staat in het menu meebeweegt.
   const [current, setCurrent] = useState(block);
@@ -138,6 +143,28 @@ export default function BlockMenuSheet({ editor, block, onClose }) {
   // De sheet sluit ALTIJD — ook als de actie faalt (anders blijft hij hangen).
   const act = (fn) => {
     run(fn);
+    editor.focus();
+    onClose();
+  };
+
+  // Kopiëren is async (klembord) en moet de selectie meenemen: is er bij het
+  // openen meer dan één blok geselecteerd, kopieer die allemaal — anders het
+  // cursor-blok. Awaiten vóór focus/sluiten, anders breekt de klembord-schrijf.
+  const copy = async () => {
+    const blocks =
+      selectionBlocks && selectionBlocks.length > 1
+        ? selectionBlocks
+        : [current];
+    try {
+      await copyBlocks(editor, blocks);
+      showToast(
+        blocks.length > 1
+          ? `✓ ${blocks.length} blokken gekopieerd`
+          : "✓ Blok gekopieerd",
+      );
+    } catch {
+      showToast("Kopiëren mislukt");
+    }
     editor.focus();
     onClose();
   };
@@ -222,15 +249,7 @@ export default function BlockMenuSheet({ editor, block, onClose }) {
         >
           Dupliceren
         </Chip>
-        <Chip
-          label="Kopiëren"
-          onClick={() =>
-            act(() => {
-              copyBlock(editor, current);
-              showToast("✓ Blok gekopieerd");
-            })
-          }
-        >
+        <Chip label="Kopiëren" onClick={copy}>
           Kopiëren
         </Chip>
         <Chip

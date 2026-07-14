@@ -48,6 +48,42 @@ function ChevronIcon() {
   );
 }
 
+function UndoIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8 5L4 9l4 4" />
+      <path d="M4 9h7a4 4 0 0 1 4 4v1" />
+    </svg>
+  );
+}
+
+function RedoIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 5l4 4-4 4" />
+      <path d="M16 9H9a4 4 0 0 0-4 4v1" />
+    </svg>
+  );
+}
+
 function TrashIcon() {
   return (
     <svg
@@ -204,6 +240,19 @@ export default function EntryPage({
     setTplIcon("📄");
   };
 
+  const ghostBtn = {
+    width: 36,
+    height: 36,
+    borderRadius: 99,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "var(--text-muted)",
+    border: "none",
+    background: "none",
+    cursor: "pointer",
+  };
+
   return (
     <div
       style={{
@@ -227,24 +276,27 @@ export default function EntryPage({
           minHeight: 52,
         }}
       >
-        <button
-          onClick={close}
-          aria-label="Terug"
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 99,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "var(--text-muted)",
-            border: "none",
-            background: "none",
-            cursor: "pointer",
-          }}
-        >
-          <ChevronIcon />
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <button onClick={close} aria-label="Terug" style={ghostBtn}>
+            <ChevronIcon />
+          </button>
+          {/* Ongedaan maken / opnieuw — editor-historie (ProseMirror). Altijd
+              aan: niets om te herstellen is een no-op. */}
+          <button
+            onClick={() => editorRef.current?.undo()}
+            aria-label="Ongedaan maken"
+            style={ghostBtn}
+          >
+            <UndoIcon />
+          </button>
+          <button
+            onClick={() => editorRef.current?.redo()}
+            aria-label="Opnieuw"
+            style={ghostBtn}
+          >
+            <RedoIcon />
+          </button>
+        </div>
         <span
           style={{
             flex: 1,

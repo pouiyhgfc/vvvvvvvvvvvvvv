@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Touch blok-handvat (⠿) gebouwd — de vervanger voor de teruggedraaide `MobileToolbar`. Eigen handvat bij het actieve blok (BlockNote's zijmenu is hover-only + native HTML5-drag → touch-dood): **tik** = bottom-sheet met blok-acties (turn into / dupliceren / kopiëren / omhoog-omlaag / kleur / opmaak / tabel-acties / verwijderen), **ingedrukt houden** = vrij verslepen met ghost + drop-indicator. Plus: dode merge-knop gerepareerd (`tables`-optie aan), private tabel-API ingekapseld (`tableCommands.js`), gedeelde editor-acties (`editorActions.js`), betrouwbare "/"-ingang via "+"-knop, grotere kolom-resize-hitzone. Build/lint/deadcode schoon. **Wacht op verificatie op een echt Android-toestel** (handvat-positie, tik vs long-press, verslepen, "/"). Zie `.md/PLAN-NOTION-EDITOR.md` + `.md/STAPPENPLAN-NOTION-EDITOR.md`._
+**Status — huidige fase:** _Editor-bugfixes afgerond — robuust kopiëren (tabel via HTML + meervoudige selectie), undo/redo-knoppen (↶/↷) in de entry-topbalk, ingebouwd "Reflectie"-sjabloon, en de ontbrekende `ConfirmDialog`-import in LogbookView hersteld. Build/lint/deadcode schoon; wacht op toestel-verificatie. Zie de fase "Editor-bugfixes" onderaan. Vorige fase:_ _Touch blok-handvat (⠿) gebouwd — de vervanger voor de teruggedraaide `MobileToolbar`. Eigen handvat bij het actieve blok (BlockNote's zijmenu is hover-only + native HTML5-drag → touch-dood): **tik** = bottom-sheet met blok-acties (turn into / dupliceren / kopiëren / omhoog-omlaag / kleur / opmaak / tabel-acties / verwijderen), **ingedrukt houden** = vrij verslepen met ghost + drop-indicator. Plus: dode merge-knop gerepareerd (`tables`-optie aan), private tabel-API ingekapseld (`tableCommands.js`), gedeelde editor-acties (`editorActions.js`), betrouwbare "/"-ingang via "+"-knop, grotere kolom-resize-hitzone. Build/lint/deadcode schoon. **Wacht op verificatie op een echt Android-toestel** (handvat-positie, tik vs long-press, verslepen, "/"). Zie `.md/PLAN-NOTION-EDITOR.md` + `.md/STAPPENPLAN-NOTION-EDITOR.md`._
 
 ---
 
@@ -545,6 +545,46 @@ loslaten herordent via remove+insert). Een **"+"** naast ⠿ opent het slash-men
 
 **Commit (voorstel):**
 `Touch blok-handvat: tik-menu (sheet) + long-press verslepen; tabel-optie aan, editor-acties gedeeld`
+
+- [x] **Fase afgerond** (build/lint/deadcode schoon; wacht op toestel-verificatie)
+
+---
+
+## Fase — Editor-bugfixes: kopiëren (tabel + meervoud), undo/redo, Reflectie-sjabloon
+
+**Wat het doet:** vier gemelde problemen in de logboek-editor opgelost.
+
+- **Bug 1 — tabel kopiëren brak.** `copyBlock` schreef alléén verliesvrije markdown naar
+  het klembord; een tabel reist zo niet terug en plakte kapot/leeg. Vervangen door
+  `copyBlocks` dat **HTML** (`blocksToFullHTML`, tabellen rond-reizen wél) én markdown
+  (`text/plain`) schrijft via `navigator.clipboard.write` + `ClipboardItem`. De copy-actie
+  wordt nu **geawait** vóór `editor.focus()`/sluiten (was fire-and-forget → afgebroken schrijf).
+- **Bug 3 — alleen het bovenste blok werd gekopieerd.** De selectie wordt nu in
+  `BlockHandle.onPointerDown` vastgelegd (vóór het tikken de selectie laat vallen) en
+  doorgegeven aan de sheet; "Kopiëren" neemt een meervoudige selectie mee, anders het cursor-blok.
+- **Bug 2 — geen "ongedaan maken".** `RichEditor`-ref uitgebreid met `undo()`/`redo()`
+  (`editor.undo()`/`redo()`); **↶ / ↷**-knoppen in de `EntryPage`-topbalk naast Terug.
+  (Sluit aan op de bewuste keuze dat blok-verwijderen zónder `ConfirmDialog` gaat.)
+- **Sjabloon "Reflectie".** Ingebouwd sjabloon (`BUILTIN_ENTRY_TEMPLATES` in `constants.js`)
+  dat altijd in de "Nieuwe entry"-kiezer staat, niet verwijderbaar. Kop "Vandaag:" + 4
+  genummerde secties (Feitelijke Observatie / Foutieve Logica / Ontkrachting / Preventie-Protocol).
+- **Bonus:** ontbrekende `ConfirmDialog`-import in `LogbookView.jsx` toegevoegd — een
+  eigen sjabloon verwijderen crashte de view (ReferenceError).
+
+**Gewijzigde bestanden:** `editorActions.js` (copyBlocks), `BlockHandle.jsx` (selectie
+vastleggen), `BlockMenuSheet.jsx` (async copy-handler), `RichEditor.jsx` (undo/redo op ref),
+`EntryPage.jsx` (↶/↷-knoppen), `constants.js` (Reflectie-sjabloon), `LogbookView.jsx`
+(ConfirmDialog-import + ingebouwde sjablonen in de kiezer).
+
+**Controle (afvinken) — vraagt een echt toestel:**
+
+- [ ] Tabel selecteren → ⠿ → Kopiëren → elders plakken geeft de tabel; de tabel blijft staan.
+- [ ] Meerdere blokken selecteren → ⠿ → Kopiëren → alles wordt gekopieerd (niet alleen de eerste rij).
+- [ ] ↶ herstelt de vorige stap, ↷ voert 'm opnieuw uit; wijziging wordt opgeslagen.
+- [ ] "+ Nieuw" → "Reflectie" maakt een entry met de 4 secties; het sjabloon is niet te verwijderen.
+
+**Commit (voorstel):**
+`Editor: robuust kopiëren (tabel + meervoud), undo/redo-knoppen, Reflectie-sjabloon`
 
 - [x] **Fase afgerond** (build/lint/deadcode schoon; wacht op toestel-verificatie)
 
