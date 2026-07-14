@@ -494,41 +494,34 @@ const numberedWithQuestion = (title, question) => ({
   children: [p(question)],
 });
 
-// Ingebouwde entry-sjablonen: staan altijd in de "Nieuwe entry"-kiezer, naast
-// door de gebruiker opgeslagen sjablonen. `builtin: true` markeert ze zodat ze
-// niet verwijderd kunnen worden. De doc is een BlockNote-document (blocks-JSON);
-// LogbookView strript de block-id's bij het aanmaken van een entry.
-export const BUILTIN_ENTRY_TEMPLATES = [
+// Sjabloon voor het dagelijkse logboek. Wordt ALLEEN ingeladen als je in de
+// dagelijkse routine op "Nieuw logboek voor vandaag" drukt (TrackerView) —
+// bewust NIET in de algemene "+ Nieuw"-kiezer van het logboek. Het is een
+// BlockNote-document (blocks-JSON) zonder id's, dus elk nieuw entry krijgt
+// verse id's; TrackerView maakt er per keer een diepe kopie van.
+export const DAILY_LOG_TEMPLATE_DOC = [
   {
-    id: "builtin-reflectie",
-    name: "Reflectie",
-    icon: "🎯",
-    builtin: true,
-    doc: [
-      {
-        type: "heading",
-        props: { level: 2 },
-        content: [{ type: "text", text: "Vandaag:", styles: {} }],
-      },
-      p(""),
-      numberedWithQuestion(
-        "De Feitelijke Observatie:",
-        "Welke specifieke handeling is ongepland uitgevoerd, of welke vastgestelde routine is genegeerd?",
-      ),
-      numberedWithQuestion(
-        "De Foutieve Logica (Het Excuus):",
-        "Welke exacte gedachte, welk argument of welke mate van vermoeidheid werd op het moment van falen gebruikt om de afwijking te legitimeren?",
-      ),
-      numberedWithQuestion(
-        "De Ontkrachting (De Vernietiging):",
-        "Welke harde data en langetermijndoelstellingen bewijzen onomstotelijk dat het zojuist geformuleerde excuus ongeldig en destructief is?",
-      ),
-      numberedWithQuestion(
-        "Het Preventie-Protocol (De 'Als-Dan' Regel):",
-        "Wat is de gedetailleerde, fysieke actie die onmiddellijk wordt uitgevoerd zodra deze specifieke trigger of dit excuus zich in de toekomst opnieuw voordoet?",
-      ),
-    ],
+    type: "heading",
+    props: { level: 2 },
+    content: [{ type: "text", text: "Vandaag:", styles: {} }],
   },
+  p(""),
+  numberedWithQuestion(
+    "De Feitelijke Observatie:",
+    "Welke specifieke handeling is ongepland uitgevoerd, of welke vastgestelde routine is genegeerd?",
+  ),
+  numberedWithQuestion(
+    "De Foutieve Logica (Het Excuus):",
+    "Welke exacte gedachte, welk argument of welke mate van vermoeidheid werd op het moment van falen gebruikt om de afwijking te legitimeren?",
+  ),
+  numberedWithQuestion(
+    "De Ontkrachting (De Vernietiging):",
+    "Welke harde data en langetermijndoelstellingen bewijzen onomstotelijk dat het zojuist geformuleerde excuus ongeldig en destructief is?",
+  ),
+  numberedWithQuestion(
+    "Het Preventie-Protocol (De 'Als-Dan' Regel):",
+    "Wat is de gedetailleerde, fysieke actie die onmiddellijk wordt uitgevoerd zodra deze specifieke trigger of dit excuus zich in de toekomst opnieuw voordoet?",
+  ),
 ];
 export const DEFAULT_SETTINGS = {
   theme: "light",

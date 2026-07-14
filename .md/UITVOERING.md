@@ -565,23 +565,26 @@ loslaten herordent via remove+insert). Een **"+"** naast ⠿ opent het slash-men
 - **Bug 2 — geen "ongedaan maken".** `RichEditor`-ref uitgebreid met `undo()`/`redo()`
   (`editor.undo()`/`redo()`); **↶ / ↷**-knoppen in de `EntryPage`-topbalk naast Terug.
   (Sluit aan op de bewuste keuze dat blok-verwijderen zónder `ConfirmDialog` gaat.)
-- **Sjabloon "Reflectie".** Ingebouwd sjabloon (`BUILTIN_ENTRY_TEMPLATES` in `constants.js`)
-  dat altijd in de "Nieuwe entry"-kiezer staat, niet verwijderbaar. Kop "Vandaag:" + 4
-  genummerde secties (Feitelijke Observatie / Foutieve Logica / Ontkrachting / Preventie-Protocol).
+- **Reflectie-sjabloon voor het dagelijkse logboek.** `DAILY_LOG_TEMPLATE_DOC` in
+  `constants.js`, wordt ALLEEN ingeladen via de knop "Nieuw logboek voor vandaag" in de
+  dagelijkse routine (`TrackerView`) — bewust NIET in de algemene "+ Nieuw"-kiezer van het
+  logboek. Kop "Vandaag:" + 4 genummerde secties (Feitelijke Observatie / Foutieve Logica /
+  Ontkrachting / Preventie-Protocol). TrackerView geeft per keer een `structuredClone` mee.
 - **Bonus:** ontbrekende `ConfirmDialog`-import in `LogbookView.jsx` toegevoegd — een
   eigen sjabloon verwijderen crashte de view (ReferenceError).
 
 **Gewijzigde bestanden:** `editorActions.js` (copyBlocks), `BlockHandle.jsx` (selectie
 vastleggen), `BlockMenuSheet.jsx` (async copy-handler), `RichEditor.jsx` (undo/redo op ref),
-`EntryPage.jsx` (↶/↷-knoppen), `constants.js` (Reflectie-sjabloon), `LogbookView.jsx`
-(ConfirmDialog-import + ingebouwde sjablonen in de kiezer).
+`EntryPage.jsx` (↶/↷-knoppen), `constants.js` (`DAILY_LOG_TEMPLATE_DOC`), `TrackerView.jsx`
+(sjabloon bij "Nieuw logboek voor vandaag"), `LogbookView.jsx` (ontbrekende ConfirmDialog-import).
 
 **Controle (afvinken) — vraagt een echt toestel:**
 
 - [ ] Tabel selecteren → ⠿ → Kopiëren → elders plakken geeft de tabel; de tabel blijft staan.
 - [ ] Meerdere blokken selecteren → ⠿ → Kopiëren → alles wordt gekopieerd (niet alleen de eerste rij).
 - [ ] ↶ herstelt de vorige stap, ↷ voert 'm opnieuw uit; wijziging wordt opgeslagen.
-- [ ] "+ Nieuw" → "Reflectie" maakt een entry met de 4 secties; het sjabloon is niet te verwijderen.
+- [ ] Dagelijkse routine → "Nieuw logboek voor vandaag" opent met het reflectie-sjabloon (4 secties);
+      een bestaand dag-logboek opent zonder sjabloon; de algemene "+ Nieuw" toont het sjabloon NIET.
 
 **Commit (voorstel):**
 `Editor: robuust kopiëren (tabel + meervoud), undo/redo-knoppen, Reflectie-sjabloon`

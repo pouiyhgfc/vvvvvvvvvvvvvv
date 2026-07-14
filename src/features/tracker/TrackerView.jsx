@@ -5,6 +5,7 @@ import {
   PERIOD_COLORS,
   MOODS,
   FALLBACK_AREA_STYLE,
+  DAILY_LOG_TEMPLATE_DOC,
 } from "../../lib/constants.js";
 import { db } from "../../lib/db.js";
 import Ring from "../../ui/Ring.jsx";
@@ -398,6 +399,14 @@ export default function TrackerView({
         <Suspense fallback={null}>
           <EntryPage
             entry={entryPage === "new" ? null : entryPage}
+            // Nieuw dagelijks logboek start met het reflectie-sjabloon; een
+            // bestaand logboek opent zoals opgeslagen. Diepe kopie zodat elk
+            // nieuw entry verse blocks krijgt (geen gedeelde/gemuteerde doc).
+            draft={
+              entryPage === "new"
+                ? { doc: structuredClone(DAILY_LOG_TEMPLATE_DOC) }
+                : undefined
+            }
             notebookId="logboek"
             date={dateKey}
             theme={theme}

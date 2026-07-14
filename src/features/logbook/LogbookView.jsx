@@ -7,7 +7,6 @@ import {
   MONTHS_NL,
   MOODS,
   DEFAULT_NOTEBOOKS,
-  BUILTIN_ENTRY_TEMPLATES,
   EVENT_COLORS,
 } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
@@ -76,9 +75,6 @@ export default function LogbookView() {
   const theme = settingsRec?.theme ?? "light";
   const entryTemplatesBlob = useLiveQuery(() => db.blobs.get("entryTemplates"));
   const entryTemplates = entryTemplatesBlob?.data ?? [];
-  // Ingebouwde sjablonen staan altijd bovenaan de kiezer; door de gebruiker
-  // opgeslagen sjablonen erna. Alleen die laatste zijn verwijderbaar.
-  const pickerTemplates = [...BUILTIN_ENTRY_TEMPLATES, ...entryTemplates];
   const notebooksBlob = useLiveQuery(() => db.blobs.get("notebooks"));
   const notebooks = notebooksBlob?.data ?? DEFAULT_NOTEBOOKS;
   const activeNotebook =
@@ -338,7 +334,14 @@ export default function LogbookView() {
           <Emoji char={activeNotebook?.icon ?? "📖"} size={20} />
           {activeNotebook?.name ?? "Logboek"}
         </h2>
-        <Button size="sm" onClick={() => setTemplatePicker(true)}>
+        <Button
+          size="sm"
+          onClick={() =>
+            entryTemplates.length
+              ? setTemplatePicker(true)
+              : setPageEntry("new")
+          }
+        >
           + Nieuw
         </Button>
       </div>
@@ -581,7 +584,7 @@ export default function LogbookView() {
               Leeg document
             </span>
           </div>
-          {pickerTemplates.map((tpl) => (
+          {entryTemplates.map((tpl) => (
             <div
               key={tpl.id}
               style={{
@@ -617,21 +620,19 @@ export default function LogbookView() {
                   {tpl.name}
                 </span>
               </div>
-              {!tpl.builtin && (
-                <button
-                  onClick={() => setConfirmDeleteTpl(tpl)}
-                  aria-label="Sjabloon verwijderen"
-                  style={{
-                    color: "var(--text-faint)",
-                    border: "none",
-                    background: "none",
-                    cursor: "pointer",
-                    padding: 4,
-                  }}
-                >
-                  <Emoji char="🗑️" size={14} />
-                </button>
-              )}
+              <button
+                onClick={() => setConfirmDeleteTpl(tpl)}
+                aria-label="Sjabloon verwijderen"
+                style={{
+                  color: "var(--text-faint)",
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
+                  padding: 4,
+                }}
+              >
+                <Emoji char="🗑️" size={14} />
+              </button>
             </div>
           ))}
         </Sheet>
