@@ -147,12 +147,15 @@ const RichEditor = forwardRef(function RichEditor(
         onChange={() => {
           // Eerst synchroon de doc + wijziging melden, zodat bij direct sluiten
           // (Terug-knop) de bewerking gegarandeerd is gemarkeerd. De markdown-
-          // tekst is async en komt er daarna achteraan.
+          // tekst komt daarna. blocksToMarkdownLossy geeft in deze BlockNote-
+          // versie een string terug (geen Promise); Promise.resolve vangt beide
+          // gevallen af — anders gooit `.then` bij élke wijziging een uncaught
+          // fout (die o.a. de markdown-input-rules verstoorde).
           const doc = editor.document;
           onChange({ doc });
-          editor
-            .blocksToMarkdownLossy(doc)
-            .then((text) => onChange({ doc, text }));
+          Promise.resolve(editor.blocksToMarkdownLossy(doc)).then((text) =>
+            onChange({ doc, text }),
+          );
         }}
       >
         <FormattingToolbarController formattingToolbar={CuratedToolbar} />

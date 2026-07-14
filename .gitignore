@@ -3,3 +3,6 @@ dist/
 public/emoji/
 .DS_Store
 desktop.ini
+test-results/
+playwright-report/
+.playwright/

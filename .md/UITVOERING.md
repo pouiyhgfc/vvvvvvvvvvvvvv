@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Editor-bugfixes afgerond — robuust kopiëren (tabel via HTML + meervoudige selectie), undo/redo-knoppen (↶/↷) in de entry-topbalk, ingebouwd "Reflectie"-sjabloon, en de ontbrekende `ConfirmDialog`-import in LogbookView hersteld. Build/lint/deadcode schoon; wacht op toestel-verificatie. Zie de fase "Editor-bugfixes" onderaan. Vorige fase:_ _Touch blok-handvat (⠿) gebouwd — de vervanger voor de teruggedraaide `MobileToolbar`. Eigen handvat bij het actieve blok (BlockNote's zijmenu is hover-only + native HTML5-drag → touch-dood): **tik** = bottom-sheet met blok-acties (turn into / dupliceren / kopiëren / omhoog-omlaag / kleur / opmaak / tabel-acties / verwijderen), **ingedrukt houden** = vrij verslepen met ghost + drop-indicator. Plus: dode merge-knop gerepareerd (`tables`-optie aan), private tabel-API ingekapseld (`tableCommands.js`), gedeelde editor-acties (`editorActions.js`), betrouwbare "/"-ingang via "+"-knop, grotere kolom-resize-hitzone. Build/lint/deadcode schoon. **Wacht op verificatie op een echt Android-toestel** (handvat-positie, tik vs long-press, verslepen, "/"). Zie `.md/PLAN-NOTION-EDITOR.md` + `.md/STAPPENPLAN-NOTION-EDITOR.md`._
+**Status — huidige fase:** _Editor-stabiliteit — `blocksToMarkdownLossy().then`-fout gefixt (brak de markdown-input-rules); Enter-dataverlies gediagnosticeerd als standaard "selectie-vervangen" (vangnet = ↩ undo). Playwright-e2e toegevoegd (`npm run test:e2e`, 3 regressietests). Daarvóór: editor-bugfixes — robuust kopiëren (tabel via HTML + meervoudige selectie), tekst-secties verborgen voor tabellen, undo/redo (↶/↷), "Reflectie"-sjabloon bij het dagelijkse logboek, ConfirmDialog-import hersteld. Build/lint/e2e schoon. Zie de fasen onderaan. Nog eerder:_ _Touch blok-handvat (⠿) gebouwd — de vervanger voor de teruggedraaide `MobileToolbar`. Eigen handvat bij het actieve blok (BlockNote's zijmenu is hover-only + native HTML5-drag → touch-dood): **tik** = bottom-sheet met blok-acties (turn into / dupliceren / kopiëren / omhoog-omlaag / kleur / opmaak / tabel-acties / verwijderen), **ingedrukt houden** = vrij verslepen met ghost + drop-indicator. Plus: dode merge-knop gerepareerd (`tables`-optie aan), private tabel-API ingekapseld (`tableCommands.js`), gedeelde editor-acties (`editorActions.js`), betrouwbare "/"-ingang via "+"-knop, grotere kolom-resize-hitzone. Build/lint/deadcode schoon. **Wacht op verificatie op een echt Android-toestel** (handvat-positie, tik vs long-press, verslepen, "/"). Zie `.md/PLAN-NOTION-EDITOR.md` + `.md/STAPPENPLAN-NOTION-EDITOR.md`._
 
 ---
 
@@ -595,6 +595,35 @@ vastleggen), `BlockMenuSheet.jsx` (async copy-handler), `RichEditor.jsx` (undo/r
 `Editor: robuust kopiëren (tabel + meervoud), undo/redo-knoppen, Reflectie-sjabloon`
 
 - [x] **Fase afgerond** (build/lint/deadcode schoon; wacht op toestel-verificatie)
+
+---
+
+## Fase — Editor-stabiliteit: markdown-input-rules hersteld + Enter-dataverlies onderzocht
+
+**Aanleiding:** melding dat op **desktop** tekst verdween bij Enter. Met Playwright (nieuwe
+dev-dependency) de echte app aangestuurd en headless gereproduceerd.
+
+**Vondsten:**
+
+- **Echte bug — `blocksToMarkdownLossy(...).then is not a function`.** In deze BlockNote-versie
+  geeft `blocksToMarkdownLossy` een **string** terug (geen Promise). De `onChange` in
+  `RichEditor` deed `.then` → **uncaught fout bij élke toetsaanslag**, die de markdown-input-rules
+  volledig brak (typen van `### ` maakte geen kop). Fix: `Promise.resolve(...).then(...)` — vangt
+  string én Promise af. Bewezen: kop-shortcut werkt weer, geen console-errors meer.
+- **Enter-dataverlies = actieve selectie.** Met alléén een cursor wist Enter in ~20 scenario's
+  (koppen, lijsten, geneste blokken, klik vs. Home, met context) **nooit** tekst. Met een
+  **selectie** (bv. na "alles selecteren → kopiëren", die selectie blijft staan) **vervangt**
+  Enter de selectie deterministisch → alles weg. Dit is standaard editor-gedrag (Word/Docs/Notion);
+  het vangnet is de **↩ undo-knop**. Niet "gefixt" want Enter-vervangt-selectie is gewenst gedrag.
+
+**Nieuw:** `playwright.config.js` + `e2e/editor.spec.js` (3 regressietests: kop-shortcut werkt,
+cursor+Enter wist niets, geen console-errors). Draai met `npm run test:e2e`. Bewezen: falen op de
+oude code (`.then`), slagen op de fix.
+
+**Gewijzigd:** `RichEditor.jsx` (onChange), `package.json` (`test:e2e` + `@playwright/test`),
+`.gitignore` (test-artefacten).
+
+- [x] **Fase afgerond** (build/lint/e2e schoon)
 
 ---
 

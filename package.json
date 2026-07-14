@@ -9,7 +9,8 @@
     "build": "node scripts/build-emoji.mjs && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "deadcode": "knip"
+    "deadcode": "knip",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@blocknote/core": "^0.51.4",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.61.1",
     "@twemoji/svg": "^15.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^10.5.0",
