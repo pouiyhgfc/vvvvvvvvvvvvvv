@@ -652,6 +652,31 @@ Drie kleine verbeteringen (alle drie met e2e-dekking):
 
 ---
 
+## Fase — BlockNote-QA + tabel-acties gerepareerd
+
+Grondige functionele doorlichting van de editor met Playwright. Alles getest en werkend:
+bloktypes (kop/lijst/checklist/citaat/code/scheiding/tabel/emoji via `+`-menu), blok-menu
+(turn-into, opmaak, kleur, dupliceren, omhoog/omlaag, verwijderen), undo/redo, en een
+**opslaan→herladen→heropenen roundtrip** (rijk document mét tabel bleef identiek — data-integriteit OK).
+
+**Echte bug gevonden + gefixt — tabel rij/kolom-acties deden niets.** `tableCommands.js` riep
+`editor._tiptapEditor.commands.addRowAfter()` e.d. aan, maar BlockNote 0.51 heeft **geen**
+`@tiptap/extension-table` — die commands bestaan niet, dus het was een stille no-op (geen error,
+geen effect). Herschreven naar de echte **prosemirror-tables**-commands, gedispatcht op de
+onderliggende ProseMirror-view (`editor._tiptapEditor.view`). `prosemirror-tables@1.8.5` toegevoegd
+als expliciete dependency (dezelfde gehoiste kopie die BlockNote intern gebruikt → geen dubbele
+instantie). Nu werken rij/kolom toevoegen+wissen, kopregel togglen en tabel wissen.
+
+**Nieuw/gewijzigd:** `tableCommands.js` (prosemirror-tables), `package.json` (prosemirror-tables),
+`e2e/editor.spec.js` (tabel-test), `e2e/roundtrip.spec.js` (data-integriteit).
+
+**Terminologie-nootje (geen bug):** het `+`-slashmenu noemt lijsten "Puntenlijst"/"Controlelijst"
+(BlockNote NL-locale), de blok-sheet noemt ze "Opsomming"/"Checklist". Beide werken.
+
+- [x] **Fase afgerond** (build/lint/8× e2e schoon)
+
+---
+
 ## Gouden regels tijdens het bouwen
 
 1. Eén fase per keer; vink pas af en commit als de controle slaagt.

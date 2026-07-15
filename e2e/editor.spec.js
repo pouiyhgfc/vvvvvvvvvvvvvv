@@ -66,6 +66,44 @@ test("undo/redo-knoppen zijn uit als er niets te herstellen valt", async ({
   ).toBeEnabled();
 });
 
+// Tabel-acties draaien op prosemirror-tables direct (BlockNote 0.51 heeft geen
+// tiptap table-commands). Deze test bewaakt dat rij/kolom toevoegen+wissen werkt.
+test("tabel: rij/kolom toevoegen en wissen via het blok-menu", async ({
+  page,
+}) => {
+  const HANDLE =
+    'button[aria-label="Blok-menu (tik) of verslepen (ingedrukt houden)"]';
+  const dims = () =>
+    page.evaluate(() => {
+      const t = document.querySelector("table");
+      return { rows: t.rows.length, cols: t.rows[0].cells.length };
+    });
+  await openEditor(page);
+  await page.click('button[aria-label="Nieuw blok invoegen"]');
+  await page.getByText("Tabel", { exact: true }).first().click();
+  await page.waitForTimeout(300);
+  await page.locator("table td, table th").first().click();
+  const start = await dims();
+
+  await page.click(HANDLE);
+  await page.waitForTimeout(200);
+  await page.click('button[aria-label="Rij onder invoegen"]');
+  await page.waitForTimeout(150);
+  await page.click('button[aria-label="Kolom rechts invoegen"]');
+  await page.waitForTimeout(150);
+  const grown = await dims();
+  expect(grown.rows).toBe(start.rows + 1);
+  expect(grown.cols).toBe(start.cols + 1);
+
+  await page.click('button[aria-label="Rij wissen"]');
+  await page.waitForTimeout(150);
+  await page.click('button[aria-label="Kolom wissen"]');
+  await page.waitForTimeout(150);
+  const shrunk = await dims();
+  expect(shrunk.rows).toBe(start.rows);
+  expect(shrunk.cols).toBe(start.cols);
+});
+
 test("kopiëren heft de selectie op zodat een volgende Enter niets wist", async ({
   page,
 }) => {
