@@ -49,6 +49,39 @@ function findDropTarget(editor, container, x, y, sourceId) {
   };
 }
 
+// Top-level blokken die de HUIDIGE DOM-selectie beslaat. We lezen bewust de
+// DOM-selectie (window.getSelection) i.p.v. editor.getSelection(): op touch
+// synct een native selectie niet betrouwbaar naar ProseMirror, maar de
+// DOM-selectie is exact wat er visueel geselecteerd is. Geeft null bij een lege
+// of enkel-blok-selectie.
+function domSelectionBlocks(editor) {
+  const dom = typeof window !== "undefined" ? window.getSelection?.() : null;
+  const root = editor?.domElement;
+  if (!dom || dom.isCollapsed || dom.rangeCount === 0 || !root) return null;
+  const range = dom.getRangeAt(0);
+  const hit = [...root.querySelectorAll("[data-id]")].filter((el) =>
+    range.intersectsNode(el),
+  );
+  const inSel = new Set(hit);
+  const blocks = [];
+  for (const el of hit) {
+    // Geneste blokken overslaan: hun voorouder (ook geselecteerd) dekt ze al.
+    let p = el.parentElement?.closest("[data-id]");
+    let nested = false;
+    while (p) {
+      if (inSel.has(p)) {
+        nested = true;
+        break;
+      }
+      p = p.parentElement?.closest("[data-id]");
+    }
+    if (nested) continue;
+    const b = editor.getBlock(el.getAttribute("data-id"));
+    if (b) blocks.push(b);
+  }
+  return blocks.length > 1 ? blocks : null;
+}
+
 // Toont een handvat + "+" bij het actieve blok (het blok waar de cursor staat).
 // Positie wordt berekend uit de blok-DOM-node, niet uit hover — zo werkt het op
 // touch, waar BlockNote's eigen (hover-gedreven) zijmenu nooit verschijnt.
@@ -88,11 +121,16 @@ export default function BlockHandle({ editor, containerRef }) {
     };
 
     // Meervoudige selectie onthouden: op touch collapst de selectie zodra je op
-    // ⠿ tikt, dus getSelection() is dán te laat (leest nog maar één blok). We
-    // bewaren de laatst geziene meervoudige selectie als fallback voor Kopiëren.
+    // ⠿ tikt, dus bij de tik is de selectie al weg. We bewaren de laatst geziene
+    // meervoudige (DOM-)selectie als fallback voor Kopiëren. We luisteren op het
+    // DOM-`selectionchange`-event (vuurt óók bij touch-selectie), niet alleen op
+    // editor.onSelectionChange (die mist een niet-gesyncte native selectie).
+    const trackSel = () => {
+      const blocks = domSelectionBlocks(editor);
+      if (blocks) selBlocksRef.current = blocks;
+    };
     const onSel = () => {
-      const blocks = editor.getSelection()?.blocks;
-      if (blocks && blocks.length > 1) selBlocksRef.current = blocks;
+      trackSel();
       schedule();
     };
     // Een nieuwe cursor/selectie ín de editor wist het onthouden meervoud, zodat
@@ -104,6 +142,7 @@ export default function BlockHandle({ editor, containerRef }) {
 
     const unsubSel = editor.onSelectionChange(onSel);
     const unsubChange = editor.onChange(schedule);
+    document.addEventListener("selectionchange", trackSel);
     document.addEventListener("pointerdown", onDocDown, true);
     window.addEventListener("scroll", schedule, true);
     window.addEventListener("resize", schedule);
@@ -114,6 +153,7 @@ export default function BlockHandle({ editor, containerRef }) {
       clearTimeout(timerRef.current);
       unsubSel?.();
       unsubChange?.();
+      document.removeEventListener("selectionchange", trackSel);
       document.removeEventListener("pointerdown", onDocDown, true);
       window.removeEventListener("scroll", schedule, true);
       window.removeEventListener("resize", schedule);
@@ -130,13 +170,12 @@ export default function BlockHandle({ editor, containerRef }) {
     const block = editor.getTextCursorPosition()?.block;
     if (!block) return;
     e.currentTarget.setPointerCapture?.(e.pointerId);
-    // Live selectie als die meerdere blokken beslaat (desktop, waar de selectie
-    // de tik overleeft); anders de laatst onthouden meervoudige selectie (touch,
-    // waar de tik de selectie al heeft gecollapst).
-    const live = editor.getSelection()?.blocks;
+    // Live DOM-selectie als die meerdere blokken beslaat (desktop, waar de
+    // selectie de tik overleeft); anders de laatst onthouden meervoudige
+    // selectie (touch, waar de tik de selectie al heeft gecollapst).
     press.current = {
       block,
-      selectionBlocks: live && live.length > 1 ? live : selBlocksRef.current,
+      selectionBlocks: domSelectionBlocks(editor) ?? selBlocksRef.current,
       dragging: false,
       target: null,
       startX: e.clientX,

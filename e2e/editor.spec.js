@@ -104,6 +104,37 @@ test("tabel: rij/kolom toevoegen en wissen via het blok-menu", async ({
   expect(shrunk.cols).toBe(start.cols);
 });
 
+// Meervoudige selectie via een genuine sleep-gebaar (niet Ctrl+A) moet alle
+// blokken kopiëren. Bewaakt de DOM-selectie-tracking in BlockHandle — die pikt
+// een selectie op die ProseMirror op touch niet altijd synct.
+test("sleep-selectie over meerdere blokken kopieert alle blokken", async ({
+  page,
+}) => {
+  await page.context().grantPermissions(["clipboard-write"]);
+  await openEditor(page);
+  await page.keyboard.type("Regel een");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("Regel twee");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("Regel drie");
+  await page.waitForTimeout(150);
+  const b1 = await page.locator(".bn-block-content").nth(0).boundingBox();
+  const b3 = await page.locator(".bn-block-content").nth(2).boundingBox();
+  await page.mouse.move(b1.x + 4, b1.y + b1.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(b3.x + b3.width - 6, b3.y + b3.height / 2, {
+    steps: 8,
+  });
+  await page.mouse.up();
+  await page.waitForTimeout(150);
+  await page.click(
+    'button[aria-label="Blok-menu (tik) of verslepen (ingedrukt houden)"]',
+  );
+  await page.click('button[aria-label="Kopiëren"]');
+  // De bevestigings-toast meldt het aantal: ">1" => "N blokken gekopieerd".
+  await expect(page.getByText(/blokken gekopieerd/)).toBeVisible();
+});
+
 test("kopiëren heft de selectie op zodat een volgende Enter niets wist", async ({
   page,
 }) => {

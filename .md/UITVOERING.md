@@ -567,10 +567,14 @@ loslaten herordent via remove+insert). Een **"+"** naast ⠿ opent het slash-men
 - **Bug 3 — alleen het bovenste blok werd gekopieerd.** De selectie wordt nu in
   `BlockHandle.onPointerDown` vastgelegd (vóór het tikken de selectie laat vallen) en
   doorgegeven aan de sheet; "Kopiëren" neemt een meervoudige selectie mee, anders het cursor-blok.
-  **Mobiel-vervolg:** op touch collapst de selectie al bij de tik op ⠿, dus de live
-  `getSelection()` leest maar één blok. `BlockHandle` onthoudt daarom de laatst geziene
-  meervoudige selectie (via `onSelectionChange`) en gebruikt die als fallback; een nieuwe
-  cursor ín de editor wist het onthouden meervoud. Regressietest: `e2e/mobile-copy.spec.js`.
+  **Mobiel-vervolg (2 rondes):** op touch collapst de selectie al bij de tik op ⠿, dus bij de
+  tik is de selectie weg. `BlockHandle` onthoudt daarom de laatst geziene meervoudige selectie
+  als fallback. **Belangrijk:** de eerste poging las `editor.getSelection()` (ProseMirror), maar
+  op een echt toestel synct de native touch-selectie **niet** naar ProseMirror → bleef één blok.
+  Opgelost door de **DOM-selectie** te lezen (`window.getSelection()` → blokken via `[data-id]`),
+  bijgehouden op het DOM-`selectionchange`-event (dat vuurt óók bij touch). Een nieuwe cursor ín
+  de editor wist het onthouden meervoud. Tests: `e2e/mobile-copy.spec.js` +
+  `e2e/editor.spec.js` (echte sleep-selectie).
 - **Bug 2 — geen "ongedaan maken".** `RichEditor`-ref uitgebreid met `undo()`/`redo()`
   (`editor.undo()`/`redo()`); **↶ / ↷**-knoppen in de `EntryPage`-topbalk naast Terug.
   (Sluit aan op de bewuste keuze dat blok-verwijderen zónder `ConfirmDialog` gaat.)
