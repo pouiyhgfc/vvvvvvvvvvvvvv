@@ -165,6 +165,13 @@ export default function BlockMenuSheet({
     } catch {
       showToast("Kopiëren mislukt");
     }
+    // Selectie opheffen na kopiëren: anders vervangt (wist) een volgende Enter
+    // de nog actieve selectie. Cursor naar het eind van het laatste blok.
+    try {
+      editor.setTextCursorPosition(blocks[blocks.length - 1].id, "end");
+    } catch {
+      /* blok niet meer aanwezig — selectie laten zoals ze is */
+    }
     editor.focus();
     onClose();
   };

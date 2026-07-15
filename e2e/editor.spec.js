@@ -51,3 +51,37 @@ test("typen geeft geen uncaught console-errors", async ({ page }) => {
   await page.keyboard.type("### Kop\nRegel twee tekst", { delay: 15 });
   expect(errors).toEqual([]);
 });
+
+test("undo/redo-knoppen zijn uit als er niets te herstellen valt", async ({
+  page,
+}) => {
+  await openEditor(page);
+  await expect(
+    page.locator('button[aria-label="Ongedaan maken"]'),
+  ).toBeDisabled();
+  await expect(page.locator('button[aria-label="Opnieuw"]')).toBeDisabled();
+  await page.keyboard.type("Hallo", { delay: 15 });
+  await expect(
+    page.locator('button[aria-label="Ongedaan maken"]'),
+  ).toBeEnabled();
+});
+
+test("kopiëren heft de selectie op zodat een volgende Enter niets wist", async ({
+  page,
+}) => {
+  await openEditor(page);
+  await page.keyboard.type("Regel een");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("Regel twee");
+  await page.keyboard.press("Control+a");
+  await page.keyboard.press("Control+a");
+  await page.click(
+    'button[aria-label="Blok-menu (tik) of verslepen (ingedrukt houden)"]',
+  );
+  await page.click('button[aria-label="Kopiëren"]');
+  await page.waitForTimeout(300);
+  await page.keyboard.press("Enter");
+  const text = await editorText(page);
+  expect(text).toContain("Regel een");
+  expect(text).toContain("Regel twee");
+});

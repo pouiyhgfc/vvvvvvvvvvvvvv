@@ -119,6 +119,9 @@ export default function EntryPage({
   const [created, setCreated] = useState(!!entry?.id);
   const [confirmDel, setConfirmDel] = useState(false);
   const [contentVersion, setContentVersion] = useState(0);
+  // Beschikbaarheid van undo/redo als state (niet de ref tijdens render lezen);
+  // bijgewerkt vanuit de editor-onChange, die ook na undo/redo vuurt.
+  const [hist, setHist] = useState({ undo: false, redo: false });
   const [saveState, setSaveState] = useState("idle"); // "idle" | "saving" | "saved"
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [tplName, setTplName] = useState("");
@@ -130,9 +133,12 @@ export default function EntryPage({
     text: entry?.body ?? draft?.body ?? "",
   });
   // Pas opslaan/updatedAt aanpassen als er echt iets bewerkt is — niet bij
-  // alleen openen of sluiten zonder wijziging. Met een draft is er al
-  // inhoud, dus die telt meteen als een wijziging die opgeslagen moet worden.
-  const dirtyRef = useRef(!!draft);
+  // alleen openen of sluiten zonder wijziging. Een SJABLOON-draft (met `doc`)
+  // telt NIET meteen mee: alleen opslaan als je er echt iets aan toevoegt,
+  // anders maakt "openen + terug" een lege sjabloon-entry. Een share-target-
+  // draft (title/body, geen doc) telt wél meteen mee, zodat gedeelde inhoud
+  // niet verloren gaat.
+  const dirtyRef = useRef(!!draft && !draft.doc);
   const savedTimerRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -197,6 +203,10 @@ export default function EntryPage({
     };
     markDirty();
     setContentVersion((v) => v + 1);
+    setHist({
+      undo: editorRef.current?.canUndo?.() ?? false,
+      redo: editorRef.current?.canRedo?.() ?? false,
+    });
   };
   const close = async () => {
     // Race-fix: bij direct sluiten na de laatste toetsaanslag kan de async
@@ -252,6 +262,11 @@ export default function EntryPage({
     background: "none",
     cursor: "pointer",
   };
+  const histBtn = (enabled) => ({
+    ...ghostBtn,
+    opacity: enabled ? 1 : 0.3,
+    cursor: enabled ? "pointer" : "default",
+  });
 
   return (
     <div
@@ -284,15 +299,17 @@ export default function EntryPage({
               aan: niets om te herstellen is een no-op. */}
           <button
             onClick={() => editorRef.current?.undo()}
+            disabled={!hist.undo}
             aria-label="Ongedaan maken"
-            style={ghostBtn}
+            style={histBtn(hist.undo)}
           >
             <UndoIcon />
           </button>
           <button
             onClick={() => editorRef.current?.redo()}
+            disabled={!hist.redo}
             aria-label="Opnieuw"
-            style={ghostBtn}
+            style={histBtn(hist.redo)}
           >
             <RedoIcon />
           </button>

@@ -118,6 +118,10 @@ const RichEditor = forwardRef(function RichEditor(
       getMarkdown: () => editor.blocksToMarkdownLossy(editor.document),
       undo: () => editor.undo(),
       redo: () => editor.redo(),
+      // Voor de disabled-staat van de knoppen. Valt bij een onbekende API terug
+      // op `true` (knop enabled), zodat undo/redo nooit onterecht dood staat.
+      canUndo: () => editor._tiptapEditor?.can?.().undo?.() ?? true,
+      canRedo: () => editor._tiptapEditor?.can?.().redo?.() ?? true,
     }),
     [editor],
   );

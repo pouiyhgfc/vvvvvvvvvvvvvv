@@ -631,6 +631,27 @@ oude code (`.then`), slagen op de fix.
 
 ---
 
+## Fase — Editor-UX: template-clutter, kopieer-veiligheid, undo/redo-staat
+
+Drie kleine verbeteringen (alle drie met e2e-dekking):
+
+- **Sjabloon maakt geen lege entry meer.** Een draft mét `doc` (dagelijks-logboek- of
+  keuze-sjabloon) telt niet meer meteen als wijziging (`dirtyRef = !!draft && !draft.doc`):
+  "openen + terug" zonder te typen slaat niets op; typ je iets, dan wordt het alsnog opgeslagen.
+  Een share-target-draft (title/body, geen `doc`) blijft wél meteen opslaan.
+- **Kopiëren heft de selectie op.** Na `copyBlocks` zet `BlockMenuSheet` de cursor naar het eind
+  van het laatste blok, zodat een volgende Enter de (voorheen geselecteerde) tekst niet wist —
+  precies de val die het eerdere Enter-dataverlies veroorzaakte.
+- **↶/↷ grijzen uit** als er niets te herstellen valt. `RichEditor`-ref exposeert
+  `canUndo`/`canRedo` (via tiptap `can()`); `EntryPage` houdt dit in state bij vanuit de
+  onChange-handler (geen ref-lezen tijdens render — `react-hooks/refs`).
+
+**Gewijzigd:** `EntryPage.jsx`, `BlockMenuSheet.jsx`, `RichEditor.jsx`, `e2e/editor.spec.js`.
+
+- [x] **Fase afgerond** (build/lint/e2e schoon)
+
+---
+
 ## Gouden regels tijdens het bouwen
 
 1. Eén fase per keer; vink pas af en commit als de controle slaagt.
