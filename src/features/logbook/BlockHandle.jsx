@@ -61,6 +61,7 @@ export default function BlockHandle({ editor, containerRef }) {
   const rafRef = useRef(0);
   const press = useRef(null); // actieve pointer-interactie
   const timerRef = useRef(0);
+  const selBlocksRef = useRef(null); // laatst geziene meervoudige selectie
 
   useEffect(() => {
     if (!editor) return undefined;
@@ -86,8 +87,24 @@ export default function BlockHandle({ editor, containerRef }) {
       rafRef.current = requestAnimationFrame(compute);
     };
 
-    const unsubSel = editor.onSelectionChange(schedule);
+    // Meervoudige selectie onthouden: op touch collapst de selectie zodra je op
+    // ⠿ tikt, dus getSelection() is dán te laat (leest nog maar één blok). We
+    // bewaren de laatst geziene meervoudige selectie als fallback voor Kopiëren.
+    const onSel = () => {
+      const blocks = editor.getSelection()?.blocks;
+      if (blocks && blocks.length > 1) selBlocksRef.current = blocks;
+      schedule();
+    };
+    // Een nieuwe cursor/selectie ín de editor wist het onthouden meervoud, zodat
+    // een latere tik niet per ongeluk een oude selectie kopieert. De tik op ⠿
+    // valt buiten de editor en wist dus niets.
+    const onDocDown = (e) => {
+      if (editor.domElement?.contains(e.target)) selBlocksRef.current = null;
+    };
+
+    const unsubSel = editor.onSelectionChange(onSel);
     const unsubChange = editor.onChange(schedule);
+    document.addEventListener("pointerdown", onDocDown, true);
     window.addEventListener("scroll", schedule, true);
     window.addEventListener("resize", schedule);
     schedule();
@@ -97,6 +114,7 @@ export default function BlockHandle({ editor, containerRef }) {
       clearTimeout(timerRef.current);
       unsubSel?.();
       unsubChange?.();
+      document.removeEventListener("pointerdown", onDocDown, true);
       window.removeEventListener("scroll", schedule, true);
       window.removeEventListener("resize", schedule);
     };
@@ -112,17 +130,19 @@ export default function BlockHandle({ editor, containerRef }) {
     const block = editor.getTextCursorPosition()?.block;
     if (!block) return;
     e.currentTarget.setPointerCapture?.(e.pointerId);
+    // Live selectie als die meerdere blokken beslaat (desktop, waar de selectie
+    // de tik overleeft); anders de laatst onthouden meervoudige selectie (touch,
+    // waar de tik de selectie al heeft gecollapst).
+    const live = editor.getSelection()?.blocks;
     press.current = {
       block,
-      // De actieve selectie NU vastleggen (vóór het tikken op het handvat de
-      // focus/selectie in de editor laat vallen). Zo kan "Kopiëren" een
-      // meervoudige selectie meenemen i.p.v. alleen het cursor-blok.
-      selectionBlocks: editor.getSelection()?.blocks ?? null,
+      selectionBlocks: live && live.length > 1 ? live : selBlocksRef.current,
       dragging: false,
       target: null,
       startX: e.clientX,
       startY: e.clientY,
     };
+    selBlocksRef.current = null; // verbruikt
     timerRef.current = setTimeout(() => {
       if (!press.current) return;
       press.current.dragging = true;
