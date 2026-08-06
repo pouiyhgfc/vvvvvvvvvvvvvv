@@ -1,7 +1,7 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
-import { uid } from "../../lib/date.js";
+import { uid, isToday, getMonday } from "../../lib/date.js";
 import {
   DAYS_NL,
   MONTHS_NL,
@@ -10,6 +10,7 @@ import {
   EVENT_COLORS,
 } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
+import { isActive, isArchived, isTrashed } from "../../lib/notes.js";
 import { useSortable, arrMove } from "../../hooks/useSortable.js";
 import Emoji from "../../ui/Emoji.jsx";
 import Button from "../../ui/Button.jsx";
@@ -48,6 +49,26 @@ function dateSearchString(str) {
 
 const nbOf = (e) => e.notebookId || "logboek";
 
+// Groepskop voor de "Datum"-sorteermodus. Kalendergrenzen (niet 24u-blokken):
+// "gisteren" blijft gisteren, ook als het al 3 uur 's nachts is.
+function groupLabel(dateStr) {
+  const d = new Date(dateStr + "T12:00:00");
+  const now = new Date();
+  if (isToday(d)) return "Vandaag";
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (
+    d.getFullYear() === yesterday.getFullYear() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getDate() === yesterday.getDate()
+  )
+    return "Gisteren";
+  if (d >= getMonday(now)) return "Deze week";
+  if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth())
+    return "Deze maand";
+  return `${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 // Verwijdert recursief block-id's uit een sjabloon-doc (diepe kopie), zodat
 // een nieuwe entry altijd verse id's krijgt en nooit block-id's deelt met
 // het sjabloon of met eerder uit hetzelfde sjabloon gemaakte entries.
@@ -70,9 +91,21 @@ export default function LogbookView() {
   const [sortNbSheet, setSortNbSheet] = useState(false);
   const [templatePicker, setTemplatePicker] = useState(false);
   const [confirmDeleteTpl, setConfirmDeleteTpl] = useState(null);
+  const [archiveSheet, setArchiveSheet] = useState(false);
+  const [trashSheet, setTrashSheet] = useState(false);
+  const [confirmPurge, setConfirmPurge] = useState(null); // entry | "all"
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [moveSheet, setMoveSheet] = useState(false);
+  const [confirmBulkTrash, setConfirmBulkTrash] = useState(false);
 
   const settingsRec = useLiveQuery(() => db.settings.get("singleton"));
   const theme = settingsRec?.theme ?? "light";
+  // "eigen" = handmatige sleepvolgorde, "datum" = gegroepeerd op datum
+  // (nieuwste eerst); vastgezet blijft in beide modi bovenaan.
+  const sortMode = settingsRec?.logbookSort ?? "eigen";
+  const setSortMode = (mode) =>
+    db.settings.update("singleton", { logbookSort: mode });
   const entryTemplatesBlob = useLiveQuery(() => db.blobs.get("entryTemplates"));
   const entryTemplates = entryTemplatesBlob?.data ?? [];
   const notebooksBlob = useLiveQuery(() => db.blobs.get("notebooks"));
@@ -80,6 +113,14 @@ export default function LogbookView() {
   const activeNotebook =
     notebooks.find((n) => n.id === activeNb) || notebooks[0];
   const activeId = activeNotebook?.id ?? "logboek";
+
+  // Selectie hoort bij één notitieboek — bij wisselen begint 'ie leeg,
+  // anders blijven id's uit een ander boek "geselecteerd" maar onzichtbaar.
+  const switchNotebook = (id) => {
+    setActiveNb(id);
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
 
   const logEntriesRaw = useLiveQuery(() =>
     db.logEntries.orderBy("date").reverse().toArray(),
@@ -91,7 +132,7 @@ export default function LogbookView() {
   const allEntries = useMemo(() => {
     if (!logEntriesRaw || !dayNotesRaw) return [];
     const log = logEntriesRaw
-      .filter((e) => nbOf(e) === activeId)
+      .filter((e) => nbOf(e) === activeId && isActive(e))
       .map((e) => ({ ...e, _type: "log" }));
     const days =
       activeId === "logboek"
@@ -104,9 +145,19 @@ export default function LogbookView() {
             _type: "day",
           }))
         : [];
-    // Log-entries: entries met order staan vast (asc); entries zonder order
-    // krijgen negatief tijdstempel → sorteren vóór geordende entries (nieuwste eerst).
+    // Log-entries: eerst vastgezette entries, daarna de rest. In "datum"-modus
+    // sorteert de rest puur op updatedAt/date (nieuwste eerst), ongeacht `order`.
+    // In "eigen"-modus staan entries met order vast (asc); entries zonder
+    // order krijgen een negatief tijdstempel → sorteren vóór geordende
+    // entries (nieuwste eerst).
     const sortedLog = log.sort((a, b) => {
+      const pinDiff = (b.pinnedAt ? 1 : 0) - (a.pinnedAt ? 1 : 0);
+      if (pinDiff) return pinDiff;
+      if (sortMode === "datum") {
+        const ad = a.updatedAt || a.date;
+        const bd = b.updatedAt || b.date;
+        return bd.localeCompare(ad);
+      }
       const ao =
         a.order !== undefined
           ? a.order
@@ -119,16 +170,33 @@ export default function LogbookView() {
     });
     const sortedDays = days.sort((a, b) => b.date.localeCompare(a.date));
     return [...sortedLog, ...sortedDays];
-  }, [logEntriesRaw, dayNotesRaw, activeId]);
+  }, [logEntriesRaw, dayNotesRaw, activeId, sortMode]);
 
   const allTags = useMemo(() => {
     if (!logEntriesRaw) return [];
     const s = new Set();
     logEntriesRaw
-      .filter((e) => nbOf(e) === activeId)
+      .filter((e) => nbOf(e) === activeId && isActive(e))
       .forEach((e) => e.tags?.forEach((t) => s.add(t)));
     return [...s].sort();
   }, [logEntriesRaw, activeId]);
+
+  // Archief/prullenbak: over alle notitieboeken heen, met het notitieboek als
+  // label op de kaart (zie renderMetaEntry hieronder).
+  const archivedEntries = useMemo(() => {
+    if (!logEntriesRaw) return [];
+    return logEntriesRaw
+      .filter(isArchived)
+      .sort((a, b) => (b.archivedAt || "").localeCompare(a.archivedAt || ""));
+  }, [logEntriesRaw]);
+  const trashedEntries = useMemo(() => {
+    if (!logEntriesRaw) return [];
+    return logEntriesRaw
+      .filter(isTrashed)
+      .sort((a, b) => (b.deletedAt || "").localeCompare(a.deletedAt || ""));
+  }, [logEntriesRaw]);
+  const notebookOf = (e) =>
+    notebooks.find((n) => n.id === nbOf(e)) || notebooks[0];
 
   const filtered = useMemo(() => {
     let list = allEntries;
@@ -146,20 +214,105 @@ export default function LogbookView() {
     return list;
   }, [allEntries, search, activeTag]);
 
-  const canSort = !search.trim() && !activeTag;
+  // Slepen kan ook tijdens zoeken/filteren (zie reorderWithinFull hieronder) —
+  // alleen de sorteermodus en selectiemodus sluiten het nog uit.
+  const canSort = sortMode === "eigen" && !selectMode;
 
-  const onReorder = useCallback(
-    async (from, to) => {
-      const logOnly = filtered.filter((e) => e._type === "log");
-      const moved = arrMove(logOnly, from, to);
-      await db.logEntries.bulkPut(
-        moved.map(({ _type: _t, ...rest }, i) => ({ ...rest, order: i })),
-      );
-    },
+  // Alleen log-entries zijn selecteerbaar (dagnotities hebben geen
+  // logEntries-record, dus geen pin/archief/prullenbak/verplaatsen).
+  const selectableIds = useMemo(
+    () => filtered.filter((e) => e._type === "log").map((e) => e.id),
     [filtered],
   );
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+  const selectAllVisible = () => setSelectedIds(new Set(selectableIds));
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
 
-  const { ref: sortRef, onHandleDown } = useSortable(onReorder);
+  // Vastgezette entries vormen een eigen sleep-sectie (zie ONTWERP): ze staan
+  // altijd boven de rest, en een sleep binnen de ene sectie mag de andere
+  // niet aanraken. Twee aparte useSortable-containers i.p.v. één afdwingen
+  // dat vanzelf — elke hook scant alleen data-srow-rijen in zijn eigen ref.
+  const pinnedFiltered = useMemo(
+    () => filtered.filter((e) => e._type === "log" && e.pinnedAt),
+    [filtered],
+  );
+  const restFiltered = useMemo(
+    () => filtered.filter((e) => !(e._type === "log" && e.pinnedAt)),
+    [filtered],
+  );
+  // Ongefilterde tegenhangers: nodig om tijdens zoeken/filteren de volgorde
+  // van onzichtbare entries intact te laten (zie reorderWithinFull).
+  const pinnedAll = useMemo(
+    () => allEntries.filter((e) => e._type === "log" && e.pinnedAt),
+    [allEntries],
+  );
+  const restAll = useMemo(
+    () => allEntries.filter((e) => !(e._type === "log" && e.pinnedAt)),
+    [allEntries],
+  );
+
+  // Herordent de volledige lijst op basis van een sleep in een (mogelijk
+  // gefilterde) deelverzameling: het gesleepte item komt in `fullList` naast
+  // dezelfde buur als in de nieuwe volgorde van `filteredList`, zodat
+  // onzichtbare (buiten het filter vallende) entries hun relatieve plek
+  // t.o.v. hun zichtbare buren behouden.
+  function reorderWithinFull(fullList, filteredList, from, to) {
+    const draggedId = filteredList[from].id;
+    const movedFiltered = arrMove(filteredList, from, to);
+    const idx = movedFiltered.findIndex((e) => e.id === draggedId);
+    const beforeId = idx > 0 ? movedFiltered[idx - 1].id : null;
+    const afterId =
+      idx < movedFiltered.length - 1 ? movedFiltered[idx + 1].id : null;
+
+    const withoutDragged = fullList.filter((e) => e.id !== draggedId);
+    let insertAt;
+    if (beforeId) {
+      insertAt = withoutDragged.findIndex((e) => e.id === beforeId) + 1;
+    } else if (afterId) {
+      insertAt = withoutDragged.findIndex((e) => e.id === afterId);
+    } else {
+      insertAt = 0;
+    }
+    const draggedItem = fullList.find((e) => e.id === draggedId);
+    const result = [...withoutDragged];
+    result.splice(insertAt, 0, draggedItem);
+    return result;
+  }
+
+  const onReorderPinned = useCallback(
+    async (from, to) => {
+      const reordered = reorderWithinFull(pinnedAll, pinnedFiltered, from, to);
+      await db.logEntries.bulkPut(
+        reordered.map(({ _type: _t, ...rest }, i) => ({ ...rest, order: i })),
+      );
+    },
+    [pinnedAll, pinnedFiltered],
+  );
+  const onReorderRest = useCallback(
+    async (from, to) => {
+      const filteredLog = restFiltered.filter((e) => e._type === "log");
+      const allLog = restAll.filter((e) => e._type === "log");
+      const reordered = reorderWithinFull(allLog, filteredLog, from, to);
+      await db.logEntries.bulkPut(
+        reordered.map(({ _type: _t, ...rest }, i) => ({ ...rest, order: i })),
+      );
+    },
+    [restAll, restFiltered],
+  );
+
+  const { ref: pinnedSortRef, onHandleDown: onPinnedHandleDown } =
+    useSortable(onReorderPinned);
+  const { ref: restSortRef, onHandleDown: onRestHandleDown } =
+    useSortable(onReorderRest);
 
   const onNbReorder = useCallback(
     (from, to) => {
@@ -186,7 +339,7 @@ export default function LogbookView() {
     if (nbSheet === "new") {
       const id = uid();
       db.blobs.put({ key: "notebooks", data: [...notebooks, { id, ...data }] });
-      setActiveNb(id);
+      switchNotebook(id);
     } else {
       db.blobs.put({
         key: "notebooks",
@@ -209,9 +362,107 @@ export default function LogbookView() {
       key: "notebooks",
       data: notebooks.filter((n) => n.id !== id),
     });
-    setActiveNb("logboek");
+    switchNotebook("logboek");
     setNbSheet(null);
     showToast("✓ Notitieboek verwijderd");
+  };
+
+  const restoreFromArchive = async (id) => {
+    await db.logEntries.update(id, { archivedAt: null });
+    showToast("✓ Teruggezet");
+  };
+  const archiveToTrash = async (id) => {
+    await db.logEntries.update(id, {
+      archivedAt: null,
+      deletedAt: new Date().toISOString(),
+    });
+    showToast("🗑️ Naar prullenbak");
+  };
+  const restoreFromTrash = async (id) => {
+    await db.logEntries.update(id, { deletedAt: null });
+    showToast("✓ Hersteld");
+  };
+  const purgeEntry = async (id) => {
+    await db.logEntries.delete(id);
+    setConfirmPurge(null);
+    showToast("✓ Definitief verwijderd");
+  };
+  const purgeAllTrash = async () => {
+    await db.logEntries.bulkDelete(trashedEntries.map((e) => e.id));
+    setConfirmPurge(null);
+    showToast("✓ Prullenbak geleegd");
+  };
+
+  // Bulkacties op de huidige selectie. `logEntriesRaw` (niet `filtered`) is
+  // de bron: die bevat de volledige records, `filtered` alleen de weergave.
+  const selectedEntries = () =>
+    (logEntriesRaw ?? []).filter((e) => selectedIds.has(e.id));
+
+  const bulkPin = async () => {
+    const selected = selectedEntries();
+    const allPinned = selected.every((e) => e.pinnedAt);
+    const now = new Date().toISOString();
+    await db.logEntries.bulkPut(
+      selected.map((e) => ({ ...e, pinnedAt: allPinned ? null : now })),
+    );
+    exitSelectMode();
+  };
+  const bulkArchive = async () => {
+    const selected = selectedEntries();
+    await db.logEntries.bulkPut(
+      selected.map((e) => ({
+        ...e,
+        archivedAt: new Date().toISOString(),
+        pinnedAt: null,
+      })),
+    );
+    showToast(`🗄️ ${selected.length} gearchiveerd`);
+    exitSelectMode();
+  };
+  const bulkTrash = async () => {
+    const selected = selectedEntries();
+    await db.logEntries.bulkPut(
+      selected.map((e) => ({
+        ...e,
+        deletedAt: new Date().toISOString(),
+        pinnedAt: null,
+      })),
+    );
+    showToast(`🗑️ ${selected.length} naar prullenbak`);
+    setConfirmBulkTrash(false);
+    exitSelectMode();
+  };
+  // Verplaatste entries komen bovenaan het doelnotitieboek te staan; de
+  // bestaande entries daar schuiven op (zelfde order-logica als elders).
+  const bulkMove = async (targetNbId) => {
+    const selected = selectedEntries();
+    if (!selected.length) return;
+    const targetExisting = (logEntriesRaw ?? []).filter(
+      (e) => nbOf(e) === targetNbId && isActive(e) && !selectedIds.has(e.id),
+    );
+    const sortedTarget = [...targetExisting].sort((a, b) => {
+      const ao =
+        a.order !== undefined
+          ? a.order
+          : -new Date(a.createdAt || a.date + "T00:00").getTime();
+      const bo =
+        b.order !== undefined
+          ? b.order
+          : -new Date(b.createdAt || b.date + "T00:00").getTime();
+      return ao - bo;
+    });
+    await db.logEntries.bulkPut([
+      ...selected.map((e, i) => ({
+        ...e,
+        notebookId: targetNbId,
+        order: i,
+        pinnedAt: null,
+      })),
+      ...sortedTarget.map((e, i) => ({ ...e, order: selected.length + i })),
+    ]);
+    showToast(`✓ ${selected.length} verplaatst`);
+    setMoveSheet(false);
+    exitSelectMode();
   };
 
   const moodEmoji = (val) => MOODS.find((m) => m.value === val)?.emoji;
@@ -234,6 +485,196 @@ export default function LogbookView() {
     color: "var(--text)",
     outline: "none",
   };
+  // Rijstijl voor archief-/prullenbak-items (Sheet-content).
+  const metaRow = {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "10px 4px",
+    borderBottom: "1px solid var(--border-soft)",
+  };
+  const metaBtn = {
+    width: 30,
+    height: 30,
+    borderRadius: 99,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "none",
+    background: "none",
+    color: "var(--text-muted)",
+    cursor: "pointer",
+    flexShrink: 0,
+  };
+
+  // Long-press (450ms) op een kaart start de selectiemodus. Eén timer-ref
+  // volstaat: er kan maar één kaart tegelijk worden ingedrukt.
+  const longPressTimer = useRef(null);
+  const longPressFired = useRef(false);
+  const startLongPress = (id) => {
+    longPressFired.current = false;
+    longPressTimer.current = setTimeout(() => {
+      longPressFired.current = true;
+      setSelectMode(true);
+      setSelectedIds(new Set([id]));
+    }, 450);
+  };
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  // Eén kaart, hergebruikt voor zowel de vastgezet-sectie als de rest — de
+  // twee secties hebben elk hun eigen sleep-container (zie onReorderPinned/
+  // onReorderRest hierboven), maar de kaart zelf ziet er identiek uit.
+  const renderCard = (entry, idx, handleDown) => {
+    const isLog = entry._type === "log";
+    const selected = isLog && selectedIds.has(entry.id);
+    return (
+      <div
+        key={entry.id}
+        data-srow={isLog && canSort ? "1" : undefined}
+        style={{
+          ...cardBase,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 0,
+          outline: selected ? "1.5px solid var(--accent)" : "none",
+        }}
+        onPointerDown={() => {
+          if (isLog && !selectMode) startLongPress(entry.id);
+        }}
+        onPointerUp={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        onPointerCancel={cancelLongPress}
+        onClick={() => {
+          if (longPressFired.current) {
+            longPressFired.current = false;
+            return; // de long-press zelf telt niet ook nog als klik
+          }
+          if (selectMode) {
+            if (isLog) toggleSelect(entry.id);
+            return;
+          }
+          isLog ? setPageEntry(entry) : setSheet(entry);
+        }}
+      >
+        {isLog && selectMode && (
+          <div
+            style={{ alignSelf: "center", marginRight: 8, flexShrink: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={() => toggleSelect(entry.id)}
+              style={{ width: 18, height: 18, cursor: "pointer" }}
+              aria-label="Selecteren"
+            />
+          </div>
+        )}
+        {isLog && canSort && (
+          <div
+            style={{
+              alignSelf: "center",
+              marginRight: 2,
+              flexShrink: 0,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <DragHandle onPointerDown={(e) => handleDown(e, idx, entry.id)} />
+          </div>
+        )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              flexWrap: "wrap",
+              marginBottom: 6,
+            }}
+          >
+            {entry.pinnedAt && <Emoji char="📌" size={12} />}
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "var(--text-muted)",
+              }}
+            >
+              {fmtDay(
+                entry.updatedAt ? entry.updatedAt.slice(0, 10) : entry.date,
+              )}
+            </span>
+            {!isLog && (
+              <span
+                style={{
+                  fontSize: 9,
+                  padding: "1px 7px",
+                  borderRadius: 99,
+                  background: "var(--border-soft)",
+                  color: "var(--text-faint)",
+                  fontWeight: 600,
+                }}
+              >
+                Dagnotitie
+              </span>
+            )}
+            {!isLog && entry.mood && (
+              <Emoji char={moodEmoji(entry.mood)} size={15} />
+            )}
+            <span style={{ flex: 1 }} />
+            <span style={{ fontSize: 15, color: "var(--text-faint)" }}>›</span>
+          </div>
+          {entry.title && (
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: "var(--text)",
+                marginBottom: 3,
+              }}
+            >
+              {entry.title}
+            </div>
+          )}
+          {entry.tags?.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                gap: 4,
+                flexWrap: "wrap",
+                marginTop: 8,
+              }}
+            >
+              {entry.tags.map((tag) => {
+                const c = tagColor(tag);
+                return (
+                  <span
+                    key={tag}
+                    style={{
+                      fontSize: 10,
+                      padding: "2px 8px",
+                      borderRadius: 99,
+                      background: c + "22",
+                      color: c,
+                      border: `1px solid ${c}44`,
+                      fontWeight: 600,
+                    }}
+                  >
+                    #{tag}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div style={{ padding: "14px 12px 24px", animation: "fadeUp .3s ease" }}>
@@ -253,7 +694,7 @@ export default function LogbookView() {
           return (
             <button
               key={n.id}
-              onClick={() => (active ? setNbSheet(n) : setActiveNb(n.id))}
+              onClick={() => (active ? setNbSheet(n) : switchNotebook(n.id))}
               style={{
                 flexShrink: 0,
                 display: "flex",
@@ -309,42 +750,134 @@ export default function LogbookView() {
             ↕
           </button>
         )}
-      </div>
-
-      {/* Kop: actief notitieboek + nieuwe entry */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 12,
-        }}
-      >
-        <h2
+        <button
+          onClick={() => setArchiveSheet(true)}
+          aria-label="Archief"
           style={{
-            fontFamily: "var(--ff-head)",
-            fontSize: 18,
-            fontWeight: 700,
-            flex: 1,
+            flexShrink: 0,
+            padding: "6px 10px",
+            borderRadius: 99,
+            fontSize: 13,
+            border: "1px solid var(--border)",
+            background: "var(--card)",
+            color: "var(--text-faint)",
             display: "flex",
             alignItems: "center",
-            gap: 7,
+            gap: 3,
           }}
         >
-          <Emoji char={activeNotebook?.icon ?? "📖"} size={20} />
-          {activeNotebook?.name ?? "Logboek"}
-        </h2>
-        <Button
-          size="sm"
-          onClick={() =>
-            entryTemplates.length
-              ? setTemplatePicker(true)
-              : setPageEntry("new")
-          }
+          <Emoji char="🗄️" size={13} />
+          {archivedEntries.length > 0 && (
+            <span style={{ fontSize: 10, fontWeight: 700 }}>
+              {archivedEntries.length}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setTrashSheet(true)}
+          aria-label="Prullenbak"
+          style={{
+            flexShrink: 0,
+            padding: "6px 10px",
+            borderRadius: 99,
+            fontSize: 13,
+            border: "1px solid var(--border)",
+            background: "var(--card)",
+            color: "var(--text-faint)",
+            display: "flex",
+            alignItems: "center",
+            gap: 3,
+          }}
         >
-          + Nieuw
-        </Button>
+          <Emoji char="🗑️" size={13} />
+          {trashedEntries.length > 0 && (
+            <span style={{ fontSize: 10, fontWeight: 700 }}>
+              {trashedEntries.length}
+            </span>
+          )}
+        </button>
       </div>
+
+      {/* Kop: actief notitieboek + nieuwe entry, of selectie-status */}
+      {selectMode ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 12,
+          }}
+        >
+          <span
+            style={{
+              flex: 1,
+              fontSize: 14,
+              fontWeight: 700,
+              color: "var(--text)",
+            }}
+          >
+            {selectedIds.size} geselecteerd
+          </span>
+          <Button size="sm" variant="secondary" onClick={selectAllVisible}>
+            Alles
+          </Button>
+          <Button size="sm" variant="secondary" onClick={exitSelectMode}>
+            Annuleren
+          </Button>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 12,
+          }}
+        >
+          <h2
+            style={{
+              fontFamily: "var(--ff-head)",
+              fontSize: 18,
+              fontWeight: 700,
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+            }}
+          >
+            <Emoji char={activeNotebook?.icon ?? "📖"} size={20} />
+            {activeNotebook?.name ?? "Logboek"}
+          </h2>
+          {selectableIds.length > 0 && (
+            <button
+              onClick={() => setSelectMode(true)}
+              aria-label="Selecteren"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 99,
+                border: "1px solid var(--border)",
+                background: "var(--card)",
+                color: "var(--text-faint)",
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            >
+              ☑
+            </button>
+          )}
+          <Button
+            size="sm"
+            onClick={() =>
+              entryTemplates.length
+                ? setTemplatePicker(true)
+                : setPageEntry("new")
+            }
+          >
+            + Nieuw
+          </Button>
+        </div>
+      )}
 
       {/* Zoekbalk */}
       <div style={{ position: "relative", marginBottom: 10 }}>
@@ -368,6 +901,47 @@ export default function LogbookView() {
         />
       </div>
 
+      {/* Sorteermodus: handmatig slepen vs. gegroepeerd op datum */}
+      <div
+        style={{
+          display: "flex",
+          gap: 4,
+          marginBottom: 12,
+          border: "1px solid var(--border)",
+          borderRadius: 99,
+          padding: 2,
+          width: "fit-content",
+        }}
+      >
+        {[
+          ["eigen", "↕", "Eigen"],
+          ["datum", "📅", "Datum"],
+        ].map(([mode, ic, label]) => {
+          const on = sortMode === mode;
+          return (
+            <button
+              key={mode}
+              onClick={() => setSortMode(mode)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                padding: "4px 10px",
+                borderRadius: 99,
+                fontSize: 11,
+                fontWeight: 600,
+                border: "none",
+                background: on ? "var(--sel-bg)" : "transparent",
+                color: on ? "var(--text)" : "var(--text-faint)",
+              }}
+            >
+              <span>{ic}</span>
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Tag-filter */}
       {allTags.length > 0 && (
         <div
@@ -380,22 +954,22 @@ export default function LogbookView() {
         >
           {allTags.map((tag) => {
             const c = tagColor(tag);
-            const isActive = activeTag === tag;
+            const tagActive = activeTag === tag;
             return (
               <button
                 key={tag}
-                onClick={() => setActiveTag(isActive ? null : tag)}
+                onClick={() => setActiveTag(tagActive ? null : tag)}
                 style={{
                   padding: "3px 10px",
                   borderRadius: 99,
                   fontSize: 11,
                   fontWeight: 600,
                   cursor: "pointer",
-                  border: isActive
+                  border: tagActive
                     ? `1.5px solid ${c}`
                     : "1px solid var(--border)",
-                  background: isActive ? c + "22" : "var(--card)",
-                  color: isActive ? c : "var(--text-muted)",
+                  background: tagActive ? c + "22" : "var(--card)",
+                  color: tagActive ? c : "var(--text-muted)",
                 }}
               >
                 #{tag}
@@ -425,132 +999,73 @@ export default function LogbookView() {
         </div>
       )}
 
-      {/* Entry-kaarten */}
-      <div ref={sortRef}>
-        {(() => {
-          let logIdx = 0;
-          return filtered.map((entry) => {
-            const isLog = entry._type === "log";
-            const idx = isLog ? logIdx++ : -1;
-            return (
-              <div
-                key={entry.id}
-                data-srow={isLog && canSort ? "1" : undefined}
-                style={{
-                  ...cardBase,
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 0,
-                }}
-                onClick={() => (isLog ? setPageEntry(entry) : setSheet(entry))}
-              >
-                {isLog && canSort && (
-                  <div
-                    style={{
-                      alignSelf: "center",
-                      marginRight: 2,
-                      flexShrink: 0,
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <DragHandle
-                      onPointerDown={(e) => onHandleDown(e, idx, entry.id)}
-                    />
-                  </div>
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      flexWrap: "wrap",
-                      marginBottom: 6,
-                    }}
-                  >
-                    <span
+      {/* Entry-kaarten: vastgezet-sectie (eigen sleep-container) + de rest */}
+      {pinnedFiltered.length > 0 && (
+        <>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "var(--text-faint)",
+              marginBottom: 6,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <Emoji char="📌" size={12} /> Vastgezet
+          </div>
+          <div ref={pinnedSortRef} style={{ marginBottom: 14 }}>
+            {pinnedFiltered.map((entry, i) =>
+              renderCard(entry, i, onPinnedHandleDown),
+            )}
+          </div>
+        </>
+      )}
+      {sortMode === "datum" ? (
+        <div>
+          {(() => {
+            let lastLabel = null;
+            return restFiltered.map((entry) => {
+              const label = groupLabel(
+                entry._type === "log" && entry.updatedAt
+                  ? entry.updatedAt.slice(0, 10)
+                  : entry.date,
+              );
+              const showHeader = label !== lastLabel;
+              lastLabel = label;
+              return (
+                <div key={entry.id}>
+                  {showHeader && (
+                    <div
                       style={{
                         fontSize: 11,
-                        fontWeight: 600,
-                        color: "var(--text-muted)",
-                      }}
-                    >
-                      {fmtDay(
-                        entry.updatedAt
-                          ? entry.updatedAt.slice(0, 10)
-                          : entry.date,
-                      )}
-                    </span>
-                    {!isLog && (
-                      <span
-                        style={{
-                          fontSize: 9,
-                          padding: "1px 7px",
-                          borderRadius: 99,
-                          background: "var(--border-soft)",
-                          color: "var(--text-faint)",
-                          fontWeight: 600,
-                        }}
-                      >
-                        Dagnotitie
-                      </span>
-                    )}
-                    {!isLog && entry.mood && (
-                      <Emoji char={moodEmoji(entry.mood)} size={15} />
-                    )}
-                    <span style={{ flex: 1 }} />
-                    <span style={{ fontSize: 15, color: "var(--text-faint)" }}>
-                      ›
-                    </span>
-                  </div>
-                  {entry.title && (
-                    <div
-                      style={{
-                        fontSize: 14,
                         fontWeight: 700,
-                        color: "var(--text)",
-                        marginBottom: 3,
+                        color: "var(--text-faint)",
+                        margin: "14px 0 6px",
                       }}
                     >
-                      {entry.title}
+                      {label}
                     </div>
                   )}
-                  {entry.tags?.length > 0 && (
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 4,
-                        flexWrap: "wrap",
-                        marginTop: 8,
-                      }}
-                    >
-                      {entry.tags.map((tag) => {
-                        const c = tagColor(tag);
-                        return (
-                          <span
-                            key={tag}
-                            style={{
-                              fontSize: 10,
-                              padding: "2px 8px",
-                              borderRadius: 99,
-                              background: c + "22",
-                              color: c,
-                              border: `1px solid ${c}44`,
-                              fontWeight: 600,
-                            }}
-                          >
-                            #{tag}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {renderCard(entry, -1, onRestHandleDown)}
                 </div>
-              </div>
-            );
-          });
-        })()}
-      </div>
+              );
+            });
+          })()}
+        </div>
+      ) : (
+        <div ref={restSortRef}>
+          {(() => {
+            let logIdx = 0;
+            return restFiltered.map((entry) => {
+              const isLog = entry._type === "log";
+              const idx = isLog ? logIdx++ : -1;
+              return renderCard(entry, idx, onRestHandleDown);
+            });
+          })()}
+        </div>
+      )}
 
       {pageEntry && (
         <EntryPage
@@ -718,6 +1233,293 @@ export default function LogbookView() {
             ))}
           </div>
         </Sheet>
+      )}
+      {archiveSheet && (
+        <Sheet title="Archief" onClose={() => setArchiveSheet(false)}>
+          {archivedEntries.length === 0 ? (
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--text-faint)",
+                textAlign: "center",
+                padding: "20px 0",
+              }}
+            >
+              Nog niets gearchiveerd.
+            </p>
+          ) : (
+            archivedEntries.map((entry) => {
+              const nb = notebookOf(entry);
+              return (
+                <div key={entry.id} style={metaRow}>
+                  <div
+                    style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
+                    onClick={() => {
+                      setArchiveSheet(false);
+                      setPageEntry(entry);
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        marginBottom: 3,
+                      }}
+                    >
+                      <Emoji char={nb.icon} size={12} />
+                      <span
+                        style={{
+                          fontSize: 10,
+                          color: "var(--text-faint)",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {nb.name}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "var(--text)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {entry.title ||
+                        entry.body?.slice(0, 60) ||
+                        "Zonder titel"}
+                    </div>
+                  </div>
+                  <div
+                    style={{ display: "flex", gap: 4, flexShrink: 0 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => restoreFromArchive(entry.id)}
+                      aria-label="Terugzetten"
+                      style={metaBtn}
+                    >
+                      <Emoji char="↩️" size={14} />
+                    </button>
+                    <button
+                      onClick={() => archiveToTrash(entry.id)}
+                      aria-label="Naar prullenbak"
+                      style={metaBtn}
+                    >
+                      <Emoji char="🗑️" size={14} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </Sheet>
+      )}
+      {trashSheet && (
+        <Sheet
+          title="Prullenbak"
+          onClose={() => setTrashSheet(false)}
+          footer={
+            trashedEntries.length > 0 && (
+              <Button
+                variant="danger"
+                full
+                onClick={() => setConfirmPurge("all")}
+              >
+                <Emoji char="🗑️" size={14} /> Prullenbak legen
+              </Button>
+            )
+          }
+        >
+          {trashedEntries.length === 0 ? (
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--text-faint)",
+                textAlign: "center",
+                padding: "20px 0",
+              }}
+            >
+              Prullenbak is leeg.
+            </p>
+          ) : (
+            <>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--text-faint)",
+                  marginBottom: 10,
+                }}
+              >
+                Items worden na 30 dagen automatisch definitief verwijderd.
+              </p>
+              {trashedEntries.map((entry) => {
+                const nb = notebookOf(entry);
+                return (
+                  <div key={entry.id} style={metaRow}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 5,
+                          marginBottom: 3,
+                        }}
+                      >
+                        <Emoji char={nb.icon} size={12} />
+                        <span
+                          style={{
+                            fontSize: 10,
+                            color: "var(--text-faint)",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {nb.name}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "var(--text)",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {entry.title ||
+                          entry.body?.slice(0, 60) ||
+                          "Zonder titel"}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                      <button
+                        onClick={() => restoreFromTrash(entry.id)}
+                        aria-label="Herstellen"
+                        style={metaBtn}
+                      >
+                        <Emoji char="↩️" size={14} />
+                      </button>
+                      <button
+                        onClick={() => setConfirmPurge(entry)}
+                        aria-label="Definitief verwijderen"
+                        style={metaBtn}
+                      >
+                        <Emoji char="❌" size={14} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </Sheet>
+      )}
+      {confirmPurge && (
+        <ConfirmDialog
+          title="Definitief verwijderen?"
+          message={
+            confirmPurge === "all"
+              ? `${trashedEntries.length} item(s) worden definitief verwijderd. Dit kan niet ongedaan worden gemaakt.`
+              : "Dit item wordt definitief verwijderd. Dit kan niet ongedaan worden gemaakt."
+          }
+          onCancel={() => setConfirmPurge(null)}
+          onConfirm={() =>
+            confirmPurge === "all"
+              ? purgeAllTrash()
+              : purgeEntry(confirmPurge.id)
+          }
+        />
+      )}
+      {moveSheet && (
+        <Sheet title="Verplaatsen naar…" onClose={() => setMoveSheet(false)}>
+          {notebooks
+            .filter((n) => n.id !== activeId)
+            .map((n) => (
+              <div
+                key={n.id}
+                onClick={() => bulkMove(n.id)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 4px",
+                  borderBottom: "1px solid var(--border-soft)",
+                  cursor: "pointer",
+                }}
+              >
+                <Emoji char={n.icon} size={18} />
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "var(--text)",
+                  }}
+                >
+                  {n.name}
+                </span>
+              </div>
+            ))}
+        </Sheet>
+      )}
+      {confirmBulkTrash && (
+        <ConfirmDialog
+          title="Naar prullenbak?"
+          message={`${selectedIds.size} item(s) gaan naar de prullenbak en worden na 30 dagen definitief verwijderd.`}
+          confirmLabel="Naar prullenbak"
+          onCancel={() => setConfirmBulkTrash(false)}
+          onConfirm={bulkTrash}
+        />
+      )}
+      {selectMode && selectedIds.size > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 150,
+            display: "flex",
+            justifyContent: "center",
+            gap: 8,
+            padding: "10px 12px calc(10px + env(safe-area-inset-bottom))",
+            background: "var(--card)",
+            borderTop: "1px solid var(--border-mid)",
+            boxShadow: "0 -2px 10px var(--shadow)",
+          }}
+        >
+          <button
+            onClick={bulkPin}
+            aria-label="Vastzetten"
+            style={{ ...metaBtn, width: 44, height: 44 }}
+          >
+            <Emoji char="📌" size={18} />
+          </button>
+          <button
+            onClick={bulkArchive}
+            aria-label="Archiveren"
+            style={{ ...metaBtn, width: 44, height: 44 }}
+          >
+            <Emoji char="🗄️" size={18} />
+          </button>
+          <button
+            onClick={() => setMoveSheet(true)}
+            aria-label="Verplaatsen naar…"
+            style={{ ...metaBtn, width: 44, height: 44 }}
+          >
+            <Emoji char="📂" size={18} />
+          </button>
+          <button
+            onClick={() => setConfirmBulkTrash(true)}
+            aria-label="Naar prullenbak"
+            style={{ ...metaBtn, width: 44, height: 44 }}
+          >
+            <Emoji char="🗑️" size={18} />
+          </button>
+        </div>
       )}
     </div>
   );

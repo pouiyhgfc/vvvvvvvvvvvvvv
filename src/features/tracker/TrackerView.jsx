@@ -8,6 +8,7 @@ import {
   DAILY_LOG_TEMPLATE_DOC,
 } from "../../lib/constants.js";
 import { db } from "../../lib/db.js";
+import { isActive } from "../../lib/notes.js";
 import Ring from "../../ui/Ring.jsx";
 import Emoji from "../../ui/Emoji.jsx";
 
@@ -36,7 +37,7 @@ export default function TrackerView({
       db.logEntries
         .where("date")
         .equals(dateKey)
-        .filter((e) => (e.notebookId || "logboek") === "logboek")
+        .filter((e) => (e.notebookId || "logboek") === "logboek" && isActive(e))
         .first(),
     [dateKey],
   );

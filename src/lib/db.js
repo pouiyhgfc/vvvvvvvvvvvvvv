@@ -186,6 +186,60 @@ export async function migrateNotesToLogEntries() {
   }
 }
 
+// Eenmalige migratie: elke log-entry krijgt een expliciete `order` (per
+// notitieboek), gebaseerd op de huidige weergavevolgorde (dezelfde regel als
+// LogbookView: order asc indien aanwezig, anders nieuwste-eerst op
+// createdAt/date). Zonder deze stap bestaat "de volgorde" van een notitieboek
+// pas zodra je er handmatig in sleept — pin/archief/prullenbak hebben een
+// stabiele order nodig vanaf het begin.
+export async function migrateNotesOrderV1() {
+  try {
+    const already = await db.meta.get("notes_order_v1");
+    if (already) return;
+    const all = await db.logEntries.toArray();
+    const byNotebook = new Map();
+    for (const e of all) {
+      const nb = e.notebookId || "logboek";
+      if (!byNotebook.has(nb)) byNotebook.set(nb, []);
+      byNotebook.get(nb).push(e);
+    }
+    const updates = [];
+    for (const entries of byNotebook.values()) {
+      const sorted = [...entries].sort((a, b) => {
+        const ao =
+          a.order !== undefined
+            ? a.order
+            : -new Date(a.createdAt || a.date + "T00:00").getTime();
+        const bo =
+          b.order !== undefined
+            ? b.order
+            : -new Date(b.createdAt || b.date + "T00:00").getTime();
+        return ao - bo;
+      });
+      sorted.forEach((e, i) => updates.push({ ...e, order: i }));
+    }
+    if (updates.length) await db.logEntries.bulkPut(updates);
+    await db.meta.put({ key: "notes_order_v1", value: true });
+  } catch (err) {
+    console.error("[migrateNotesOrderV1]", err);
+  }
+}
+
+// Verwijdert log-entries die langer dan 30 dagen in de prullenbak staan
+// (deletedAt gezet). Draait bij elke app-start; faalt geruisloos.
+const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+export async function purgeTrash() {
+  try {
+    const cutoff = Date.now() - TRASH_RETENTION_MS;
+    const toPurge = await db.logEntries
+      .filter((e) => !!e.deletedAt && new Date(e.deletedAt).getTime() < cutoff)
+      .primaryKeys();
+    if (toPurge.length) await db.logEntries.bulkDelete(toPurge);
+  } catch (err) {
+    console.error("[purgeTrash]", err);
+  }
+}
+
 export async function seedHifd() {
   try {
     const already = await db.meta.get("hifd_seeded");

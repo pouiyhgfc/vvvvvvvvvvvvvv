@@ -98,10 +98,12 @@ Doel: emoji's renderen op élk toestel identiek (vlaggen renderen anders per And
 
 De Logboek-tab is een werkruimte met **notitieboeken** ([LogbookView.jsx](src/features/logbook/LogbookView.jsx)):
 
-- Notitieboeken: blob `notebooks` = `[{ id, name, icon, color }]`, fallback `DEFAULT_NOTEBOOKS`. Beheren via `NotebookSheet`; een notitieboek verwijderen verhuist zijn entries naar `logboek`.
-- Entries (`db.logEntries`): `notebookId` (ontbreekt = `logboek`), `title`, `doc` (BlockNote blocks-JSON), `body` (afgeleide markdown voor zoeken/preview), `tags`, `mood`, `date`, `createdAt`, `updatedAt`.
-- Dag-notities uit de tracker (`days.notes`) verschijnen alleen in `logboek` en blijven plat (geen rijke editor) — bewerken via `LogEntrySheet`.
-- Een log-entry openen = volledige pagina `EntryPage` met **auto-save** (debounced + bij Terug); verwijderen zit in de pagina-topbalk.
+- Notitieboeken: blob `notebooks` = `[{ id, name, icon, color }]`, fallback `DEFAULT_NOTEBOOKS`. Beheren via `NotebookSheet`; een notitieboek verwijderen verhuist zijn entries (incl. gearchiveerde/verwijderde) naar `logboek`.
+- Entries (`db.logEntries`): `notebookId` (ontbreekt = `logboek`), `title`, `doc` (BlockNote blocks-JSON), `body` (afgeleide markdown voor zoeken/preview), `tags`, `mood`, `date`, `createdAt`, `updatedAt`, `order` (handmatige sortering, per notitieboek — genormaliseerd door `migrateNotesOrderV1`), `pinnedAt` (vastgezet, nullable ISO), `archivedAt`/`deletedAt` (archief/prullenbak, nullable ISO — zie `src/lib/notes.js` voor `isActive`/`isArchived`/`isTrashed`; alle leesqueries buiten de archief/prullenbak-sheets filteren op `isActive`).
+- Dag-notities uit de tracker (`days.notes`) verschijnen alleen in `logboek` en blijven plat (geen rijke editor) — bewerken via `LogEntrySheet`; ze hebben geen `logEntries`-record en dus geen pin/archief/prullenbak.
+- Een log-entry openen = volledige pagina `EntryPage` met **auto-save** (debounced + bij Terug); pin/archief/prullenbak-knoppen zitten in de pagina-topbalk, plus een notitieboek-select in de meta-rij om te verplaatsen. Verwijderen is zacht (`deletedAt`) — prullenbak ruimt na 30 dagen automatisch op (`purgeTrash`, draait bij app-start in `main.jsx`).
+- **Sorteermodus** (`settings.logbookSort`, "eigen" | "datum"): "eigen" is de handmatige sleepvolgorde (twee `useSortable`-containers: vastgezet-sectie + de rest — voorkomt kruisen); "datum" groepeert op Vandaag/Gisteren/Deze week/Deze maand/maand-jaar. Vastgezet staat in beide bovenaan. Slepen werkt ook tijdens zoeken/tag-filteren (`reorderWithinFull` in `LogbookView.jsx`): het gesleepte item krijgt zijn plek t.o.v. zijn zichtbare buur in de _volledige_ lijst, zodat weggefilterde entries hun relatieve volgorde behouden.
+- **Multi-select**: long-press op een kaart of de ☑-knop naast "+ Nieuw". Checkbox vervangt dan het sleephandvat; actiebalk onderin voor vastzetten/archiveren/verplaatsen/prullenbak op de hele selectie. Dagnotities zijn nooit selecteerbaar (geen `logEntries`-record).
 
 **Editor-pipeline (BlockNote):** `RichEditor.jsx` is **lazy** geladen en toont de editor; bij wijziging geeft hij `{ doc, text }` terug (`text` = `blocksToMarkdownLossy`). Oude platte entries laden via `plainToBlocks`. Thema volgt `settings.theme`. Nieuwe emoji's niet nodig hier. BlockNote-kern is MPL-2.0 — vermijd de GPL "XL"-pakketten.
 

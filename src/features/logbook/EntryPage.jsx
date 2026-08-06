@@ -9,14 +9,14 @@ import {
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { uid, dk } from "../../lib/date.js";
-import { DAYS_NL, MONTHS_NL } from "../../lib/constants.js";
+import { DAYS_NL, MONTHS_NL, DEFAULT_NOTEBOOKS } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 import Button from "../../ui/Button.jsx";
 import IconField from "../../ui/IconField.jsx";
 import Emoji from "../../ui/Emoji.jsx";
-import { TextInput } from "../../ui/Field.jsx";
+import { TextInput, Select } from "../../ui/Field.jsx";
 
 const RichEditor = lazy(() => import("./RichEditor.jsx"));
 
@@ -117,6 +117,10 @@ export default function EntryPage({
   const [title, setTitle] = useState(entry?.title || draft?.title || "");
   const [tags, setTags] = useState(entry?.tags?.join(", ") || "");
   const [created, setCreated] = useState(!!entry?.id);
+  const [pinned, setPinned] = useState(!!entry?.pinnedAt);
+  const [currentNb, setCurrentNb] = useState(
+    entry?.notebookId || notebookId || "logboek",
+  );
   const [confirmDel, setConfirmDel] = useState(false);
   const [contentVersion, setContentVersion] = useState(0);
   // Beschikbaarheid van undo/redo als state (niet de ref tijdens render lezen);
@@ -165,7 +169,7 @@ export default function EntryPage({
       setCreated(true);
       await db.logEntries.put({
         id,
-        notebookId,
+        notebookId: currentNb,
         date: dateProp || dk(new Date()),
         title: title.trim(),
         body: text || "",
@@ -187,7 +191,7 @@ export default function EntryPage({
     setSaveState("saved");
     clearTimeout(savedTimerRef.current);
     savedTimerRef.current = setTimeout(() => setSaveState("idle"), 1500);
-  }, [title, tags, notebookId, dateProp]);
+  }, [title, tags, dateProp, currentNb]);
 
   useEffect(() => {
     const t = setTimeout(persist, 500);
@@ -223,9 +227,51 @@ export default function EntryPage({
     await persist();
     onClose();
   };
+  // Verwijderen is zacht: de entry gaat naar de prullenbak (deletedAt) en
+  // wordt pas na 30 dagen (of "definitief verwijderen" daar) echt gewist.
   const remove = async () => {
-    if (idRef.current) await db.logEntries.delete(idRef.current);
+    if (idRef.current) {
+      await db.logEntries.update(idRef.current, {
+        deletedAt: new Date().toISOString(),
+        pinnedAt: null,
+      });
+      showToast("🗑️ Naar prullenbak");
+    }
     onClose();
+  };
+
+  const archive = async () => {
+    if (!idRef.current) return;
+    await db.logEntries.update(idRef.current, {
+      archivedAt: new Date().toISOString(),
+      pinnedAt: null,
+    });
+    showToast("🗄️ Gearchiveerd");
+    onClose();
+  };
+
+  const togglePin = async () => {
+    if (!idRef.current) return;
+    const next = pinned ? null : new Date().toISOString();
+    await db.logEntries.update(idRef.current, { pinnedAt: next });
+    setPinned(!!next);
+  };
+
+  const notebooksBlob = useLiveQuery(() => db.blobs.get("notebooks"));
+  const notebooks = notebooksBlob?.data ?? DEFAULT_NOTEBOOKS;
+
+  // Verplaatsen is een losse, meteen zichtbare actie — net als pin/archief
+  // schrijft dit direct naar Dexie i.p.v. via de gedebouncte persist(), zodat
+  // het niet wacht op de volgende tekstwijziging. Nog niet opgeslagen entries
+  // (idRef leeg) hebben nog geen record: daar volstaat het bijwerken van de
+  // state, persist() gebruikt currentNb zodra 'm wél aanmaakt.
+  const moveToNotebook = async (id) => {
+    if (id === currentNb) return;
+    setCurrentNb(id);
+    if (idRef.current) {
+      await db.logEntries.update(idRef.current, { notebookId: id });
+      showToast("✓ Verplaatst");
+    }
   };
 
   const templatesBlob = useLiveQuery(() => db.blobs.get("entryTemplates"));
@@ -325,6 +371,23 @@ export default function EntryPage({
           {saveState === "saving" && "Opslaan…"}
           {saveState === "saved" && "Opgeslagen ✓"}
         </span>
+        {created && (
+          <button
+            onClick={togglePin}
+            aria-label={pinned ? "Losmaken" : "Vastzetten"}
+            style={{
+              ...ghostBtn,
+              color: pinned ? "var(--accent)" : "var(--text-muted)",
+            }}
+          >
+            <Emoji char="📌" size={16} />
+          </button>
+        )}
+        {created && (
+          <button onClick={archive} aria-label="Archiveren" style={ghostBtn}>
+            <Emoji char="🗄️" size={16} />
+          </button>
+        )}
         <button
           onClick={() => setShowSaveTemplate(true)}
           aria-label="Meer opties"
@@ -348,7 +411,7 @@ export default function EntryPage({
         {created && (
           <button
             onClick={() => setConfirmDel(true)}
-            aria-label="Verwijderen"
+            aria-label="Naar prullenbak"
             style={{
               width: 34,
               height: 34,
@@ -393,7 +456,7 @@ export default function EntryPage({
               boxShadow: "none",
             }}
           />
-          {/* Meta-rij: datum · tags */}
+          {/* Meta-rij: datum · notitieboek · tags */}
           <div
             style={{
               display: "flex",
@@ -413,6 +476,27 @@ export default function EntryPage({
             >
               {fmtDay(entryDate)}
             </span>
+            <span style={{ color: "var(--border)", fontSize: 14 }}>·</span>
+            <Select
+              value={currentNb}
+              onChange={(e) => moveToNotebook(e.target.value)}
+              aria-label="Notitieboek"
+              style={{
+                width: "auto",
+                border: "none",
+                background: "transparent",
+                fontSize: 12,
+                fontWeight: 500,
+                color: "var(--text-faint)",
+                padding: "0 16px 0 0",
+              }}
+            >
+              {notebooks.map((n) => (
+                <option key={n.id} value={n.id}>
+                  {n.icon} {n.name}
+                </option>
+              ))}
+            </Select>
             <span style={{ color: "var(--border)", fontSize: 14 }}>·</span>
             <TextInput
               value={tags}
@@ -459,8 +543,9 @@ export default function EntryPage({
 
       {confirmDel && (
         <ConfirmDialog
-          title="Entry verwijderen?"
-          message="Deze entry wordt verwijderd."
+          title="Naar prullenbak?"
+          message="Deze entry gaat naar de prullenbak en wordt na 30 dagen definitief verwijderd."
+          confirmLabel="Naar prullenbak"
           onCancel={() => setConfirmDel(false)}
           onConfirm={remove}
         />

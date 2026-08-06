@@ -39,7 +39,7 @@ export async function exportData({
   const hifdData = await db.hifd.toArray();
   const hifdLogData = await db.hifdLogV2.toArray();
   downloadJSON(`routine-backup-${dk(new Date())}.json`, {
-    version: 8,
+    version: 9,
     exportedAt: new Date().toISOString(),
     routines,
     areas,

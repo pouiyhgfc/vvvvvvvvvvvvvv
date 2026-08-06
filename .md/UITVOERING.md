@@ -8,7 +8,7 @@
 > - **💡 Ideeën & Backlog** is de parkeerplaats voor nieuwe ideeën. Brainstorm je iets? Zeg het tegen Claude; hij zet het hier neer als onaangevinkt punt. Wil je het uitwerken? Dan maakt hij er onderaan een volledige fase van (met prompt + controle).
 > - Claude houdt dit bestand bij volgens de regels in `CLAUDE.md` (sectie "Documentatie bijhouden").
 
-**Status — huidige fase:** _Editor-stabiliteit — `blocksToMarkdownLossy().then`-fout gefixt (brak de markdown-input-rules); Enter-dataverlies gediagnosticeerd als standaard "selectie-vervangen" (vangnet = ↩ undo). Playwright-e2e toegevoegd (`npm run test:e2e`, 3 regressietests). Daarvóór: editor-bugfixes — robuust kopiëren (tabel via HTML + meervoudige selectie), tekst-secties verborgen voor tabellen, undo/redo (↶/↷), "Reflectie"-sjabloon bij het dagelijkse logboek, ConfirmDialog-import hersteld. Build/lint/e2e schoon. Zie de fasen onderaan. Nog eerder:_ _Touch blok-handvat (⠿) gebouwd — de vervanger voor de teruggedraaide `MobileToolbar`. Eigen handvat bij het actieve blok (BlockNote's zijmenu is hover-only + native HTML5-drag → touch-dood): **tik** = bottom-sheet met blok-acties (turn into / dupliceren / kopiëren / omhoog-omlaag / kleur / opmaak / tabel-acties / verwijderen), **ingedrukt houden** = vrij verslepen met ghost + drop-indicator. Plus: dode merge-knop gerepareerd (`tables`-optie aan), private tabel-API ingekapseld (`tableCommands.js`), gedeelde editor-acties (`editorActions.js`), betrouwbare "/"-ingang via "+"-knop, grotere kolom-resize-hitzone. Build/lint/deadcode schoon. **Wacht op verificatie op een echt Android-toestel** (handvat-positie, tik vs long-press, verslepen, "/"). Zie `.md/PLAN-NOTION-EDITOR.md` + `.md/STAPPENPLAN-NOTION-EDITOR.md`._
+**Status — huidige fase:** _Notities beter organiseren — vastzetten, archief/prullenbak (zacht verwijderen, 30 dagen bewaartermijn), verplaatsen tussen notitieboeken (los en bulk), datumgroepen naast de handmatige sleepvolgorde, multi-select met bulkacties, en slepen dat nu ook tijdens zoeken/filteren de volgorde van verborgen entries intact laat. Build/lint/20× e2e schoon. Zie de fase onderaan. Daarvóór:_ _Editor-stabiliteit — `blocksToMarkdownLossy().then`-fout gefixt (brak de markdown-input-rules); Enter-dataverlies gediagnosticeerd als standaard "selectie-vervangen" (vangnet = ↩ undo). Playwright-e2e toegevoegd (`npm run test:e2e`, 3 regressietests). Daarvóór: editor-bugfixes — robuust kopiëren (tabel via HTML + meervoudige selectie), tekst-secties verborgen voor tabellen, undo/redo (↶/↷), "Reflectie"-sjabloon bij het dagelijkse logboek, ConfirmDialog-import hersteld. Build/lint/e2e schoon. Zie de fasen onderaan. Nog eerder:_ _Touch blok-handvat (⠿) gebouwd — de vervanger voor de teruggedraaide `MobileToolbar`. Eigen handvat bij het actieve blok (BlockNote's zijmenu is hover-only + native HTML5-drag → touch-dood): **tik** = bottom-sheet met blok-acties (turn into / dupliceren / kopiëren / omhoog-omlaag / kleur / opmaak / tabel-acties / verwijderen), **ingedrukt houden** = vrij verslepen met ghost + drop-indicator. Plus: dode merge-knop gerepareerd (`tables`-optie aan), private tabel-API ingekapseld (`tableCommands.js`), gedeelde editor-acties (`editorActions.js`), betrouwbare "/"-ingang via "+"-knop, grotere kolom-resize-hitzone. Build/lint/deadcode schoon. **Wacht op verificatie op een echt Android-toestel** (handvat-positie, tik vs long-press, verslepen, "/"). Zie `.md/PLAN-NOTION-EDITOR.md` + `.md/STAPPENPLAN-NOTION-EDITOR.md`._
 
 ---
 
@@ -678,6 +678,44 @@ instantie). Nu werken rij/kolom toevoegen+wissen, kopregel togglen en tabel wiss
 (BlockNote NL-locale), de blok-sheet noemt ze "Opsomming"/"Checklist". Beide werken.
 
 - [x] **Fase afgerond** (build/lint/8× e2e schoon)
+
+---
+
+## Fase — Notities beter sorteren, verplaatsen, archief/prullenbak, multi-select
+
+Op verzoek: notities in het Logboek beter kunnen ordenen, verplaatsen tussen notitieboeken,
+meerdere tegelijk selecteren, en niets meer per ongeluk kwijtraken.
+
+- **`order` genormaliseerd** (`migrateNotesOrderV1`, eenmalig bij app-start) zodat elke
+  log-entry een expliciete positie heeft, ook zonder ooit gesleept te zijn.
+- **Vastzetten** (📌, in de `EntryPage`-topbalk): eigen sectie bovenaan, met eigen
+  sleep-container (twee `useSortable`-instanties i.p.v. één — voorkomt kruisen met de rest).
+- **Archief + prullenbak** (`archivedAt`/`deletedAt`, `src/lib/notes.js` met
+  `isActive`/`isArchived`/`isTrashed`): verwijderen is voortaan zacht; alle leesqueries
+  (Logboek-lijst, tags, tracker-"vandaag"-widget) filteren nu op `isActive`. Prullenbak ruimt
+  na 30 dagen zichzelf op (`purgeTrash`, bij elke app-start). Bereikbaar via 🗄️/🗑️ naast de
+  notitieboek-tabs (over alle notitieboeken heen), met herstellen/definitief
+  verwijderen/legen.
+- **Verplaatsen tussen notitieboeken**: select in `EntryPage`'s meta-rij (bug tegelijk
+  gefixt — `persist()` schreef `notebookId` voorheen alleen bij _aanmaken_, nooit bij een
+  update) en als bulkactie.
+- **Datumgroepen**: sorteermodus-schakelaar (↕ Eigen | 📅 Datum, opgeslagen in
+  `settings.logbookSort`) — Datum groepeert op Vandaag/Gisteren/Deze week/Deze
+  maand/maand-jaar, Eigen is de handmatige sleepvolgorde. Vastgezet blijft in beide bovenaan.
+- **Multi-select**: long-press of de ☑-knop, checkbox i.p.v. sleephandvat, actiebalk onderin
+  (vastzetten/archiveren/verplaatsen/prullenbak). Dagnotities (uit de tracker, geen
+  `logEntries`-record) zijn nooit selecteerbaar.
+- **Slepen tijdens zoeken/filteren werkt nu ook** (`reorderWithinFull`): het gesleepte item
+  krijgt zijn nieuwe plek t.o.v. zijn zichtbare buur in de _volledige_ lijst, zodat
+  weggefilterde entries hun relatieve volgorde behouden i.p.v. door elkaar te raken.
+
+**Nieuw/gewijzigd:** `src/lib/db.js` (`migrateNotesOrderV1`, `purgeTrash`), `src/lib/notes.js`
+(nieuw), `src/main.jsx`, `LogbookView.jsx`, `EntryPage.jsx`, `TrackerView.jsx`,
+`ConfirmDialog.jsx` (`role="alertdialog"`), `backup.js` (versie 8→9), `e2e/notes-trash.spec.js`
+
+- `e2e/notes-organize.spec.js` (nieuw, 10 tests).
+
+* [x] **Fase afgerond** (build/lint/20× e2e schoon)
 
 ---
 

@@ -28,6 +28,8 @@ export default function ConfirmDialog({
 
   return (
     <div
+      role="alertdialog"
+      aria-modal="true"
       style={{
         position: "fixed",
         inset: 0,
