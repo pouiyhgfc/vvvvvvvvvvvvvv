@@ -36,7 +36,7 @@ test("vastzetten toont de entry in de Vastgezet-sectie en overleeft herladen", a
   await page.click('button[aria-label="Vastzetten"]');
   await page.click('button[aria-label="Terug"]');
 
-  await expect(page.getByText("Vastgezet")).toBeVisible();
+  await expect(page.getByText("Vastgezet", { exact: true })).toBeVisible();
   const posA = await page
     .getByText("Pin-test-A", { exact: true })
     .boundingBox();
@@ -49,7 +49,7 @@ test("vastzetten toont de entry in de Vastgezet-sectie en overleeft herladen", a
   // naar Notities navigeren voordat we de lijst controleren.
   await page.reload();
   await page.getByRole("button").filter({ hasText: "Notities" }).click();
-  await expect(page.getByText("Vastgezet")).toBeVisible();
+  await expect(page.getByText("Vastgezet", { exact: true })).toBeVisible();
   const posA2 = await page
     .getByText("Pin-test-A", { exact: true })
     .boundingBox();

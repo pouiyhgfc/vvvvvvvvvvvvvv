@@ -405,6 +405,7 @@ export default function LogbookView() {
     await db.logEntries.bulkPut(
       selected.map((e) => ({ ...e, pinnedAt: allPinned ? null : now })),
     );
+    showToast(allPinned ? "📌 Losgemaakt" : "📌 Vastgezet");
     exitSelectMode();
   };
   const bulkArchive = async () => {
@@ -753,6 +754,7 @@ export default function LogbookView() {
         <button
           onClick={() => setArchiveSheet(true)}
           aria-label="Archief"
+          title="Archief"
           style={{
             flexShrink: 0,
             padding: "6px 10px",
@@ -776,6 +778,7 @@ export default function LogbookView() {
         <button
           onClick={() => setTrashSheet(true)}
           aria-label="Prullenbak"
+          title="Prullenbak"
           style={{
             flexShrink: 0,
             padding: "6px 10px",
@@ -852,6 +855,7 @@ export default function LogbookView() {
             <button
               onClick={() => setSelectMode(true)}
               aria-label="Selecteren"
+              title="Selecteren"
               style={{
                 width: 32,
                 height: 32,
@@ -1300,6 +1304,7 @@ export default function LogbookView() {
                     <button
                       onClick={() => restoreFromArchive(entry.id)}
                       aria-label="Terugzetten"
+                      title="Terugzetten"
                       style={metaBtn}
                     >
                       <Emoji char="↩️" size={14} />
@@ -1307,6 +1312,7 @@ export default function LogbookView() {
                     <button
                       onClick={() => archiveToTrash(entry.id)}
                       aria-label="Naar prullenbak"
+                      title="Naar prullenbak"
                       style={metaBtn}
                     >
                       <Emoji char="🗑️" size={14} />
@@ -1399,6 +1405,7 @@ export default function LogbookView() {
                       <button
                         onClick={() => restoreFromTrash(entry.id)}
                         aria-label="Herstellen"
+                        title="Herstellen"
                         style={metaBtn}
                       >
                         <Emoji char="↩️" size={14} />
@@ -1406,6 +1413,7 @@ export default function LogbookView() {
                       <button
                         onClick={() => setConfirmPurge(entry)}
                         aria-label="Definitief verwijderen"
+                        title="Definitief verwijderen"
                         style={metaBtn}
                       >
                         <Emoji char="❌" size={14} />
@@ -1494,6 +1502,7 @@ export default function LogbookView() {
           <button
             onClick={bulkPin}
             aria-label="Vastzetten"
+            title="Vastzetten"
             style={{ ...metaBtn, width: 44, height: 44 }}
           >
             <Emoji char="📌" size={18} />
@@ -1501,6 +1510,7 @@ export default function LogbookView() {
           <button
             onClick={bulkArchive}
             aria-label="Archiveren"
+            title="Archiveren"
             style={{ ...metaBtn, width: 44, height: 44 }}
           >
             <Emoji char="🗄️" size={18} />
@@ -1508,6 +1518,7 @@ export default function LogbookView() {
           <button
             onClick={() => setMoveSheet(true)}
             aria-label="Verplaatsen naar…"
+            title="Verplaatsen naar…"
             style={{ ...metaBtn, width: 44, height: 44 }}
           >
             <Emoji char="📂" size={18} />
@@ -1515,6 +1526,7 @@ export default function LogbookView() {
           <button
             onClick={() => setConfirmBulkTrash(true)}
             aria-label="Naar prullenbak"
+            title="Naar prullenbak"
             style={{ ...metaBtn, width: 44, height: 44 }}
           >
             <Emoji char="🗑️" size={18} />

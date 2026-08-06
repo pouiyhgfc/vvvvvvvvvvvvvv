@@ -11,6 +11,7 @@ import { db } from "../../lib/db.js";
 import { uid, dk } from "../../lib/date.js";
 import { DAYS_NL, MONTHS_NL, DEFAULT_NOTEBOOKS } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
+import { buzz } from "../../lib/storage.js";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 import Button from "../../ui/Button.jsx";
@@ -242,6 +243,7 @@ export default function EntryPage({
 
   const archive = async () => {
     if (!idRef.current) return;
+    buzz();
     await db.logEntries.update(idRef.current, {
       archivedAt: new Date().toISOString(),
       pinnedAt: null,
@@ -252,9 +254,11 @@ export default function EntryPage({
 
   const togglePin = async () => {
     if (!idRef.current) return;
+    buzz();
     const next = pinned ? null : new Date().toISOString();
     await db.logEntries.update(idRef.current, { pinnedAt: next });
     setPinned(!!next);
+    showToast(next ? "📌 Vastgezet" : "📌 Losgemaakt");
   };
 
   const notebooksBlob = useLiveQuery(() => db.blobs.get("notebooks"));
@@ -375,16 +379,23 @@ export default function EntryPage({
           <button
             onClick={togglePin}
             aria-label={pinned ? "Losmaken" : "Vastzetten"}
+            title={pinned ? "Losmaken" : "Vastzetten"}
             style={{
               ...ghostBtn,
-              color: pinned ? "var(--accent)" : "var(--text-muted)",
+              color: pinned ? "var(--accent-contrast)" : "var(--text-muted)",
+              background: pinned ? "var(--accent)" : "none",
             }}
           >
             <Emoji char="📌" size={16} />
           </button>
         )}
         {created && (
-          <button onClick={archive} aria-label="Archiveren" style={ghostBtn}>
+          <button
+            onClick={archive}
+            aria-label="Archiveren"
+            title="Archiveren"
+            style={ghostBtn}
+          >
             <Emoji char="🗄️" size={16} />
           </button>
         )}
