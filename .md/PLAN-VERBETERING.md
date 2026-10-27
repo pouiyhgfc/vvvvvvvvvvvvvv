@@ -349,6 +349,20 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
 - [ ] **5.7 RTL in de editor:** per blok automatische schrijfrichting (`unicode-bidi: plaintext`)
       testen met Arabisch en Tarifit.
 - [ ] **5.8 Onderzoek:** multi-block-selectie op touch (groot; pas na 0.56 beoordelen).
+- [ ] **5.9 Tags met structuur** (besluit eigenaar 27-10-2026: tags blijven, maar beter). Nu: los
+      intypen, komma-gescheiden, eindeloze lijst zonder samenhang (#hifd naast gebied
+      "Quran/Hifd").
+  - **Kiezen i.p.v. typen:** tag-kiezer met je bestaande tags als chips + zoeken; "nieuwe tag"
+    alleen als hij nog niet bestaat. Geen dubbelingen meer door hoofdletters/spaties
+    (`Hifd`, `hifd `, `hifd` → één tag).
+  - **Tagbeheer onder Meer:** lijst met aantal notities per tag; hernoemen, samenvoegen
+    (`hifz` + `hifd`), verwijderen.
+  - **Optioneel koppelen aan een focusgebied** (tag `hifd` → Quran/Hifd): de tag krijgt de kleur
+    van het gebied en filteren op een gebied toont ook die notities. Niet verplicht.
+  - **Data:** `tags` blijft een lijst tekst per entry (geen migratie nodig); tagbeheer en
+    gebiedskoppeling in een nieuwe blob `tagMeta` (meegenomen in de backup, formaatversie +1).
+    Hernoemen/samenvoegen past `tags` in de entries aan in één transactie, na bevestiging.
+  - Tests: normaliseren, samenvoegen, hernoemen (unit); tag kiezen + filteren (e2e).
 - [ ] **Fase 5 afgerond**
 
 **Bewust niet:** kolommen (`@blocknote/xl-multi-column` is GPL), AI- en exportpakketten uit de
