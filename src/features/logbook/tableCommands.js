@@ -42,13 +42,13 @@ function dispatch(editor, command) {
 
 // Getoond in de blok-sheet zodra het actieve blok een tabel is.
 export const TABLE_ACTIONS = [
-  { label: "Rij boven invoegen", glyph: "R↑", cmd: "addRowBefore" },
-  { label: "Rij onder invoegen", glyph: "R↓", cmd: "addRowAfter" },
-  { label: "Kolom links invoegen", glyph: "K←", cmd: "addColumnBefore" },
-  { label: "Kolom rechts invoegen", glyph: "K→", cmd: "addColumnAfter" },
-  { label: "Rij wissen", glyph: "R✕", cmd: "deleteRow" },
-  { label: "Kolom wissen", glyph: "K✕", cmd: "deleteColumn" },
-  { label: "Kopregel aan/uit", glyph: "▤", cmd: "toggleHeaderRow" },
+  { label: "Rij boven invoegen", glyph: "+ Rij boven", cmd: "addRowBefore" },
+  { label: "Rij onder invoegen", glyph: "+ Rij onder", cmd: "addRowAfter" },
+  { label: "Kolom links invoegen", glyph: "+ Kolom links", cmd: "addColumnBefore" },
+  { label: "Kolom rechts invoegen", glyph: "+ Kolom rechts", cmd: "addColumnAfter" },
+  { label: "Rij wissen", glyph: "Rij weg", cmd: "deleteRow" },
+  { label: "Kolom wissen", glyph: "Kolom weg", cmd: "deleteColumn" },
+  { label: "Kopregel aan/uit", glyph: "Kopregel", cmd: "toggleHeaderRow" },
 ];
 
 export function runTableCommand(editor, cmd) {

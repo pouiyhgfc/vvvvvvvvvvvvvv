@@ -302,7 +302,7 @@ export default function BlockMenuSheet({
               style={{ color: "var(--danger-text)" }}
               onClick={() => act(() => deleteTable(editor))}
             >
-              <Emoji char="🗑️" size={14} />
+              <Emoji char="🗑️" size={14} /> Tabel wissen
             </Chip>
           </Row>
         </>
