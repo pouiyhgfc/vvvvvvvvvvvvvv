@@ -1,6 +1,6 @@
 # Codekwaliteit & checks
 
-> Hoe je voorkomt dat de AI slordige of overbodige code achterlaat. Drie lagen die samenwerken. Hoort bij `CLAUDE.md` (de regels) en de hooks in `.claude/settings.json` (de afdwinging).
+> Hoe je voorkomt dat de AI slordige of overbodige code achterlaat. Drie lagen die samenwerken. Hoort bij `CLAUDE.md` + `.claude/rules/` (de regels) en de hooks in `.claude/settings.json` (de afdwinging).
 
 ## Het idee: drie lagen
 
@@ -16,47 +16,20 @@ Alleen regels in CLAUDE.md zetten is niet genoeg — in een lange sessie zakken 
 - **ESLint** → ongebruikte variabelen/imports en simpele logica-fouten. Beperking: ziet maar één bestand tegelijk.
 - **Knip** → het gat dat ESLint mist: **ongebruikte bestanden, exports en dependencies** over je hele project. Dit is jouw "slob-code"-vanger bij uitstek. Let op: verifieer altijd vóór verwijderen — code kan dynamisch gebruikt zijn (vals positief).
 
-## Eenmalige setup
+## Waar alles staat
 
-Doe dit na Fase 1a (dan staat Vite er en heeft de React-template ESLint al voor je klaar). Je kunt het Claude Code laten uitvoeren.
-
-1. Installeer Prettier en Knip:
-
-```
-npm install -D prettier knip
-```
-
-2. Voeg scripts toe aan `package.json`:
-
-```
-"scripts": {
-  "dev": "vite",
-  "build": "vite build",
-  "preview": "vite preview",
-  "lint": "eslint .",
-  "deadcode": "knip"
-}
-```
-
-3. Installeer `jq` (nodig voor de hooks):
-   - macOS: `brew install jq`
-   - Windows/Linux: zie https://jqlang.github.io/jq/download/
-
-4. Zet het meegeleverde bestand neer als **`.claude/settings.json`** in de root van je repo.
-
-5. Commit alles zodat het bij het project hoort.
+- **Regels:** `CLAUDE.md` in de root (altijd geladen) en `.claude/rules/*.md` (laden alleen bij bestanden die bij hun `paths` passen: UI, editor, data, PWA).
+- **Scripts:** `npm run lint` (ESLint), `npm run deadcode` (Knip), `npm run build`, `npm run test:e2e` (Playwright).
+- **Hooks:** `.claude/settings.json` roept twee Node-scripts aan in `.claude/hooks/`. Ze werken op Windows, macOS en Linux; er is geen `jq` of bash nodig.
 
 ## Wat de hooks doen
 
-- **PostToolUse-hook** → draait na elke bewerking Prettier op het gewijzigde bestand. Snel en veilig; faalt stil (breekt je sessie niet).
-- **Stop-hook** → draait `npm run lint` zodra Claude klaar is met antwoorden. Zijn er ESLint-fouten, dan blokkeert de hook (exit 2) en krijgt Claude de fouten terug om ze eerst op te lossen. De `stop_hook_active`-check voorkomt een oneindige lus.
+- **PostToolUse → `format.mjs`**: na elke bewerking Prettier op het gewijzigde bestand. Faalt stil (breekt je sessie niet).
+- **Stop → `stop-check.mjs`**: zodra Claude wil stoppen draait `npm run lint`, en `npm run build` als er bronbestanden gewijzigd zijn (`git status` op `src/`, `index.html`, `vite.config.js`, `package.json`, `scripts/`). Faalt er iets, dan blokkeert de hook (exit 2) en krijgt Claude de laatste 40 regels van de fout terug om eerst op te lossen. De `stop_hook_active`-check voorkomt een oneindige lus.
 
 Bewust **niet** in de hooks gestopt:
 - **ESLint --fix in dezelfde hook als Prettier** — die twee kunnen elkaars wijzigingen blijven terugdraaien. Daarom: Prettier formatteert, ESLint rapporteert alleen.
-- **De volledige build en Knip** — te traag voor na elke bewerking. De build zit al in je fase-controles; Knip draai je handmatig (zie hieronder).
-
-### Platform-let-op
-De hook-commando's gaan uit van een bash-achtige shell. Je `build.cmd` doet vermoeden dat je op Windows zit — draai Claude Code dan via **Git Bash of WSL**, of vraag Claude de hooks naar PowerShell te vertalen.
+- **Knip en de e2e-tests** — te traag voor elke beurt. Knip draai je per fase (zie hieronder); de tests draaien in de fase-controles en straks in CI (Verbeterplan fase 1).
 
 ## Knip per fase draaien
 
@@ -68,14 +41,9 @@ npm run deadcode
 
 Loop de meldingen langs, verifieer dat iets echt nergens gebruikt wordt, en laat het dan pas weghalen.
 
-## Je zit middenin de migratie — doe dit nu
+## Opschoonronde
 
-Een update van CLAUDE.md stuurt alleen toekomstig werk; het ruimt de code die je al geschreven hebt **niet met terugwerkende kracht** op. Dus:
-
-1. Maak de huidige stap eerst werkend en commit 'm (nooit opruimen op een half-kapotte staat).
-2. Zet de setup hierboven klaar.
-3. Draai één keer de opschoonronde hieronder over wat je tot nu toe hebt gebouwd.
-4. Daarna houden de hooks elke volgende stap automatisch schoon.
+Een nieuwe regel stuurt alleen toekomstig werk; hij ruimt bestaande code niet met terugwerkende kracht op. Doe daarom een aparte opschoonronde op een werkende, gecommitte staat.
 
 ### Opschoon-prompt (kopieer naar Claude Code)
 

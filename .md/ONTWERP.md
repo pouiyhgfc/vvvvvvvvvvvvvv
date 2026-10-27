@@ -2,7 +2,7 @@
 
 > Het fundament onder de UI. Zo blijft alles consistent en hoeft elke nieuwe feature
 > alleen nog inhoud te leveren, geen eigen stijl. De harde regels staan kort in
-> `CLAUDE.md` (sectie "UI-conventies"); hier staan de details en voorbeelden.
+> `.claude/rules/ui.md` (en `editor.md` voor het logboek); hier staan de details en voorbeelden.
 
 ## Tokens (CSS-variabelen)
 

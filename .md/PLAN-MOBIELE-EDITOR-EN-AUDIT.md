@@ -1,7 +1,7 @@
 # PLAN — Mobiele editor-werkbalk + audit-fixes (Routine Tracker PWA)
 
 > **Voor het uitvoerende model (Claude Code / Sonnet):** dit is een compleet uitvoeringsplan.
-> Lees eerst `.md/CLAUDE.md` (vaste regels), `.md/ONTWERP.md` (design-systeem) en de sectie
+> Lees eerst `CLAUDE.md` (vaste regels), `.md/ONTWERP.md` (design-systeem) en de sectie
 > "Context" hieronder. Volg de fases **in volgorde**, één stap per keer. Na elke stap:
 > `npm run build` en `npm run lint` moeten schoon zijn vóór je verdergaat. Werk `UITVOERING.md`
 > bij volgens de regels in `CLAUDE.md` (fases toevoegen, vakjes afvinken, statusregel bijwerken).
