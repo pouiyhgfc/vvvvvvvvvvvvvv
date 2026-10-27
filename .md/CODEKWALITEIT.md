@@ -28,6 +28,7 @@ Alleen regels in CLAUDE.md zetten is niet genoeg — in een lange sessie zakken 
 - **Stop → `stop-check.mjs`**: zodra Claude wil stoppen draait `npm run lint`, en `npm run build` als er bronbestanden gewijzigd zijn (`git status` op `src/`, `index.html`, `vite.config.js`, `package.json`, `scripts/`). Faalt er iets, dan blokkeert de hook (exit 2) en krijgt Claude de laatste 40 regels van de fout terug om eerst op te lossen. De `stop_hook_active`-check voorkomt een oneindige lus.
 
 Bewust **niet** in de hooks gestopt:
+
 - **ESLint --fix in dezelfde hook als Prettier** — die twee kunnen elkaars wijzigingen blijven terugdraaien. Daarom: Prettier formatteert, ESLint rapporteert alleen.
 - **Knip en de e2e-tests** — te traag voor elke beurt. Knip draai je per fase (zie hieronder); de tests draaien in de fase-controles en straks in CI (Verbeterplan fase 1).
 
@@ -67,7 +68,7 @@ Leg kort uit wat je hebt opgeruimd en waarom. Werk in kleine stappen.
 
 ## Samengevat
 
-- CLAUDE.md zegt *hoe* het moet, de linters *vinden* wat fout is, de hooks *dwingen het af*.
+- CLAUDE.md zegt _hoe_ het moet, de linters _vinden_ wat fout is, de hooks _dwingen het af_.
 - Prettier = opmaak, ESLint = losse fouten per bestand, Knip = dode code over het hele project.
 - De Stop-hook is je automatische last-minute check; Knip draai je bewust per fase.
 - Opruimen is een aparte stap ná werkend resultaat — niet tegelijk met functionele wijzigingen.

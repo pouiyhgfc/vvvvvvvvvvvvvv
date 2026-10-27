@@ -62,6 +62,7 @@ Entries met alleen een titel zijn onvindbaar.
 **Doen:** voeg `e.title?.toLowerCase().includes(q)` toe aan de filter-conditie.
 
 **Controle:**
+
 - [ ] Entry met alleen titel "Testtitel" is via de zoekbalk vindbaar
 - [ ] Build + lint schoon
 
@@ -82,6 +83,7 @@ Entries met alleen een titel zijn onvindbaar.
    Vervang door een standaard `ConfirmDialog` (title/message/onConfirm).
 
 **Controle:**
+
 - [ ] Herhalend event slepen toont de eigen dialog met drie keuzes; beide varianten werken als voorheen
 - [ ] Weektemplate laden vraagt bevestiging via `ConfirmDialog`
 - [ ] `grep -rn "confirm(" src/features/planner/` levert niets meer op
@@ -97,6 +99,7 @@ zelf niet wijzigen — alleen de vraag verplaatsen naar ná het inlezen.
 Werk daarna de "Bekende uitzonderingen"-sectie in `ONTWERP.md` bij (punt vervalt).
 
 **Controle:**
+
 - [ ] Volledige backup importeren toont de eigen dialog; beide modi werken (test met een test-export)
 - [ ] Deel-imports (routines/weekplanning/notities) werken ongewijzigd
 - [ ] Build + lint schoon
@@ -115,6 +118,7 @@ Dat is misleidend voor een destructieve actie.
 De migratie-flags (`migrated`, `migrated_notes_v1`, `hifd_srs_v2`) laten staan.
 
 **Controle:**
+
 - [ ] Na "Wis ALLES": logboek leeg, notitieboeken terug naar standaard, Hifd toont opnieuw 114 surahs op "todo"
 - [ ] Build + lint schoon
 
@@ -130,6 +134,7 @@ De migratie-flags (`migrated`, `migrated_notes_v1`, `hifd_srs_v2`) laten staan.
 zodat één corrupt item de rest niet meesleept. Gedrag bij gezonde data identiek houden.
 
 **Controle:**
+
 - [ ] Handmatige test: zet in DevTools `localStorage.setItem("rt_settings", "{kapot")` in een
       vers profiel (of na het wissen van de `migrated`-flag) → app start met defaults i.p.v. wit scherm
 - [ ] Build + lint schoon
@@ -147,6 +152,7 @@ Schendingen van de token-regel (alleen échte data-kleuren mogen hex zijn):
    geval (witte tekst op een **data**-kleur zoals event-kleur mag blijven; op tokens niet).
 
 **Controle:**
+
 - [ ] Genoemde plekken gebruiken tokens; visueel gecheckt in licht én donker thema
 - [ ] Build + lint schoon
 
@@ -174,9 +180,9 @@ primary key van een bestaande tabel NIET wijzigen; daarom een tabel-vervanging:
      .upgrade(async (tx) => {
        const rows = await tx.table("hifdLog").toArray();
        // Oude records hebben het phase-VELD al; alleen de key kende het niet.
-       await tx.table("hifdLogV2").bulkPut(
-         rows.map((r) => ({ ...r, phase: r.phase || "learn" })),
-       );
+       await tx
+         .table("hifdLogV2")
+         .bulkPut(rows.map((r) => ({ ...r, phase: r.phase || "learn" })));
      });
    db.version(5).stores({ hifdLog: null }); // oude tabel verwijderen
    ```
@@ -192,6 +198,7 @@ primary key van een bestaande tabel NIET wijzigen; daarom een tabel-vervanging:
    log-historie in de SurahSheet dezelfde aantallen tonen als vóór de migratie.
 
 **Controle:**
+
 - [ ] Zelfde surah op één dag: leersessie loggen én revisie beoordelen → beide records
       bestaan naast elkaar; `reviewsDoneToday` blijft kloppen
 - [ ] Bestaande log-historie zichtbaar in SurahSheet na migratie
@@ -218,6 +225,7 @@ zodat ze op elk toestel identiek renderen. Schendingen:
 voeg ontbrekende toe en draai `npm run emoji` (draait ook automatisch bij build).
 
 **Controle:**
+
 - [ ] `grep -rn "📖\|📝\|💾\|🔥\|🌙" src/ | grep -v "Emoji char"` toont geen JSX-render-plekken meer (strings in toasts mogen blijven)
 - [ ] Alle iconen renderen (geen kapotte/lege SVG's) in licht en donker thema
 - [ ] Build + lint schoon
@@ -241,23 +249,24 @@ De onderstaande API-aannames gelden voor BlockNote 0.51.x maar MOETEN eerst geve
 worden tegen de geïnstalleerde package (lees de d.ts-bestanden in
 `node_modules/@blocknote/core/types/` en de README/voorbeelden in `node_modules/@blocknote/react/`):
 
-| Doel | Verwachte API (verifiëren!) |
-| --- | --- |
-| Inline-stijl togglen | `editor.toggleStyles({ bold: true })` etc. |
-| Actieve stijlen lezen | `editor.getActiveStyles()` |
-| Huidig blok bij cursor | `editor.getTextCursorPosition().block` |
-| Bloktype wisselen | `editor.updateBlock(block, { type: "heading", props: { level: 2 } })` |
-| Blok invoegen | `editor.insertBlocks([{ type: … }], referenceBlock, "after")` |
-| In-/uitspringen | `editor.nestBlock()` / `editor.unnestBlock()` (+ `canNestBlock()`) |
-| Undo/redo | `editor.undo()` / `editor.redo()` |
-| Slash-menu programmatisch openen | `editor.openSuggestionMenu("/")` |
-| Focus | `editor.focus()`, focus-events via `editor.onEditorContentChange` is NIET focus — gebruik DOM-`focusin`/`focusout` op de container |
-| Tabelcommando's | geen nette publieke API in 0.51; gebruik de onderliggende TipTap-commands: `editor._tiptapEditor.commands.addRowAfter()`, `addRowBefore()`, `addColumnAfter()`, `addColumnBefore()`, `deleteRow()`, `deleteColumn()`, `toggleHeaderRow()`, `deleteTable()` — namen verifiëren in `node_modules/@tiptap/pm` / prosemirror-tables-typings |
+| Doel                             | Verwachte API (verifiëren!)                                                                                                                                                                                                                                                                                                             |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inline-stijl togglen             | `editor.toggleStyles({ bold: true })` etc.                                                                                                                                                                                                                                                                                              |
+| Actieve stijlen lezen            | `editor.getActiveStyles()`                                                                                                                                                                                                                                                                                                              |
+| Huidig blok bij cursor           | `editor.getTextCursorPosition().block`                                                                                                                                                                                                                                                                                                  |
+| Bloktype wisselen                | `editor.updateBlock(block, { type: "heading", props: { level: 2 } })`                                                                                                                                                                                                                                                                   |
+| Blok invoegen                    | `editor.insertBlocks([{ type: … }], referenceBlock, "after")`                                                                                                                                                                                                                                                                           |
+| In-/uitspringen                  | `editor.nestBlock()` / `editor.unnestBlock()` (+ `canNestBlock()`)                                                                                                                                                                                                                                                                      |
+| Undo/redo                        | `editor.undo()` / `editor.redo()`                                                                                                                                                                                                                                                                                                       |
+| Slash-menu programmatisch openen | `editor.openSuggestionMenu("/")`                                                                                                                                                                                                                                                                                                        |
+| Focus                            | `editor.focus()`, focus-events via `editor.onEditorContentChange` is NIET focus — gebruik DOM-`focusin`/`focusout` op de container                                                                                                                                                                                                      |
+| Tabelcommando's                  | geen nette publieke API in 0.51; gebruik de onderliggende TipTap-commands: `editor._tiptapEditor.commands.addRowAfter()`, `addRowBefore()`, `addColumnAfter()`, `addColumnBefore()`, `deleteRow()`, `deleteColumn()`, `toggleHeaderRow()`, `deleteTable()` — namen verifiëren in `node_modules/@tiptap/pm` / prosemirror-tables-typings |
 
 Noteer afwijkingen en pas het plan daarop aan vóór je B1 begint. Schrijf de geverifieerde
 API-lijst als commentaarblok bovenin `MobileToolbar.jsx`.
 
 **Controle:**
+
 - [ ] Alle bovenstaande API's geverifieerd of gecorrigeerd, vastgelegd in het commentaarblok
 
 ### B1 — `MobileToolbar.jsx`: vaste werkbalk boven het toetsenbord
@@ -329,6 +338,7 @@ alles laten zoals het is. De `SuggestionMenuController` altijd laten staan (de �
 gebruikt hem).
 
 **Controle (op een echte telefoon of Chrome DevTools device-mode met touch):**
+
 - [ ] Werkbalk verschijnt bij focus, verdwijnt bij blur, plakt boven het toetsenbord
 - [ ] Tikken op werkbalk-knoppen sluit het toetsenbord NIET
 - [ ] ＋ opent het slash-menu; alle typen (kop, lijst, checklist, quote, code, tabel, divider) invoegbaar zonder `/` te typen
@@ -352,6 +362,7 @@ binnen de editorcontext is een directe actie met undo (↶) acceptabel; houd het
 tikken in een cel betrouwbaar wordt.
 
 **Controle:**
+
 - [ ] In een tabel verschijnt de tabel-sectie; alle acties werken; buiten een tabel verdwijnt hij
 - [ ] Cellen zijn op touch comfortabel te raken
 - [ ] Build + lint schoon
@@ -380,6 +391,7 @@ licht (`#`, `*`, `-`, `>` aan regelbegin) met een kleine helper — geen depende
 Geldt ook voor dag-notities (die hebben al platte `body`).
 
 **Controle:**
+
 - [ ] Kaarten tonen 1–2 regels preview; lange teksten netjes afgekapt; lege body = geen lege ruimte
 - [ ] Build + lint schoon
 
@@ -393,6 +405,7 @@ Auto-save is nu onzichtbaar; op mobiel wil je zekerheid vóór je wegnavigeert.
 `fontSize: 11`, `color: var(--text-faint)`. Geen extra opslaglogica wijzigen.
 
 **Controle:**
+
 - [ ] Typen toont "Opslaan…", valt terug op "Opgeslagen ✓"; Terug-knop blijft direct werken
 - [ ] Build + lint schoon
 
@@ -411,6 +424,7 @@ vóór `persist()` eerst `contentRef.current.text = await getMarkdown()` (met tr
 bij een fout gewoon doorgaan met de bestaande waarde). Geen wijziging aan het datamodel.
 
 **Controle:**
+
 - [ ] Typ tekst en tik direct op Terug → heropen: preview/zoeken bevatten de laatste tekst
 - [ ] Build + lint schoon
 
@@ -478,6 +492,7 @@ die de benodigde state doorgeven. **Gedrag identiek; alleen verhuizen en ontdubb
 (ook dynamisch gebruik checken), conform `CLAUDE.md`.
 
 **Controle:**
+
 - [ ] Build + lint schoon; export/import getest (alle vier de varianten + import)
 - [ ] `App.jsx` substantieel korter; geen functionele wijziging waargenomen
 
@@ -543,6 +558,7 @@ catch-all als die er nog niet is — niets bestaands overschrijven).
 ge-update worden voor shortcuts/share zichtbaar zijn. Vermeld dat expliciet in de output.
 
 **Controle:**
+
 - [ ] `npm run build` → gegenereerde `manifest.webmanifest` in `dist/` bevat `shortcuts` en `share_target`
 - [ ] `/?action=new-note` opent direct een lege nieuwe entry; `/?action=today` opent de tracker op vandaag; URL is daarna weer schoon `/`
 - [ ] `/share?title=Test&text=Hallo&url=https://x.nl` opent een nieuwe entry met titel "Test" en body "Hallo\nhttps://x.nl", en auto-save maakt hem aan
@@ -580,6 +596,7 @@ versie-bump nodig bovenop die van A7; wél de `notities`-deelexport meenemen (sj
 horen logisch bij notities).
 
 **Controle:**
+
 - [ ] Entry schrijven → opslaan als sjabloon → "+ Nieuw" toont de keuze; sjabloon kiezen geeft een nieuwe entry met de structuur, die als zelfstandige entry opslaat
 - [ ] Sjabloon bewerken beïnvloedt eerder gemaakte entries NIET (id-strip + deep copy werkt)
 - [ ] Sjabloon verwijderen via `ConfirmDialog`; zonder sjablonen werkt "+ Nieuw" als vanouds

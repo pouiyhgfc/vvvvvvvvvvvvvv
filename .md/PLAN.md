@@ -91,6 +91,7 @@ Wat je hebt werkt deels, en dat is geen bug van jou maar een platformgrens:
 - Op **iPhone** vuren PWA-meldingen in de praktijk vrijwel alleen terwijl de app open is. Betrouwbare getimede achtergrond-herinneringen zijn een bekende zwakte van PWA's, vooral op iOS.
 
 Opties, als je het écht betrouwbaar wilt:
+
 - **Android, geïnstalleerd als app** geeft je nu de beste kans op achtergrondmeldingen.
 - Pas later, als losse grote stap: een echt push-systeem (server + Web Push) of een native wrapper (Capacitor). Niet nu doen.
 - Voor nu: houd wat je hebt en documenteer de grens, zodat je niet vertrouwt op iets dat op je telefoon misschien niet afgaat.
@@ -112,10 +113,10 @@ Elke fase eindigt met een werkende app + een commit + een deploy. Niets half af.
 
 ## 7. Beslissingen voor jou (met mijn advies)
 
-1. **Refactor naar Vite + modules?** → *Advies: ja.* Dit is dé sleutel tot "zelf makkelijk uitbreiden" en prettig vibecoden. Het is een investering van één fase, daarna gaat alles sneller.
-2. **Eerst Logboek of eerst Notities?** → *Advies: Logboek eerst.* Kleinste stap vanaf wat je al hebt, direct bruikbaar.
-3. **Strikt lokaal, of later sync tussen apparaten?** → *Advies: nu lokaal + backup; sync als losse latere fase.*
-4. **Dexie meteen of pas later?** → *Advies: in Fase 2, dus net vóór je notities/logboek serieus gaan groeien.*
+1. **Refactor naar Vite + modules?** → _Advies: ja._ Dit is dé sleutel tot "zelf makkelijk uitbreiden" en prettig vibecoden. Het is een investering van één fase, daarna gaat alles sneller.
+2. **Eerst Logboek of eerst Notities?** → _Advies: Logboek eerst._ Kleinste stap vanaf wat je al hebt, direct bruikbaar.
+3. **Strikt lokaal, of later sync tussen apparaten?** → _Advies: nu lokaal + backup; sync als losse latere fase._
+4. **Dexie meteen of pas later?** → _Advies: in Fase 2, dus net vóór je notities/logboek serieus gaan groeien._
 
 ---
 
@@ -125,4 +126,4 @@ Elke fase eindigt met een werkende app + een commit + een deploy. Niets half af.
 - Geef Claude dit plan + alleen het bestand waaraan je werkt. Werk **fase voor fase**, met een commit per stap.
 - Vraag om kleine, geïsoleerde wijzigingen en test elke stap op je telefoon via een Vercel preview-deploy.
 - Houd de huidige werkende app in een aparte branch tot Fase 1 helemaal staat — zo kun je altijd terug.
-- Eerste concrete prompt-idee voor Claude Code: *"Zet dit project om naar Vite + React met vite-plugin-pwa, behoud exact het huidige gedrag en alle localStorage-data, en splits app.jsx in de modulestructuur uit PLAN.md. Verander nog geen functionaliteit."*
+- Eerste concrete prompt-idee voor Claude Code: _"Zet dit project om naar Vite + React met vite-plugin-pwa, behoud exact het huidige gedrag en alle localStorage-data, en splits app.jsx in de modulestructuur uit PLAN.md. Verander nog geen functionaliteit."_

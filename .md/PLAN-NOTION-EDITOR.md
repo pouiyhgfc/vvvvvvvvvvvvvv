@@ -27,27 +27,29 @@
 Deze bepalen de scope van de fasen. Kies bewust; het plan noemt per fase wat de keuze betekent.
 
 **D1 — Componentbibliotheek: Mantine houden of overstappen?**
-Je gebruikt `@blocknote/mantine`. Alternatieven met identieke functionaliteit: `@blocknote/ariakit` (lichter, minder afhankelijkheden) en `@blocknote/shadcn` (Tailwind). Voor een mobiele PWA is Mantine relatief zwaar, en je stuurt de meeste UI toch al zelf aan (`MobileToolbar`, gecureerde toolbar). *Advies:* **houd Mantine voor nu** — een swap raakt élk menu en is een eigen project. Zet 'm op de backlog, niet in dit plan. (Als je 'm tóch wilt: het is een geïsoleerde fase, want alleen de `BlockNoteView`-import en enkele component-imports veranderen.)
+Je gebruikt `@blocknote/mantine`. Alternatieven met identieke functionaliteit: `@blocknote/ariakit` (lichter, minder afhankelijkheden) en `@blocknote/shadcn` (Tailwind). Voor een mobiele PWA is Mantine relatief zwaar, en je stuurt de meeste UI toch al zelf aan (`MobileToolbar`, gecureerde toolbar). _Advies:_ **houd Mantine voor nu** — een swap raakt élk menu en is een eigen project. Zet 'm op de backlog, niet in dit plan. (Als je 'm tóch wilt: het is een geïsoleerde fase, want alleen de `BlockNoteView`-import en enkele component-imports veranderen.)
 
 **D2 — Hoe open je het blok-menu (de pop-up)?**
 Het blok-menu is een pop-up (bottom sheet of zwevend menu), niet een vaste balk. Hoe roep je 'm op?
-- **(a) Handvat (⠿) in de linkermarge** dat verschijnt voor het actieve blok (touch-variant van Notion's ⠿). Tik = plaats cursor; tik op het handvat = pop-up opent. *Robuust, botst niet met native selectie. Notion's eigen model.*
-- **(b) Long-press op het blok** → pop-up. *Voelt direct, maar botst met Android's native woord-selectie (long-press = woord selecteren). Fragiel.*
 
-*Advies:* **(a).** Het handvat is precies wat Notion doet en vermijdt het selectie-conflict. (b) alleen als aanvulling en als je bereid bent ermee te vechten. Fase B is op (a) geschreven.
+- **(a) Handvat (⠿) in de linkermarge** dat verschijnt voor het actieve blok (touch-variant van Notion's ⠿). Tik = plaats cursor; tik op het handvat = pop-up opent. _Robuust, botst niet met native selectie. Notion's eigen model._
+- **(b) Long-press op het blok** → pop-up. _Voelt direct, maar botst met Android's native woord-selectie (long-press = woord selecteren). Fragiel._
+
+_Advies:_ **(a).** Het handvat is precies wat Notion doet en vermijdt het selectie-conflict. (b) alleen als aanvulling en als je bereid bent ermee te vechten. Fase B is op (a) geschreven.
 
 **D2b — Opmaak (vet/cursief/kleur/link): hoe?**
 Dit is het enige echt lastige stuk op Android. Twee routes:
-- **(a) Notion-bubbel:** een zwevende pop-up die bij een tekstselectie boven de selectie verschijnt (BlockNote's default `FormattingToolbar`, maar met mobiele positionering die rekening houdt met VisualViewport zodat 'm niet achter het toetsenbord valt). *Meest Notion-exact, maar concurreert met de native selectie-UI van Android — hier zit het risico op "gaar".*
-- **(b) In het blok-menu gevouwen:** geen aparte selectie-bubbel; een "Opmaak"-rij (B/I/U/kleur/link) zit in dezelfde pop-up als de blok-acties, en werkt op de huidige selectie of het hele blok. *Minder Notion-exact, maar robuust — geen gevecht met native selectie.*
 
-*Advies:* begin met **(b)** (robuust, snel klaar, past in het pop-up-principe). Probeer **(a)** pas als (b) in de praktijk te beperkt voelt; behandel het als een aparte, geïsoleerde poging met echt-toestel-test, want dit is de plek waar het op Android alsnog kan tegenvallen. **Dit is de beslissing die ik van je nodig heb voordat Fase B helemaal vastligt.**
+- **(a) Notion-bubbel:** een zwevende pop-up die bij een tekstselectie boven de selectie verschijnt (BlockNote's default `FormattingToolbar`, maar met mobiele positionering die rekening houdt met VisualViewport zodat 'm niet achter het toetsenbord valt). _Meest Notion-exact, maar concurreert met de native selectie-UI van Android — hier zit het risico op "gaar"._
+- **(b) In het blok-menu gevouwen:** geen aparte selectie-bubbel; een "Opmaak"-rij (B/I/U/kleur/link) zit in dezelfde pop-up als de blok-acties, en werkt op de huidige selectie of het hele blok. _Minder Notion-exact, maar robuust — geen gevecht met native selectie._
+
+_Advies:_ begin met **(b)** (robuust, snel klaar, past in het pop-up-principe). Probeer **(a)** pas als (b) in de praktijk te beperkt voelt; behandel het als een aparte, geïsoleerde poging met echt-toestel-test, want dit is de plek waar het op Android alsnog kan tegenvallen. **Dit is de beslissing die ik van je nodig heb voordat Fase B helemaal vastligt.**
 
 **D3 — Echte Notion-kolommen (blokken naast elkaar)?**
-Dat vereist `@blocknote/xl-multi-column`, dat onder **GPL-3.0 / betaald voor closed source** valt. Je PWA is persoonlijk; als je 'm nooit closed-source distribueert is GPL-3.0 acceptabel. *Advies:* alleen doen als je het echt wilt (Fase D5, optioneel). Tabellen zelf zitten in de gratis kern — geen probleem.
+Dat vereist `@blocknote/xl-multi-column`, dat onder **GPL-3.0 / betaald voor closed source** valt. Je PWA is persoonlijk; als je 'm nooit closed-source distribueert is GPL-3.0 acceptabel. _Advies:_ alleen doen als je het echt wilt (Fase D5, optioneel). Tabellen zelf zitten in de gratis kern — geen probleem.
 
 **D4 — Hoe ver ga je met tabellen?**
-Kolombreedtes: **native mogelijk** (sleep-handles, `columnWidths`). Rijhoogtes: **niet ondersteund** in het model — rijen groeien met hun inhoud; alleen `min-height` via CSS. Merge/split/headers/celkleur: via de `tables`-optie. *Beslis:* accepteer je "geen instelbare rijhoogte" of wil je de CSS-min-height-workaround (Fase C2)?
+Kolombreedtes: **native mogelijk** (sleep-handles, `columnWidths`). Rijhoogtes: **niet ondersteund** in het model — rijen groeien met hun inhoud; alleen `min-height` via CSS. Merge/split/headers/celkleur: via de `tables`-optie. _Beslis:_ accepteer je "geen instelbare rijhoogte" of wil je de CSS-min-height-workaround (Fase C2)?
 
 ---
 
@@ -73,6 +75,7 @@ Bevestig tegen de **geïnstalleerde** 0.51.4-typings (net als B0 in het vorige p
 Deze fase levert al veel op zonder nieuwe UI, want er staat werk klaar dat niet is aangesloten.
 
 ### A1 — Bindingen redden uit `MobileToolbar`, dan de vaste balk retireren
+
 De vaste balk gaat níét aan (ontwerpprincipe: pop-ups). Maar de geverifieerde editor-aanroepen erin zijn waardevol. Haal ze eruit vóór je de rest bouwt, zodat Fase B ze hergebruikt:
 
 - Maak `src/features/logbook/editorActions.js` met pure, benoemde functies die de `editor` als argument nemen: `setBlockType(editor, type, props)`, `toggleListType(editor, type)`, `toggleStyle(editor, key)`, `nest(editor)`/`unnest(editor)`, `openSlashMenu(editor)` (via `getExtension("suggestionMenu")`), `undo`/`redo`. Kopieer de exacte vormen 1-op-1 uit `MobileToolbar.jsx` (ze zijn al tegen de typings geverifieerd).
@@ -80,13 +83,17 @@ De vaste balk gaat níét aan (ontwerpprincipe: pop-ups). Maar de geverifieerde 
 - **Let op:** dit is puur extraheren, geen gedragswijziging en geen nieuwe UI.
 
 ### A2 — Geavanceerde tabel-features aanzetten (latente bug)
+
 `tableCellMergeButton` staat in `TOOLBAR_KEYS`, maar zonder de `tables`-optie doet die niets. Zet aan in `useCreateBlockNote`:
+
 ```js
 tables: { splitCells: true, cellBackgroundColor: true, cellTextColor: true, headers: true }
 ```
+
 Controleer dat bestaande opgeslagen tabel-blokken nog laden (Fase 0.5). Dit repareert de merge-knop én geeft headers/celkleuren die je `MobileToolbar` al deels aanstuurt (`toggleHeaderRow`).
 
 ### A3 — Private tabel-API inkapselen
+
 `MobileToolbar` roept `editor._tiptapEditor.commands[...]` direct aan — dat breekt bij een BlockNote-upgrade. Verplaats deze aanroepen naar één klein helperbestand (`src/features/logbook/tableCommands.js`) met een guard (`if (!editor._tiptapEditor) return`) en benoemde functies. Zo raakt een upgrade straks één plek i.p.v. de hele toolbar. **Geen gedragsverandering** — puur inkapselen.
 
 - [ ] **Fase A afgerond** (bindingen in `editorActions.js`; vaste balk niet aangesloten; merge-knop werkt; private tabel-API geïsoleerd)
@@ -98,13 +105,16 @@ Controleer dat bestaande opgeslagen tabel-blokken nog laden (Fase 0.5). Dit repa
 Doel: Notion's systeem. Een handvat bij het actieve blok → tik → **pop-up menu** met alle acties. Geen vaste balk. Gebouwd op **D2 = (a) handvat** en **D2b** voor opmaak.
 
 ### B1 — Handvat bij het actieve blok
+
 - Nieuwe hook `useActiveBlock(editor)`: houdt het actieve blok bij via `editor.getTextCursorPosition().block` + `editor.onSelectionChange`. Ruim de listener netjes op (zoals `MobileToolbar` al deed).
 - Toon een klein handvat (⠿) in de linkermarge van het actieve blok. Positioneer aan de blok-DOM-node (`editor.domElement` → `[data-id="<block.id>"]`), niet op hover.
 - **Onderzoek eerst (Fase 0.4) of BlockNote's `SideMenuController` + `DragHandleButton` de positionering al voor je doet** en of je 'm op selectie i.p.v. hover kunt laten tonen. Zo ja: hergebruik dat i.p.v. zelf rekenen. Zo nee: eigen absolute positionering t.o.v. de blok-node.
 - Tik op ⠿ → open de pop-up (B2). Ook een **"+"** naast het handvat is Notion-achtig: opent direct het slash-menu (`openSlashMenu` uit `editorActions.js`).
 
 ### B2 — De pop-up (bottom sheet)
+
 Eén pop-up-component, gebouwd op het **bestaande sheet-patroon uit `src/ui`** (zoals `LogEntrySheet`/`NotebookSheet`) — geen nieuw overlay-systeem. Komt op vanaf onder, sluit bij tik buiten/veeg omlaag. Inhoud (alles via `editorActions.js`, dus geen dubbele logica):
+
 - **Type wijzigen** — een rij: Tekst / Kop 1-3 / Opsomming / Genummerd / Checklist / Citaat (`setBlockType`, `toggleListType`). Dit is Notion's "Turn into".
 - **Dupliceren** — `insertBlocks([blokZonderId], block, "after")` (exacte vorm uit Fase 0.3).
 - **Kopiëren** — blok naar klembord (markdown via `blocksToMarkdownLossy([block])`).
@@ -115,6 +125,7 @@ Eén pop-up-component, gebouwd op het **bestaande sheet-patroon uit `src/ui`** (
 - Na elke actie: `editor.focus()` en de pop-up sluiten, zodat de cursor niet "wegspringt".
 
 ### B3 — Opmaak op selectie (alleen als D2b = a)
+
 Als je de Notion-bubbel wilt: render BlockNote's `FormattingToolbar` (je bestaande `CuratedToolbar`) via de `FormattingToolbarController`, maar corrigeer de positie op touch met de VisualViewport-offset (hergebruik de reken-logica die nu in `MobileToolbar` staat) zodat de bubbel niet achter het toetsenbord valt. **Behandel dit als een aparte poging met echt-toestel-test** — dit is de plek waar het op Android alsnog "gaar" kan worden. Valt het tegen: schakel terug naar D2b = (b) (opmaak in de pop-up) en accepteer dat als de robuuste oplossing.
 
 - [ ] **Fase B afgerond** (handvat + pop-up: type wijzigen, dupliceren, kopiëren, verwijderen, verplaatsen werkt op touch; opmaak volgens D2b)
@@ -124,12 +135,15 @@ Als je de Notion-bubbel wilt: render BlockNote's `FormattingToolbar` (je bestaan
 ## Fase C — Tabellen touch-vriendelijk
 
 ### C1 — Kolombreedte-handles vergroten
+
 De resize-handles zijn native aanwezig maar dun (muisgericht). Vergroot het raakvlak via CSS op de tabel-handle-elementen (`.bn-*`, exacte selector in de DOM opzoeken), zonder het uiterlijk zwaar te maken. Test op een echt toestel.
 
 ### C2 — Rijhoogte (beslissing D4)
+
 Er is **geen** rijhoogte in het model. Als je hoogte wilt: voeg een `min-height` toe op tabelcellen via CSS. Documenteer expliciet dat dit een benadering is, geen per-rij-instelling. Wil je dat niet: sla deze stap over en noteer "rijhoogte = bewust niet ondersteund" in UITVOERING.md.
 
 ### C3 — Tabel-acties in het pop-up menu
+
 Je `MobileToolbar` toont tabel-acties al als `block.type === "table"`. Breng dezelfde acties (rij/kolom invoegen/wissen, kopregel, merge/split, celkleur) naar het pop-up blok-menu uit Fase B, zodat tabelbewerking op één plek zit en niet alleen in de toetsenbordbalk. Hergebruik `tableCommands.js` (A3).
 
 - [ ] **Fase C afgerond**
@@ -141,18 +155,23 @@ Je `MobileToolbar` toont tabel-acties al als `block.type === "table"`. Breng dez
 Kies wat je wilt; elk punt is los te doen. Let op de custom-blok-valkuil uit Fase 0.8 (#1802): voor blokken die zich als tekstblok gedragen mogelijk de `createStronglyTypedTiptapNode`-route i.p.v. `createReactBlockSpec`.
 
 ### D1 — Callout / notitie-blok
+
 Notion-callout via `createReactBlockSpec` (patroon = het Alert-voorbeeld): een blok met icoon + gekleurde achtergrond, `content: "inline"`. Voeg toe aan schema, aan het gecureerde slash-menu (`SLASH_KEYS`) en optioneel aan het pop-up menu.
 
 ### D2 — Toggle / inklapbaar blok
+
 `createReactBlockSpec` + `ToggleWrapper` (BlockNote levert dit patroon). Geef een stabiele `id` mee zodat de open/dicht-staat een herlaad overleeft. Handig voor je Hifd-/reflectie-entries.
 
 ### D3 — Plaatshouder-teksten
+
 Notion toont "Typ '/' voor commando's" in lege blokken. Bevestig of de default-plaatshouders in je NL-locale goed vertaald zijn; voeg per-bloktype hints toe waar nuttig. (Voor custom blokken: let op #1802 — lege custom blokken tonen soms géén plaatshouder.)
 
 ### D4 — Link bewerken op mobiel
+
 De link-toolbar is nu default (hover/desktop). Voeg in het pop-up blok-menu (of in de opmaak-bubbel bij D2b=a) een expliciete "link"-knop toe die op de selectie een link zet/bewerkt via de editor-API, zodat het op touch werkt zonder hover.
 
 ### D5 — (optioneel) Multi-column
+
 Alleen als D3-beslissing = ja. `@blocknote/xl-multi-column` (`withMultiColumn`, `multiColumnDropCursor`, slash-items). **Licentie:** GPL-3.0/betaald — bevestig dat dat past bij hoe je de app distribueert. Eigen, geïsoleerde fase.
 
 - [ ] **Fase D afgerond** (of per punt bewust uitgesteld — noteren in UITVOERING.md)
@@ -172,7 +191,7 @@ Niet alles hieronder is een taak; sommige zijn bewuste keuzes of risico's om te 
 7. **Multi-block-select ontbreekt.** Notion laat je meerdere blokken tegelijk selecteren en bewerken. Fase B doet één blok. Meerdere blokken tegelijk (vooral op touch) is een aparte, grotere klus — bewust buiten scope houden of expliciet inplannen.
 8. **Undo/redo bindingen bestaan al** (✓, geverifieerd) — neem ze mee naar de pop-up (of een klein hoekje van de UI) en houd desktop en touch symmetrisch.
 9. **Afbeeldingen bewust uit.** Je liet media-uploads weg (geen backend). Prima keuze; noteer het zodat je het later niet als "missend" behandelt. Wil je het ooit: image-blok kan lokaal via een blob-URL/Dexie-opslag, zonder backend.
-10. **Laag 5 blijft staan.** Al het bovenstaande maakt de editor Notion-achtiger in *bediening en uiterlijk*, maar raakt cursor-/IME-gedrag op Android niet. Verwachtingsmanagement: als dát je hoofdpijn is, is dit plan de verkeerde hefboom en gaat het gesprek terug naar engine-keuze.
+10. **Laag 5 blijft staan.** Al het bovenstaande maakt de editor Notion-achtiger in _bediening en uiterlijk_, maar raakt cursor-/IME-gedrag op Android niet. Verwachtingsmanagement: als dát je hoofdpijn is, is dit plan de verkeerde hefboom en gaat het gesprek terug naar engine-keuze.
 11. **Performance & opruimen.** Lazy-load van `RichEditor` is goed. Let er bij Fase B op dat elke `onSelectionChange`/`onChange`-listener netjes wordt opgeruimd (het patroon uit `MobileToolbar` is correct — neem het over) en dat de handle-positionering niet op elke render herberekent.
 12. **Toegankelijkheid.** Het `aria-label`-patroon uit `MobileToolbar` is goed (✓). Doe hetzelfde in de pop-up en zorg dat focus terugkeert naar het blok na een actie (`editor.focus()`), anders "verspringt" de cursor na kopiëren/verwijderen.
 
@@ -194,12 +213,15 @@ Per stap: `npm run build` groen + `npm run lint` schoon vóór "klaar". Geen dat
 ## Klaar-om-te-plakken Claude Code-prompts (per fase)
 
 **Fase 0:**
+
 > Lees `PLAN-NOTION-EDITOR.md` Fase 0. Verifieer élk punt tegen de geïnstalleerde `@blocknote/*` 0.51.4-typings in `node_modules`. Schrijf geen app-code. Noteer de bevindingen (met exacte signaturen) in `UITVOERING.md` en meld welke onzekere API's zijn opgelost.
 
 **Fase A:**
+
 > Voer `PLAN-NOTION-EDITOR.md` Fase A uit, stap A1 → A2 → A3, één stap per keer. In A1 extraheer je de geverifieerde editor-aanroepen uit `MobileToolbar.jsx` naar `editorActions.js` en sluit je de vaste balk NIET aan (die retireren we). Verander per stap alleen wat de stap zegt, draai `npm run build` + `npm run lint`, en bevestig dat bestaande opgeslagen entries (incl. tabellen) nog laden. Werk `UITVOERING.md` bij.
 
 **Fase B:**
+
 > Voer `PLAN-NOTION-EDITOR.md` Fase B uit: een handvat bij het actieve blok dat een **pop-up menu** opent (Notion-model, D2=a), gebouwd op het bestaande sheet-patroon in `src/ui`. Alle acties via `editorActions.js` (geen dubbele logica). Opmaak volgens beslissing D2b=[a/b — vul in]. Eén stap per keer, build + lint groen, `editor.focus()` en sluiten na elke actie.
 
 Pas de prompts voor C en D aan zodra je de beslissingen D1–D4 en D2b hebt gemaakt.
