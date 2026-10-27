@@ -1,4 +1,4 @@
 {
-  "entry": ["src/sw.js"],
+  "entry": ["src/sw.js", ".claude/hooks/*.mjs"],
   "ignoreDependencies": ["prettier", "@twemoji/svg"]
 }
