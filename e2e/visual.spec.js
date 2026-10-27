@@ -23,7 +23,7 @@ const screens = [
     "hifd-voortgang",
     async (page) => {
       await openTab(page, "Hifd");
-      await page.getByRole("button", { name: "Voortgang" }).click();
+      await page.getByRole("tab", { name: "Voortgang" }).click();
     },
   ],
   ["meer", (page) => openTab(page, "Meer")],

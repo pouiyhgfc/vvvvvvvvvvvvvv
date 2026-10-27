@@ -525,7 +525,7 @@ export default function App({ startupErrors = [] }) {
       )}
 
       {/* DATUM-KAART */}
-      {view !== "logbook" && view !== "meer" && view !== "tracker" && (
+      {(view === "week" || view === "stats") && (
         <div style={{ padding: "12px 14px 0", background: "var(--bg)" }}>
           <div
             style={{

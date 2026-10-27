@@ -1,26 +1,15 @@
 import { TOTAL_AYAT } from "../../lib/surahs.js";
+import Card from "../../ui/Card.jsx";
 import Ring from "../../ui/Ring.jsx";
-import Emoji from "../../ui/Emoji.jsx";
 import RecallCard from "./RecallCard.jsx";
 import LearningCard from "./LearningCard.jsx";
 
-function SectionLabel({ children }) {
-  return (
-    <div
-      style={{
-        fontFamily: "var(--ff-head)",
-        fontWeight: 700,
-        fontSize: 13,
-        color: "var(--text-muted)",
-        marginBottom: 10,
-        textTransform: "uppercase",
-        letterSpacing: ".04em",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
+const cardTitle = {
+  margin: 0,
+  fontFamily: "var(--ff-head)",
+  fontSize: "var(--fs-lg)",
+  fontWeight: 600,
+};
 
 export default function VandaagView({
   ringPct,
@@ -37,77 +26,66 @@ export default function VandaagView({
   onRate,
 }) {
   const capReached = reviewsDoneToday >= dailyCap;
-  const hasReviewSection = reviewList.length > 0 || dueCount > 0;
-  const empty = learningList.length === 0 && !hasReviewSection;
+  const empty =
+    learningList.length === 0 && reviewList.length === 0 && dueCount === 0;
+  const next = reviewList[0];
 
   return (
-    <div style={{ padding: "0 16px" }}>
-      {/* Ring */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          padding: "12px 0 20px",
-        }}
-      >
-        <Ring value={ringPct} size={100} stroke={9} label="gememoriseerd" />
-        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>
-          {memorizedCount} van 114 surahs ·{" "}
-          {versesKnownTotal.toLocaleString("nl-NL")} / {TOTAL_AYAT} verzen
-        </div>
-      </div>
-
-      {/* Te reviseren */}
-      {hasReviewSection && (
-        <div style={{ marginBottom: 20 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between",
-            }}
+    <div
+      style={{
+        padding: "0 var(--sp-4)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--sp-3)",
+      }}
+    >
+      <Card style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+        <Ring value={ringPct} size={56} stroke={6} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <span style={{ fontSize: "var(--fs-md)", fontWeight: 600 }}>
+            {memorizedCount} van 114 surahs
+          </span>
+          <span
+            style={{ fontSize: "var(--fs-sm)", color: "var(--text-muted)" }}
           >
-            <SectionLabel>Te reviseren</SectionLabel>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: capReached ? "var(--accent)" : "var(--text-muted)",
-              }}
-            >
-              {reviewsDoneToday}/{dailyCap} vandaag
-            </span>
-          </div>
-          {reviewList.map((rec) => (
-            <RecallCard key={rec.surah} rec={rec} onRate={onRate} />
-          ))}
-          {reviewList.length === 0 && capReached && (
-            <div
-              style={{
-                background: "var(--accent-bg)",
-                border: "1px solid var(--accent-border)",
-                borderRadius: 12,
-                padding: "14px 16px",
-                fontSize: 13,
-                color: "var(--accent-text)",
-                textAlign: "center",
-              }}
-            >
-              <Emoji char="✅" size={13} /> Daglimiet bereikt ({dailyCap}/
-              {dailyCap}).{" "}
-              {dueCount > 0
-                ? `Nog ${dueCount} ${dueCount === 1 ? "surah wacht" : "surahs wachten"} tot morgen.`
-                : "Kom morgen terug."}
-            </div>
-          )}
+            Revisie vandaag: {reviewsDoneToday} van {dailyCap}
+          </span>
+          <span
+            style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)" }}
+          >
+            {versesKnownTotal.toLocaleString("nl-NL")} van{" "}
+            {TOTAL_AYAT.toLocaleString("nl-NL")} verzen
+          </span>
         </div>
+      </Card>
+
+      {next && (
+        <RecallCard
+          key={next.surah}
+          rec={next}
+          position={reviewsDoneToday + 1}
+          total={reviewsDoneToday + reviewList.length}
+          onRate={onRate}
+        />
+      )}
+      {!next && capReached && dueCount > 0 && (
+        <Card
+          style={{
+            background: "var(--accent-bg)",
+            color: "var(--accent-text)",
+            fontSize: "var(--fs-sm)",
+          }}
+        >
+          Daglimiet bereikt ({dailyCap}/{dailyCap}). Nog {dueCount}{" "}
+          {dueCount === 1 ? "surah wacht" : "surahs wachten"} tot morgen.
+        </Card>
       )}
 
-      {/* Bezig */}
       {learningList.length > 0 && (
-        <div>
-          <SectionLabel>Bezig met leren</SectionLabel>
+        <Card style={{ gap: 0, paddingBottom: 6 }}>
+          <h2 style={{ ...cardTitle, marginBottom: "var(--sp-2)" }}>
+            Aan het leren
+          </h2>
           {learningList.map((rec) => (
             <LearningCard
               key={rec.surah}
@@ -117,20 +95,21 @@ export default function VandaagView({
               onMarkMemorized={onMarkMemorized}
             />
           ))}
-        </div>
+        </Card>
       )}
 
       {empty && (
-        <div
+        <p
           style={{
             textAlign: "center",
             color: "var(--text-muted)",
-            fontSize: 14,
-            padding: "32px 0",
+            fontSize: "var(--fs-sm)",
+            padding: "var(--sp-6) 0",
+            margin: 0,
           }}
         >
-          Niets voor vandaag. Start via Voortgang.
-        </div>
+          Niets voor vandaag. Kies een surah via Voortgang.
+        </p>
       )}
     </div>
   );

@@ -5,8 +5,6 @@ import { addDays } from "../../lib/date.js";
 import { DEFAULT_SETTINGS } from "../../lib/constants.js";
 import { surahById } from "../../lib/surahs.js";
 import { nextSrs, INITIAL_EASE } from "../../lib/hifd.js";
-import Button from "../../ui/Button.jsx";
-import Emoji from "../../ui/Emoji.jsx";
 import { showToast } from "../../lib/toast.js";
 import { today, shortDate } from "./hifdDates.js";
 import VandaagView from "./VandaagView.jsx";
@@ -206,38 +204,64 @@ export default function HifdView() {
   const selectedMeta = selectedSurah ? surahById(selectedSurah) : null;
 
   return (
-    <div style={{ paddingBottom: 80 }}>
-      {/* Header */}
-      <div style={{ padding: "20px 16px 8px" }}>
+    <div style={{ paddingBottom: "var(--sp-4)" }}>
+      <header
+        style={{
+          padding: "var(--sp-6) var(--sp-5) var(--sp-4)",
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--sp-3)",
+        }}
+      >
         <h1
           style={{
-            fontFamily: "var(--ff-display)",
-            fontSize: 22,
-            fontWeight: 700,
-            color: "var(--text)",
+            flex: 1,
             margin: 0,
+            fontFamily: "var(--ff-head)",
+            fontSize: "var(--fs-2xl)",
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
           }}
         >
           Hifd
         </h1>
-      </div>
-
-      {/* Tab toggle */}
-      <div style={{ display: "flex", gap: 8, padding: "0 16px 16px" }}>
-        {[
-          { key: "vandaag", label: "Vandaag", emoji: "📋" },
-          { key: "voortgang", label: "Voortgang", emoji: "📈" },
-        ].map(({ key, label, emoji }) => (
-          <Button
-            key={key}
-            variant={tab === key ? "primary" : "secondary"}
-            size="sm"
-            onClick={() => setTab(key)}
-          >
-            <Emoji char={emoji} size={12} /> {label}
-          </Button>
-        ))}
-      </div>
+        <div
+          role="tablist"
+          aria-label="Weergave"
+          style={{
+            display: "flex",
+            gap: 4,
+            padding: 4,
+            borderRadius: "var(--r-md)",
+            background: "var(--track)",
+          }}
+        >
+          {[
+            { key: "vandaag", label: "Vandaag" },
+            { key: "voortgang", label: "Voortgang" },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => setTab(key)}
+              style={{
+                minHeight: 36,
+                padding: "0 var(--sp-3)",
+                borderRadius: "var(--r-sm)",
+                border: "none",
+                fontSize: "var(--fs-sm)",
+                fontWeight: 600,
+                background: tab === key ? "var(--card)" : "transparent",
+                color: tab === key ? "var(--text)" : "var(--text-muted)",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </header>
 
       {tab === "vandaag" && (
         <VandaagView

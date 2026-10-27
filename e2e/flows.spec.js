@@ -31,20 +31,20 @@ test("een Hifd-revisie beoordelen haalt de surah uit de lijst en telt mee", asyn
 }) => {
   await loadDemo(page);
   await openTab(page, "Hifd");
-  await expect(page.getByText("0/4 vandaag")).toBeVisible();
-  const fatiha = page
-    .locator("div")
-    .filter({ hasText: /^Al-Fatihah/ })
-    .first();
-  await expect(fatiha).toBeVisible();
+  await expect(page.getByText(/Revisie vandaag: 0 van 4/)).toBeVisible();
+  // Eén revisie tegelijk: Al-Fatihah staat als eerste klaar.
+  const card = page
+    .locator("section")
+    .filter({ hasText: "zeg uit het hoofd op" });
+  await expect(card.getByText("Al-Fatihah", { exact: true })).toBeVisible();
 
-  await fatiha.getByRole("button", { name: /Goed/ }).click();
+  await card.getByRole("button", { name: /^Goed/ }).click();
 
-  await expect(page.getByText("1/4 vandaag")).toBeVisible();
+  await expect(page.getByText(/Revisie vandaag: 1 van 4/)).toBeVisible();
   await expect(page.getByText("Al-Fatihah", { exact: true })).toBeHidden();
   await page.reload();
   await openTab(page, "Hifd");
-  await expect(page.getByText("1/4 vandaag")).toBeVisible();
+  await expect(page.getByText(/Revisie vandaag: 1 van 4/)).toBeVisible();
 });
 
 test("'Exporteer alles' levert een volledige backup op", async ({ page }) => {

@@ -25,6 +25,7 @@ const UI_GLYPHS = [
   "check",
   "dots-six-vertical",
   "dots-three-vertical",
+  "minus",
 ];
 
 const circle = (cx, cy, r) =>

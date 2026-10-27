@@ -1,80 +1,115 @@
 import { surahById } from "../../lib/surahs.js";
 import { nextSrs } from "../../lib/hifd.js";
-import Button from "../../ui/Button.jsx";
-import Emoji from "../../ui/Emoji.jsx";
+import Card from "../../ui/Card.jsx";
 
-// Knop-volgorde zwakst → sterkst, met de variant en het voorbeeld-interval.
+// Knop-volgorde zwakst → sterkst; kleur per knop uit de ontwerptokens.
 const RECALL_BUTTONS = [
-  { label: "Zwak", value: "zwak", variant: "danger" },
-  { label: "Redelijk", value: "redelijk", variant: "secondary" },
-  { label: "Goed", value: "goed", variant: "primary" },
-  { label: "Sterk", value: "sterk", variant: "primary", strong: true },
+  {
+    label: "Zwak",
+    value: "zwak",
+    bg: "var(--danger-bg)",
+    color: "var(--danger-text)",
+  },
+  {
+    label: "Redelijk",
+    value: "redelijk",
+    bg: "var(--sunken)",
+    color: "var(--text)",
+  },
+  {
+    label: "Goed",
+    value: "goed",
+    bg: "var(--accent)",
+    color: "var(--accent-contrast)",
+  },
+  {
+    label: "Sterk",
+    value: "sterk",
+    bg: "var(--accent-bg)",
+    color: "var(--accent-text)",
+  },
 ];
 
-export default function RecallCard({ rec, onRate }) {
+const intervalLabel = (days) => (days === 1 ? "morgen" : `${days} d`);
+
+// Eén revisie tegelijk: de surah groot, daaronder vier beoordelingen met
+// wanneer hij dan terugkomt.
+export default function RecallCard({ rec, position, total, onRate }) {
   const meta = surahById(rec.surah);
   if (!meta) return null;
 
   return (
-    <div
-      style={{
-        background: "var(--card)",
-        border: "1px solid var(--accent-border)",
-        borderRadius: 12,
-        padding: "16px",
-        marginBottom: 10,
-      }}
-    >
-      <div style={{ marginBottom: 12 }}>
-        <div
+    <Card style={{ gap: "var(--sp-4)", padding: "var(--sp-5) 18px 18px" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 4,
+          textAlign: "center",
+        }}
+      >
+        <span style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)" }}>
+          {position} van {total} · zeg uit het hoofd op
+        </span>
+        <span
+          dir="rtl"
+          lang="ar"
+          style={{
+            fontFamily: "var(--ff-arabic)",
+            fontSize: 44,
+            fontWeight: 600,
+            lineHeight: 1.5,
+          }}
+        >
+          {meta.name}
+        </span>
+        <span
           style={{
             fontFamily: "var(--ff-head)",
-            fontWeight: 700,
-            fontSize: 16,
-            color: "var(--text)",
+            fontSize: "var(--fs-lg)",
+            fontWeight: 600,
           }}
         >
           {meta.tr}
-        </div>
-        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3 }}>
-          {meta.name} · #{meta.id} · {meta.verses} verzen
-        </div>
-        <div style={{ fontSize: 11, color: "var(--accent)", marginTop: 4 }}>
-          <Emoji char="🌙" size={11} /> Revisie · zeg uit het hoofd op en
-          beoordeel
-        </div>
+        </span>
+        <span style={{ fontSize: "var(--fs-sm)", color: "var(--text-muted)" }}>
+          Surah {meta.id} · {meta.verses} verzen
+        </span>
       </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        {RECALL_BUTTONS.map(({ label, value, variant, strong }) => {
-          const days = nextSrs(rec, value).interval;
-          return (
-            <Button
-              key={value}
-              variant={variant}
-              size="sm"
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                lineHeight: 1.1,
-                ...(strong
-                  ? {
-                      background: "var(--accent-strong)",
-                      borderColor: "var(--accent-strong)",
-                    }
-                  : {}),
-              }}
-              onClick={() => onRate(rec.surah, value)}
-            >
-              <span>{label}</span>
-              <span style={{ fontSize: 10, fontWeight: 600, opacity: 0.85 }}>
-                {days}d
-              </span>
-            </Button>
-          );
-        })}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "var(--sp-2)",
+        }}
+      >
+        {RECALL_BUTTONS.map(({ label, value, bg, color }) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => onRate(rec.surah, value)}
+            style={{
+              minHeight: 56,
+              borderRadius: "var(--r-md)",
+              border: "none",
+              background: bg,
+              color,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 var(--sp-4)",
+            }}
+          >
+            <span style={{ fontSize: "var(--fs-md)", fontWeight: 600 }}>
+              {label}
+            </span>
+            <span style={{ fontSize: "var(--fs-xs)", opacity: 0.85 }}>
+              {intervalLabel(nextSrs(rec, value).interval)}
+            </span>
+          </button>
+        ))}
       </div>
-    </div>
+    </Card>
   );
 }

@@ -10,13 +10,15 @@ export default function VoortgangView({ hifdMap, onSelect }) {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))",
-          gap: 8,
+          gap: 6,
         }}
       >
         {sorted.map((meta) => {
           const rec = hifdMap[meta.id];
           const pct = rec ? (rec.versesKnown / meta.verses) * 100 : 0;
-          const bg = heatColor(pct);
+          const bg = pct === 0 ? "var(--card)" : heatColor(pct);
+          // Heatmap-kleuren zijn vast (licht → donkergroen): tekst erop ook.
+          const fg = pct === 0 ? "var(--text)" : pct >= 75 ? "#fff" : "#17201b";
           const isMemorized = rec?.status === "memorized";
           return (
             <button
@@ -24,10 +26,11 @@ export default function VoortgangView({ hifdMap, onSelect }) {
               onClick={() => onSelect(meta.id)}
               style={{
                 background: bg,
-                border: isMemorized
-                  ? "2px solid var(--accent)"
-                  : "1px solid var(--border-soft)",
-                borderRadius: 10,
+                border: "none",
+                outline: isMemorized ? "2px solid var(--accent)" : "none",
+                outlineOffset: -2,
+                borderRadius: "var(--r-sm)",
+                minHeight: 52,
                 padding: "8px 4px",
                 display: "flex",
                 flexDirection: "column",
@@ -39,18 +42,18 @@ export default function VoortgangView({ hifdMap, onSelect }) {
               <div
                 style={{
                   fontFamily: "var(--ff-head)",
-                  fontWeight: 700,
-                  fontSize: 11,
-                  color: pct >= 75 ? "#fff" : "var(--text)",
+                  fontWeight: 600,
+                  fontSize: "var(--fs-sm)",
+                  color: fg,
                 }}
               >
                 {meta.id}
               </div>
               <div
                 style={{
-                  fontSize: 9,
-                  color:
-                    pct >= 75 ? "rgba(255,255,255,.8)" : "var(--text-muted)",
+                  fontSize: "var(--fs-xs)",
+                  color: pct === 0 ? "var(--text-muted)" : fg,
+                  opacity: pct === 0 ? 1 : 0.8,
                   textAlign: "center",
                   lineHeight: 1.2,
                 }}

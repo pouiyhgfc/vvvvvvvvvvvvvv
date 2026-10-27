@@ -1,17 +1,17 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { surahById } from "../../lib/surahs.js";
-import Button from "../../ui/Button.jsx";
-import Emoji from "../../ui/Emoji.jsx";
+import Icon from "../../ui/Icon.jsx";
 import { today } from "./hifdDates.js";
 
-const RATING_LABEL = { goed: "Goed", redelijk: "Redelijk", zwak: "Zwak" };
-const RATING_COLOR = {
-  goed: "var(--accent)",
-  redelijk: "var(--text-muted)",
-  zwak: "var(--danger-text)",
-};
+const RATINGS = [
+  { label: "Goed", value: "goed" },
+  { label: "Redelijk", value: "redelijk" },
+  { label: "Zwak", value: "zwak" },
+];
 
+// Eén surah die je aan het leren bent: verzen bijstellen en de sessie van
+// vandaag beoordelen. Alles gekend → markeren als gememoriseerd.
 export default function LearningCard({ rec, onDelta, onLog, onMarkMemorized }) {
   const meta = surahById(rec.surah);
   const logToday = useLiveQuery(
@@ -24,112 +24,52 @@ export default function LearningCard({ rec, onDelta, onLog, onMarkMemorized }) {
   return (
     <div
       style={{
-        background: "var(--card)",
-        border: "1px solid var(--border-soft)",
-        borderRadius: 12,
-        padding: "14px 16px",
-        marginBottom: 10,
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        padding: "var(--sp-3) 0",
+        borderTop: "1px solid var(--border-soft)",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: 10,
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontFamily: "var(--ff-head)",
-              fontWeight: 700,
-              fontSize: 15,
-              color: "var(--text)",
-            }}
-          >
-            {meta.tr}
-          </div>
-          <div
-            style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}
-          >
-            {meta.name} · #{meta.id}
-          </div>
-        </div>
-        <div
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+        <span
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: 4,
+            flex: 1,
+            fontSize: "var(--fs-md)",
+            fontWeight: 600,
           }}
         >
-          <div
-            style={{
-              fontFamily: "var(--ff-head)",
-              fontWeight: 700,
-              fontSize: 13,
-              color: "var(--accent)",
-            }}
-          >
-            {rec.versesKnown} / {meta.verses}
-          </div>
-          {logToday && (
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: RATING_COLOR[logToday.rating] ?? "var(--text-muted)",
-                background: "var(--card2)",
-                border: "1px solid var(--border-soft)",
-                borderRadius: 6,
-                padding: "1px 6px",
-              }}
-            >
-              ✓ {RATING_LABEL[logToday.rating] ?? logToday.rating}
-            </span>
-          )}
-        </div>
+          {meta.tr}
+        </span>
+        <span style={{ fontSize: "var(--fs-sm)", color: "var(--text-muted)" }}>
+          {rec.versesKnown} / {meta.verses}
+        </span>
       </div>
 
-      {/* Versteller */}
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          marginBottom: 12,
-        }}
-      >
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <button
+          type="button"
+          aria-label="Een vers minder"
           onClick={() => onDelta(rec.surah, -1)}
           disabled={rec.versesKnown === 0}
           style={{
-            width: 32,
-            height: 32,
-            borderRadius: 8,
-            background: "var(--card2)",
-            border: "1px solid var(--border)",
-            fontWeight: 700,
-            fontSize: 16,
-            color: "var(--text)",
+            ...stepBtn,
             opacity: rec.versesKnown === 0 ? 0.4 : 1,
           }}
         >
-          −
+          <Icon name="minus" size={20} />
         </button>
         <div
           style={{
             flex: 1,
             height: 6,
-            background: "var(--border-soft)",
+            background: "var(--track)",
             borderRadius: 3,
-            overflow: "hidden",
           }}
         >
           <div
             style={{
-              height: "100%",
+              height: 6,
               width: `${(rec.versesKnown / meta.verses) * 100}%`,
               background: "var(--accent)",
               borderRadius: 3,
@@ -138,52 +78,82 @@ export default function LearningCard({ rec, onDelta, onLog, onMarkMemorized }) {
           />
         </div>
         <button
+          type="button"
+          aria-label="Een vers meer"
           onClick={() => onDelta(rec.surah, 1)}
-          disabled={rec.versesKnown >= meta.verses}
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 8,
-            background: "var(--card2)",
-            border: "1px solid var(--border)",
-            fontWeight: 700,
-            fontSize: 16,
-            color: "var(--text)",
-            opacity: rec.versesKnown >= meta.verses ? 0.4 : 1,
-          }}
+          disabled={full}
+          style={{ ...stepBtn, opacity: full ? 0.4 : 1 }}
         >
-          +
+          <Icon name="plus" size={20} />
         </button>
       </div>
 
       {full ? (
-        <Button
-          variant="primary"
-          size="sm"
-          full
+        <button
+          type="button"
           onClick={() => onMarkMemorized(rec.surah)}
+          style={{
+            ...pill,
+            width: "100%",
+            background: "var(--accent)",
+            color: "var(--accent-contrast)",
+          }}
         >
-          <Emoji char="✅" size={13} /> Markeer als gememoriseerd
-        </Button>
+          Markeer als gememoriseerd
+        </button>
       ) : (
-        <div style={{ display: "flex", gap: 6 }}>
-          {[
-            { label: "Goed", value: "goed", variant: "primary" },
-            { label: "Redelijk", value: "redelijk", variant: "secondary" },
-            { label: "Zwak", value: "zwak", variant: "danger" },
-          ].map(({ label, value, variant }) => (
-            <Button
-              key={value}
-              variant={variant}
-              size="sm"
-              style={{ flex: 1 }}
-              onClick={() => onLog(rec.surah, value)}
-            >
-              {label}
-            </Button>
-          ))}
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <span
+            style={{
+              fontSize: "var(--fs-sm)",
+              color: "var(--text-muted)",
+              marginRight: 4,
+            }}
+          >
+            Hoe ging het?
+          </span>
+          {RATINGS.map(({ label, value }) => {
+            const chosen = logToday?.rating === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={chosen}
+                onClick={() => onLog(rec.surah, value)}
+                style={{
+                  ...pill,
+                  background: chosen ? "var(--accent-bg)" : "var(--sunken)",
+                  color: chosen ? "var(--accent-text)" : "var(--text)",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
+
+const stepBtn = {
+  width: 40,
+  height: 40,
+  borderRadius: "var(--r-sm)",
+  border: "none",
+  background: "var(--accent-bg)",
+  color: "var(--accent-text)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+};
+
+const pill = {
+  minHeight: 36,
+  padding: "0 var(--sp-3)",
+  borderRadius: "var(--r-pill)",
+  border: "none",
+  fontSize: "var(--fs-sm)",
+  fontWeight: 600,
+};
