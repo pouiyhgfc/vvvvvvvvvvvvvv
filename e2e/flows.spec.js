@@ -1,8 +1,15 @@
 import { expect, test } from "@playwright/test";
+import { NOW } from "./fixtures/demo.js";
 import { loadDemo, openTab } from "./helpers.js";
 
 // Kernflows buiten de editor: afvinken, Hifd beoordelen en een backup die
 // via de echte knoppen weer volledig te exporteren is.
+
+// Vaste klok: Vandaag opent op het dagdeel van nu, en deze tests gaan uit van
+// de ochtend.
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(NOW);
+});
 
 test("een afgevinkte routine blijft afgevinkt na herladen", async ({
   page,
