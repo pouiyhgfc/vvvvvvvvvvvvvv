@@ -33,6 +33,7 @@ test("vastzetten toont de entry in de Vastgezet-sectie en overleeft herladen", a
 
   await page.getByText("Pin-test-A", { exact: true }).click();
   await page.waitForSelector(".ProseMirror");
+  await page.click('button[aria-label="Notitie-opties"]');
   await page.click('button[aria-label="Vastzetten"]');
   await page.click('button[aria-label="Terug"]');
 
@@ -67,6 +68,7 @@ test("archiveren haalt de entry uit de lijst; herstellen zet 'm terug", async ({
 
   await page.getByText("Archive-test", { exact: true }).click();
   await page.waitForSelector(".ProseMirror");
+  await page.click('button[aria-label="Notitie-opties"]');
   await page.click('button[aria-label="Archiveren"]');
 
   await expect(page.getByText("Archive-test", { exact: true })).toHaveCount(0);
@@ -90,6 +92,7 @@ test("verwijderen gaat naar de prullenbak; herstellen en definitief verwijderen 
 
   await page.getByText("Trash-test", { exact: true }).click();
   await page.waitForSelector(".ProseMirror");
+  await page.click('button[aria-label="Notitie-opties"]');
   await page.click('button[aria-label="Naar prullenbak"]');
   await confirmDialogButton(page, "Naar prullenbak").click();
 
@@ -109,6 +112,7 @@ test("verwijderen gaat naar de prullenbak; herstellen en definitief verwijderen 
   // Opnieuw naar de prullenbak, en nu definitief verwijderen.
   await page.getByText("Trash-test", { exact: true }).click();
   await page.waitForSelector(".ProseMirror");
+  await page.click('button[aria-label="Notitie-opties"]');
   await page.click('button[aria-label="Naar prullenbak"]');
   await confirmDialogButton(page, "Naar prullenbak").click();
 
@@ -128,7 +132,8 @@ test("prullenbak legen verwijdert alle items definitief", async ({ page }) => {
   for (const title of ["Empty-test-1", "Empty-test-2"]) {
     await page.getByText(title, { exact: true }).click();
     await page.waitForSelector(".ProseMirror");
-    await page.click('button[aria-label="Naar prullenbak"]');
+    await page.click('button[aria-label="Notitie-opties"]');
+  await page.click('button[aria-label="Naar prullenbak"]');
     await confirmDialogButton(page, "Naar prullenbak").click();
   }
 
@@ -165,6 +170,7 @@ test("een verwijderde 'vandaag'-entry verdwijnt uit het widget op Dag", async ({
     .getByRole("button", { name: "Logboek voor vandaag openen" })
     .click();
   await page.waitForSelector(".ProseMirror");
+  await page.click('button[aria-label="Notitie-opties"]');
   await page.click('button[aria-label="Naar prullenbak"]');
   await confirmDialogButton(page, "Naar prullenbak").click();
 

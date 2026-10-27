@@ -236,10 +236,10 @@ export default function BlockHandle({ editor, containerRef }) {
     endDrag();
   };
 
-  // 27 × 40: past samen in de 54px-goot links, maar is hoog genoeg om met
-  // een duim te raken zonder op de tekst ernaast te tikken.
+  // 22 × 40: past samen in de 44px-goot links (richEditor.css), maar is hoog
+  // genoeg om met een duim te raken zonder op de tekst ernaast te tikken.
   const btnStyle = {
-    width: 27,
+    width: 22,
     height: 40,
     display: "flex",
     alignItems: "center",
@@ -255,7 +255,7 @@ export default function BlockHandle({ editor, containerRef }) {
 
   return (
     <>
-      {/* Horizontaal in de linkergoot van de editor (54px padding-inline):
+      {/* Horizontaal in de linkergoot van de editor (44px, zie richEditor.css):
           eerst +, dan ⠿ — naast de eerste regel, niet over de tekst eronder. */}
       {pos && (
         <div

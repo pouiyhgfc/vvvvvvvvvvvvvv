@@ -36,7 +36,7 @@ test("verplaatsen via de notitieboek-select in EntryPage verhuist de entry", asy
   await page.waitForSelector(".ProseMirror");
   await page
     .getByLabel("Notitieboek", { exact: true })
-    .selectOption({ label: "📓 Werk" });
+    .selectOption({ label: "Werk" });
   await page.waitForTimeout(300);
   await page.click('button[aria-label="Terug"]');
 

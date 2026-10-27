@@ -17,6 +17,8 @@ import Sheet from "../../ui/Sheet.jsx";
 import Button from "../../ui/Button.jsx";
 import IconField from "../../ui/IconField.jsx";
 import Emoji from "../../ui/Emoji.jsx";
+import Icon from "../../ui/Icon.jsx";
+import EntryMenuSheet from "./EntryMenuSheet.jsx";
 import { TextInput, Select } from "../../ui/Field.jsx";
 
 const RichEditor = lazy(() => import("./RichEditor.jsx"));
@@ -27,79 +29,10 @@ const parseTags = (str) =>
     .map((t) => t.trim())
     .filter(Boolean);
 
+// Korte datum voor de meta-regel, bv. "di 27 okt".
 function fmtDay(str) {
   const d = new Date(str + "T12:00");
-  return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
-}
-
-function ChevronIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12.5 5l-5 5 5 5" />
-    </svg>
-  );
-}
-
-function UndoIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M8 5L4 9l4 4" />
-      <path d="M4 9h7a4 4 0 0 1 4 4v1" />
-    </svg>
-  );
-}
-
-function RedoIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 5l4 4-4 4" />
-      <path d="M16 9H9a4 4 0 0 0-4 4v1" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 6h14M8 6V4h4v2M5 6l1 11h8l1-11" />
-    </svg>
-  );
+  return `${DAYS_NL[d.getDay()].slice(0, 2).toLowerCase()} ${d.getDate()} ${MONTHS_NL[d.getMonth()].slice(0, 3).toLowerCase()}`;
 }
 
 // Volledige eigen pagina met de rijke editor. Slaat automatisch op (debounced
@@ -123,6 +56,7 @@ export default function EntryPage({
     entry?.notebookId || notebookId || "logboek",
   );
   const [confirmDel, setConfirmDel] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [contentVersion, setContentVersion] = useState(0);
   // Beschikbaarheid van undo/redo als state (niet de ref tijdens render lezen);
   // bijgewerkt vanuit de editor-onChange, die ook na undo/redo vuurt.
@@ -300,152 +234,183 @@ export default function EntryPage({
     setTplIcon("📄");
   };
 
-  const ghostBtn = {
-    width: 36,
-    height: 36,
-    borderRadius: 99,
+  const iconBtn = (enabled = true) => ({
+    width: 44,
+    height: 44,
+    borderRadius: "var(--r-pill)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     color: "var(--text-muted)",
     border: "none",
     background: "none",
-    cursor: "pointer",
-  };
-  const histBtn = (enabled) => ({
-    ...ghostBtn,
-    opacity: enabled ? 1 : 0.3,
-    cursor: enabled ? "pointer" : "default",
+    opacity: enabled ? 1 : 0.35,
   });
+  const nb = notebooks.find((n) => n.id === currentNb);
 
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
-        background: "var(--bg)",
+        background: "var(--card)",
         zIndex: 250,
         display: "flex",
         flexDirection: "column",
+        paddingTop: "env(safe-area-inset-top)",
       }}
     >
-      {/* Topbalk — minimaal: alleen terug + verwijder */}
+      {/* Topbalk: terug, ongedaan maken/opnieuw, en de rest achter ⋯ */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
-          padding: "8px 12px",
-          borderBottom: "1px solid var(--border-mid)",
-          background: "var(--card)",
+          gap: 2,
+          padding: "var(--sp-2) var(--sp-2) 0",
           minHeight: 52,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <button onClick={close} aria-label="Terug" style={ghostBtn}>
-            <ChevronIcon />
-          </button>
-          {/* Ongedaan maken / opnieuw — editor-historie (ProseMirror). Altijd
-              aan: niets om te herstellen is een no-op. */}
-          <button
-            onClick={() => editorRef.current?.undo()}
-            disabled={!hist.undo}
-            aria-label="Ongedaan maken"
-            style={histBtn(hist.undo)}
-          >
-            <UndoIcon />
-          </button>
-          <button
-            onClick={() => editorRef.current?.redo()}
-            disabled={!hist.redo}
-            aria-label="Opnieuw"
-            style={histBtn(hist.redo)}
-          >
-            <RedoIcon />
-          </button>
-        </div>
-        <span
-          style={{
-            flex: 1,
-            textAlign: "center",
-            fontSize: 11,
-            color: "var(--text-faint)",
-          }}
-        >
-          {saveState === "saving" && "Opslaan…"}
-          {saveState === "saved" && "Opgeslagen ✓"}
-        </span>
-        {created && (
-          <button
-            onClick={togglePin}
-            aria-label={pinned ? "Losmaken" : "Vastzetten"}
-            title={pinned ? "Losmaken" : "Vastzetten"}
-            style={{
-              ...ghostBtn,
-              color: pinned ? "var(--accent-contrast)" : "var(--text-muted)",
-              background: pinned ? "var(--accent)" : "none",
-            }}
-          >
-            <Emoji char="📌" size={16} />
-          </button>
-        )}
-        {created && (
-          <button
-            onClick={archive}
-            aria-label="Archiveren"
-            title="Archiveren"
-            style={ghostBtn}
-          >
-            <Emoji char="🗄️" size={16} />
-          </button>
-        )}
         <button
-          onClick={() => setShowSaveTemplate(true)}
-          aria-label="Meer opties"
+          type="button"
+          onClick={close}
+          aria-label="Terug"
           style={{
-            width: 34,
-            height: 34,
-            borderRadius: 99,
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            color: "var(--text-muted)",
+            gap: 2,
+            minHeight: 44,
+            padding: "0 var(--sp-2) 0 4px",
             border: "none",
             background: "none",
-            cursor: "pointer",
-            fontSize: 18,
-            fontWeight: 700,
+            color: "var(--accent-text)",
+            fontSize: "var(--fs-md)",
+            fontWeight: 500,
           }}
         >
-          ⋯
+          <Icon name="caret-left" size={20} />
+          Notities
         </button>
-        {created && (
-          <button
-            onClick={() => setConfirmDel(true)}
-            aria-label="Naar prullenbak"
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 99,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "var(--danger-text)",
-              border: "1px solid var(--danger-border)",
-              background: "var(--danger-bg)",
-              cursor: "pointer",
-            }}
-          >
-            <TrashIcon />
-          </button>
-        )}
+        <span style={{ flex: 1 }} />
+        {/* Ongedaan maken / opnieuw — editor-historie (ProseMirror). */}
+        <button
+          type="button"
+          onClick={() => editorRef.current?.undo()}
+          disabled={!hist.undo}
+          aria-label="Ongedaan maken"
+          style={iconBtn(hist.undo)}
+        >
+          <Icon name="arrow-u-up-left" size={22} />
+        </button>
+        <button
+          type="button"
+          onClick={() => editorRef.current?.redo()}
+          disabled={!hist.redo}
+          aria-label="Opnieuw"
+          style={iconBtn(hist.redo)}
+        >
+          <Icon name="arrow-u-up-right" size={22} />
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowMenu(true)}
+          aria-label="Notitie-opties"
+          style={{ ...iconBtn(), color: "var(--text)" }}
+        >
+          <Icon name="dots-three" size={24} />
+        </button>
       </div>
 
-      {/* Scroll-zone: titel + meta + editor */}
+      {/* Scroll-zone: meta + titel + editor */}
       <div style={{ flex: 1, overflowY: "auto" }}>
         <div
-          style={{ maxWidth: 720, margin: "0 auto", padding: "20px 16px 48px" }}
+          style={{
+            maxWidth: 720,
+            margin: "0 auto",
+            padding: "var(--sp-3) var(--sp-3) 48px",
+          }}
         >
+          {/* Meta-rij: notitieboek · datum · tags · opslaan-status */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--sp-2)",
+              flexWrap: "wrap",
+              // Zelfde linkerkant als de tekst in de editor (44px goot).
+              padding: "0 4px 0 44px",
+              marginBottom: "var(--sp-2)",
+              fontSize: "var(--fs-sm)",
+              color: "var(--text-muted)",
+            }}
+          >
+            <label
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                minHeight: 32,
+                padding: "0 10px",
+                borderRadius: "var(--r-pill)",
+                background: "var(--accent-bg)",
+                color: "var(--accent-text)",
+                fontWeight: 600,
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  background: nb?.color ?? "var(--accent)",
+                }}
+              />
+              <Select
+                value={currentNb}
+                onChange={(e) => moveToNotebook(e.target.value)}
+                aria-label="Notitieboek"
+                style={{
+                  width: "auto",
+                  border: "none",
+                  background: "transparent",
+                  fontSize: "var(--fs-sm)",
+                  fontWeight: 600,
+                  color: "inherit",
+                  padding: 0,
+                }}
+              >
+                {notebooks.map((n) => (
+                  <option key={n.id} value={n.id}>
+                    {n.name}
+                  </option>
+                ))}
+              </Select>
+            </label>
+            <span style={{ whiteSpace: "nowrap" }}>{fmtDay(entryDate)}</span>
+            <TextInput
+              value={tags}
+              onChange={(e) => {
+                markDirty();
+                setTags(e.target.value);
+              }}
+              placeholder="+ tags"
+              aria-label="Tags (komma-gescheiden)"
+              style={{
+                flex: 1,
+                minWidth: 90,
+                border: "none",
+                background: "transparent",
+                fontSize: "var(--fs-sm)",
+                color: "var(--accent-text)",
+                padding: 0,
+                boxShadow: "none",
+              }}
+            />
+            <span style={{ fontSize: "var(--fs-xs)" }}>
+              {saveState === "saving" && "Opslaan…"}
+              {saveState === "saved" && "Opgeslagen"}
+            </span>
+          </div>
           {/* Grote titel */}
           <TextInput
             value={title}
@@ -454,80 +419,20 @@ export default function EntryPage({
               setTitle(e.target.value);
             }}
             placeholder="Titel…"
+            dir="auto"
             style={{
               width: "100%",
               border: "none",
               background: "transparent",
-              fontFamily: "var(--ff-display)",
-              fontSize: 26,
-              fontWeight: 700,
+              fontFamily: "var(--ff-head)",
+              fontSize: "var(--fs-2xl)",
+              fontWeight: 600,
               color: "var(--text)",
-              padding: "0 0 8px",
+              padding: "0 4px var(--sp-2) 44px",
               lineHeight: 1.2,
               boxShadow: "none",
             }}
           />
-          {/* Meta-rij: datum · notitieboek · tags */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 16,
-              flexWrap: "wrap",
-            }}
-          >
-            <span
-              style={{
-                fontSize: 12,
-                color: "var(--text-faint)",
-                fontWeight: 500,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {fmtDay(entryDate)}
-            </span>
-            <span style={{ color: "var(--border)", fontSize: 14 }}>·</span>
-            <Select
-              value={currentNb}
-              onChange={(e) => moveToNotebook(e.target.value)}
-              aria-label="Notitieboek"
-              style={{
-                width: "auto",
-                border: "none",
-                background: "transparent",
-                fontSize: 12,
-                fontWeight: 500,
-                color: "var(--text-faint)",
-                padding: "0 16px 0 0",
-              }}
-            >
-              {notebooks.map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.icon} {n.name}
-                </option>
-              ))}
-            </Select>
-            <span style={{ color: "var(--border)", fontSize: 14 }}>·</span>
-            <TextInput
-              value={tags}
-              onChange={(e) => {
-                markDirty();
-                setTags(e.target.value);
-              }}
-              placeholder="tags (komma-gescheiden)"
-              style={{
-                flex: 1,
-                minWidth: 120,
-                border: "none",
-                background: "transparent",
-                fontSize: 12,
-                color: "var(--text-muted)",
-                padding: 0,
-                boxShadow: "none",
-              }}
-            />
-          </div>
           {/* Rijke editor */}
           <Suspense
             fallback={
@@ -552,6 +457,17 @@ export default function EntryPage({
         </div>
       </div>
 
+      {showMenu && (
+        <EntryMenuSheet
+          created={created}
+          pinned={pinned}
+          onPin={togglePin}
+          onArchive={archive}
+          onSaveTemplate={() => setShowSaveTemplate(true)}
+          onTrash={() => setConfirmDel(true)}
+          onClose={() => setShowMenu(false)}
+        />
+      )}
       {confirmDel && (
         <ConfirmDialog
           title="Naar prullenbak?"
