@@ -1,85 +1,32 @@
 import { useState, useMemo, useCallback, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
-import { uid, isToday, getMonday } from "../../lib/date.js";
-import {
-  DAYS_NL,
-  MONTHS_NL,
-  MOODS,
-  DEFAULT_NOTEBOOKS,
-  EVENT_COLORS,
-} from "../../lib/constants.js";
+import { uid } from "../../lib/date.js";
+import { MOODS, DEFAULT_NOTEBOOKS } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
 import { isActive, isArchived, isTrashed } from "../../lib/notes.js";
 import { useSortable, arrMove } from "../../hooks/useSortable.js";
 import Emoji from "../../ui/Emoji.jsx";
 import Icon from "../../ui/Icon.jsx";
 import Button from "../../ui/Button.jsx";
-import DragHandle from "../../ui/DragHandle.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
+import ArchiveSheet from "./ArchiveSheet.jsx";
+import NoteCard from "./NoteCard.jsx";
+import NotebookOrderSheet from "./NotebookOrderSheet.jsx";
+import SelectionBar from "./SelectionBar.jsx";
+import TemplatePickerSheet from "./TemplatePickerSheet.jsx";
+import TrashSheet from "./TrashSheet.jsx";
+import {
+  dateSearchString,
+  groupLabel,
+  nbOf,
+  stripBlockIds,
+  tagColor,
+} from "./noteHelpers.js";
 import LogEntrySheet from "./LogEntrySheet.jsx";
 import NotebookSheet from "./NotebookSheet.jsx";
 import EntryPage from "./EntryPage.jsx";
-
-function tagColor(tag) {
-  let h = 0;
-  for (let i = 0; i < tag.length; i++)
-    h = (h * 31 + tag.charCodeAt(i)) & 0xffff;
-  return EVENT_COLORS[h % EVENT_COLORS.length];
-}
-
-function fmtDay(str) {
-  const d = new Date(str + "T12:00:00");
-  return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
-}
-
-// Vormen waarop je een entry op datum kunt vinden: ISO, "25 juni",
-// "25 juni 2026" en de weekdag.
-function dateSearchString(str) {
-  const d = new Date(str + "T12:00:00");
-  return [
-    str,
-    `${d.getDate()} ${MONTHS_NL[d.getMonth()]}`,
-    `${d.getDate()} ${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`,
-    DAYS_NL[d.getDay()],
-  ]
-    .join(" ")
-    .toLowerCase();
-}
-
-const nbOf = (e) => e.notebookId || "logboek";
-
-// Groepskop voor de "Datum"-sorteermodus. Kalendergrenzen (niet 24u-blokken):
-// "gisteren" blijft gisteren, ook als het al 3 uur 's nachts is.
-function groupLabel(dateStr) {
-  const d = new Date(dateStr + "T12:00:00");
-  const now = new Date();
-  if (isToday(d)) return "Vandaag";
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  if (
-    d.getFullYear() === yesterday.getFullYear() &&
-    d.getMonth() === yesterday.getMonth() &&
-    d.getDate() === yesterday.getDate()
-  )
-    return "Gisteren";
-  if (d >= getMonday(now)) return "Deze week";
-  if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth())
-    return "Deze maand";
-  return `${MONTHS_NL[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-// Verwijdert recursief block-id's uit een sjabloon-doc (diepe kopie), zodat
-// een nieuwe entry altijd verse id's krijgt en nooit block-id's deelt met
-// het sjabloon of met eerder uit hetzelfde sjabloon gemaakte entries.
-function stripBlockIds(blocks) {
-  if (!Array.isArray(blocks)) return blocks;
-  return blocks.map(({ id: _id, children, ...rest }) => ({
-    ...rest,
-    ...(children ? { children: stripBlockIds(children) } : {}),
-  }));
-}
 
 export default function LogbookView() {
   const [search, setSearch] = useState("");
@@ -315,15 +262,6 @@ export default function LogbookView() {
   const { ref: restSortRef, onHandleDown: onRestHandleDown } =
     useSortable(onReorderRest);
 
-  const onNbReorder = useCallback(
-    (from, to) => {
-      db.blobs.put({ key: "notebooks", data: arrMove(notebooks, from, to) });
-    },
-    [notebooks],
-  );
-  const { ref: nbSortRef, onHandleDown: nbHandleDown } =
-    useSortable(onNbReorder);
-
   // Dag-notities (uit de tracker) blijven een plat tekstveld; log-entries
   // openen de volledige pagina met de rijke editor (zie EntryPage).
   const saveDayNote = async (data) => {
@@ -469,14 +407,6 @@ export default function LogbookView() {
 
   const moodEmoji = (val) => MOODS.find((m) => m.value === val)?.emoji;
 
-  const cardBase = {
-    background: "var(--card)",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-    boxShadow: "0 1px 3px var(--shadow)",
-    cursor: "pointer",
-  };
   const inputStyle = {
     width: "100%",
     padding: "9px 12px",
@@ -486,27 +416,6 @@ export default function LogbookView() {
     background: "var(--input-bg)",
     color: "var(--text)",
     outline: "none",
-  };
-  // Rijstijl voor archief-/prullenbak-items (Sheet-content).
-  const metaRow = {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "10px 4px",
-    borderBottom: "1px solid var(--border-soft)",
-  };
-  const metaBtn = {
-    width: 30,
-    height: 30,
-    borderRadius: 99,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border: "none",
-    background: "none",
-    color: "var(--text-muted)",
-    cursor: "pointer",
-    flexShrink: 0,
   };
 
   // Long-press (450ms) op een kaart start de selectiemodus. Eén timer-ref
@@ -528,29 +437,21 @@ export default function LogbookView() {
     }
   };
 
-  // Eén kaart, hergebruikt voor zowel de vastgezet-sectie als de rest — de
-  // twee secties hebben elk hun eigen sleep-container (zie onReorderPinned/
-  // onReorderRest hierboven), maar de kaart zelf ziet er identiek uit.
   const renderCard = (entry, idx, handleDown) => {
     const isLog = entry._type === "log";
-    const selected = isLog && selectedIds.has(entry.id);
     return (
-      <div
+      <NoteCard
         key={entry.id}
-        data-srow={isLog && canSort ? "1" : undefined}
-        style={{
-          ...cardBase,
-          display: "flex",
-          alignItems: "flex-start",
-          gap: 0,
-          outline: selected ? "1.5px solid var(--accent)" : "none",
-        }}
-        onPointerDown={() => {
-          if (isLog && !selectMode) startLongPress(entry.id);
-        }}
-        onPointerUp={cancelLongPress}
-        onPointerLeave={cancelLongPress}
-        onPointerCancel={cancelLongPress}
+        entry={entry}
+        idx={idx}
+        handleDown={handleDown}
+        selectMode={selectMode}
+        selected={isLog && selectedIds.has(entry.id)}
+        canSort={canSort}
+        moodEmoji={moodEmoji}
+        onToggleSelect={() => toggleSelect(entry.id)}
+        onLongPressStart={startLongPress}
+        onLongPressEnd={cancelLongPress}
         onClick={() => {
           if (longPressFired.current) {
             longPressFired.current = false;
@@ -562,119 +463,7 @@ export default function LogbookView() {
           }
           isLog ? setPageEntry(entry) : setSheet(entry);
         }}
-      >
-        {isLog && selectMode && (
-          <div
-            style={{ alignSelf: "center", marginRight: 8, flexShrink: 0 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <input
-              type="checkbox"
-              checked={selected}
-              onChange={() => toggleSelect(entry.id)}
-              style={{ width: 18, height: 18, cursor: "pointer" }}
-              aria-label="Selecteren"
-            />
-          </div>
-        )}
-        {isLog && canSort && (
-          <div
-            style={{
-              alignSelf: "center",
-              marginRight: 2,
-              flexShrink: 0,
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <DragHandle onPointerDown={(e) => handleDown(e, idx, entry.id)} />
-          </div>
-        )}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              flexWrap: "wrap",
-              marginBottom: 6,
-            }}
-          >
-            {entry.pinnedAt && <Emoji char="📌" size={12} />}
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: "var(--text-muted)",
-              }}
-            >
-              {fmtDay(
-                entry.updatedAt ? entry.updatedAt.slice(0, 10) : entry.date,
-              )}
-            </span>
-            {!isLog && (
-              <span
-                style={{
-                  fontSize: 9,
-                  padding: "1px 7px",
-                  borderRadius: 99,
-                  background: "var(--border-soft)",
-                  color: "var(--text-faint)",
-                  fontWeight: 600,
-                }}
-              >
-                Dagnotitie
-              </span>
-            )}
-            {!isLog && entry.mood && (
-              <Emoji char={moodEmoji(entry.mood)} size={15} />
-            )}
-            <span style={{ flex: 1 }} />
-            <span style={{ fontSize: 15, color: "var(--text-faint)" }}>›</span>
-          </div>
-          {entry.title && (
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: "var(--text)",
-                marginBottom: 3,
-              }}
-            >
-              {entry.title}
-            </div>
-          )}
-          {entry.tags?.length > 0 && (
-            <div
-              style={{
-                display: "flex",
-                gap: 4,
-                flexWrap: "wrap",
-                marginTop: 8,
-              }}
-            >
-              {entry.tags.map((tag) => {
-                const c = tagColor(tag);
-                return (
-                  <span
-                    key={tag}
-                    style={{
-                      fontSize: 10,
-                      padding: "2px 8px",
-                      borderRadius: 99,
-                      background: c + "22",
-                      color: c,
-                      border: `1px solid ${c}44`,
-                      fontWeight: 600,
-                    }}
-                  >
-                    #{tag}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
+      />
     );
   };
 
@@ -1086,80 +875,17 @@ export default function LogbookView() {
         />
       )}
       {templatePicker && (
-        <Sheet title="Nieuwe entry" onClose={() => setTemplatePicker(false)}>
-          <div
-            onClick={() => {
-              setPageEntry("new");
-              setTemplatePicker(false);
-            }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 4px",
-              borderBottom: "1px solid var(--border-soft)",
-              cursor: "pointer",
-            }}
-          >
-            <Emoji char="📄" size={18} />
-            <span
-              style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}
-            >
-              Leeg document
-            </span>
-          </div>
-          {entryTemplates.map((tpl) => (
-            <div
-              key={tpl.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "10px 4px",
-                borderBottom: "1px solid var(--border-soft)",
-              }}
-            >
-              <div
-                onClick={() => {
-                  setPageEntry({ _draft: { doc: stripBlockIds(tpl.doc) } });
-                  setTemplatePicker(false);
-                }}
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  cursor: "pointer",
-                  minWidth: 0,
-                }}
-              >
-                <Emoji char={tpl.icon} size={18} />
-                <span
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "var(--text)",
-                  }}
-                >
-                  {tpl.name}
-                </span>
-              </div>
-              <button
-                onClick={() => setConfirmDeleteTpl(tpl)}
-                aria-label="Sjabloon verwijderen"
-                style={{
-                  color: "var(--text-faint)",
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer",
-                  padding: 4,
-                }}
-              >
-                <Emoji char="🗑️" size={14} />
-              </button>
-            </div>
-          ))}
-        </Sheet>
+        <TemplatePickerSheet
+          templates={entryTemplates}
+          onPick={(tpl) => {
+            setPageEntry(
+              tpl ? { _draft: { doc: stripBlockIds(tpl.doc) } } : "new",
+            );
+            setTemplatePicker(false);
+          }}
+          onDelete={setConfirmDeleteTpl}
+          onClose={() => setTemplatePicker(false)}
+        />
       )}
       {confirmDeleteTpl && (
         <ConfirmDialog
@@ -1196,240 +922,32 @@ export default function LogbookView() {
         />
       )}
       {sortNbSheet && (
-        <Sheet
-          title="Volgorde notitieboeken"
+        <NotebookOrderSheet
+          notebooks={notebooks}
           onClose={() => setSortNbSheet(false)}
-        >
-          <div ref={nbSortRef}>
-            {notebooks.map((n, i) => (
-              <div
-                key={n.id}
-                data-srow="1"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  background: "var(--card)",
-                  border: `1.5px solid ${n.color}22`,
-                  marginBottom: 6,
-                  boxShadow: "0 1px 2px var(--shadow)",
-                }}
-              >
-                <DragHandle onPointerDown={(e) => nbHandleDown(e, i, n.id)} />
-                <Emoji char={n.icon} size={18} />
-                <span
-                  style={{
-                    flex: 1,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "var(--text)",
-                  }}
-                >
-                  {n.name}
-                </span>
-                <div
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 99,
-                    background: n.color,
-                    flexShrink: 0,
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        </Sheet>
+        />
       )}
       {archiveSheet && (
-        <Sheet title="Archief" onClose={() => setArchiveSheet(false)}>
-          {archivedEntries.length === 0 ? (
-            <p
-              style={{
-                fontSize: 12,
-                color: "var(--text-faint)",
-                textAlign: "center",
-                padding: "20px 0",
-              }}
-            >
-              Nog niets gearchiveerd.
-            </p>
-          ) : (
-            archivedEntries.map((entry) => {
-              const nb = notebookOf(entry);
-              return (
-                <div key={entry.id} style={metaRow}>
-                  <div
-                    style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
-                    onClick={() => {
-                      setArchiveSheet(false);
-                      setPageEntry(entry);
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 5,
-                        marginBottom: 3,
-                      }}
-                    >
-                      <Emoji char={nb.icon} size={12} />
-                      <span
-                        style={{
-                          fontSize: 10,
-                          color: "var(--text-faint)",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {nb.name}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: "var(--text)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {entry.title ||
-                        entry.body?.slice(0, 60) ||
-                        "Zonder titel"}
-                    </div>
-                  </div>
-                  <div
-                    style={{ display: "flex", gap: 4, flexShrink: 0 }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={() => restoreFromArchive(entry.id)}
-                      aria-label="Terugzetten"
-                      title="Terugzetten"
-                      style={metaBtn}
-                    >
-                      <Emoji char="↩️" size={14} />
-                    </button>
-                    <button
-                      onClick={() => archiveToTrash(entry.id)}
-                      aria-label="Naar prullenbak"
-                      title="Naar prullenbak"
-                      style={metaBtn}
-                    >
-                      <Emoji char="🗑️" size={14} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </Sheet>
+        <ArchiveSheet
+          entries={archivedEntries}
+          notebookOf={notebookOf}
+          onOpen={(entry) => {
+            setArchiveSheet(false);
+            setPageEntry(entry);
+          }}
+          onRestore={restoreFromArchive}
+          onTrash={archiveToTrash}
+          onClose={() => setArchiveSheet(false)}
+        />
       )}
       {trashSheet && (
-        <Sheet
-          title="Prullenbak"
+        <TrashSheet
+          entries={trashedEntries}
+          notebookOf={notebookOf}
+          onRestore={restoreFromTrash}
+          onPurge={setConfirmPurge}
           onClose={() => setTrashSheet(false)}
-          footer={
-            trashedEntries.length > 0 && (
-              <Button
-                variant="danger"
-                full
-                onClick={() => setConfirmPurge("all")}
-              >
-                <Emoji char="🗑️" size={14} /> Prullenbak legen
-              </Button>
-            )
-          }
-        >
-          {trashedEntries.length === 0 ? (
-            <p
-              style={{
-                fontSize: 12,
-                color: "var(--text-faint)",
-                textAlign: "center",
-                padding: "20px 0",
-              }}
-            >
-              Prullenbak is leeg.
-            </p>
-          ) : (
-            <>
-              <p
-                style={{
-                  fontSize: 11,
-                  color: "var(--text-faint)",
-                  marginBottom: 10,
-                }}
-              >
-                Items worden na 30 dagen automatisch definitief verwijderd.
-              </p>
-              {trashedEntries.map((entry) => {
-                const nb = notebookOf(entry);
-                return (
-                  <div key={entry.id} style={metaRow}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 5,
-                          marginBottom: 3,
-                        }}
-                      >
-                        <Emoji char={nb.icon} size={12} />
-                        <span
-                          style={{
-                            fontSize: 10,
-                            color: "var(--text-faint)",
-                            fontWeight: 600,
-                          }}
-                        >
-                          {nb.name}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "var(--text)",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {entry.title ||
-                          entry.body?.slice(0, 60) ||
-                          "Zonder titel"}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                      <button
-                        onClick={() => restoreFromTrash(entry.id)}
-                        aria-label="Herstellen"
-                        title="Herstellen"
-                        style={metaBtn}
-                      >
-                        <Emoji char="↩️" size={14} />
-                      </button>
-                      <button
-                        onClick={() => setConfirmPurge(entry)}
-                        aria-label="Definitief verwijderen"
-                        title="Definitief verwijderen"
-                        style={metaBtn}
-                      >
-                        <Emoji char="❌" size={14} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </>
-          )}
-        </Sheet>
+        />
       )}
       {confirmPurge && (
         <ConfirmDialog
@@ -1488,55 +1006,12 @@ export default function LogbookView() {
         />
       )}
       {selectMode && selectedIds.size > 0 && (
-        <div
-          style={{
-            position: "fixed",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 150,
-            display: "flex",
-            justifyContent: "center",
-            gap: 8,
-            padding: "10px 12px calc(10px + env(safe-area-inset-bottom))",
-            background: "var(--card)",
-            borderTop: "1px solid var(--border-mid)",
-            boxShadow: "0 -2px 10px var(--shadow)",
-          }}
-        >
-          <button
-            onClick={bulkPin}
-            aria-label="Vastzetten"
-            title="Vastzetten"
-            style={{ ...metaBtn, width: 44, height: 44 }}
-          >
-            <Emoji char="📌" size={18} />
-          </button>
-          <button
-            onClick={bulkArchive}
-            aria-label="Archiveren"
-            title="Archiveren"
-            style={{ ...metaBtn, width: 44, height: 44 }}
-          >
-            <Emoji char="🗄️" size={18} />
-          </button>
-          <button
-            onClick={() => setMoveSheet(true)}
-            aria-label="Verplaatsen naar…"
-            title="Verplaatsen naar…"
-            style={{ ...metaBtn, width: 44, height: 44 }}
-          >
-            <Emoji char="📂" size={18} />
-          </button>
-          <button
-            onClick={() => setConfirmBulkTrash(true)}
-            aria-label="Naar prullenbak"
-            title="Naar prullenbak"
-            style={{ ...metaBtn, width: 44, height: 44 }}
-          >
-            <Emoji char="🗑️" size={18} />
-          </button>
-        </div>
+        <SelectionBar
+          onPin={bulkPin}
+          onArchive={bulkArchive}
+          onMove={() => setMoveSheet(true)}
+          onTrash={() => setConfirmBulkTrash(true)}
+        />
       )}
     </div>
   );
