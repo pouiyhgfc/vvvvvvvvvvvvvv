@@ -580,6 +580,8 @@ export default function App({ startupErrors = [] }) {
           onNav={goNav}
           onToday={() => setDate(new Date())}
           banner={<BackupReminder onExport={exportData} />}
+          calEvents={calEvents}
+          onOpenPlanning={() => setView("week")}
           dateKey={key}
           routines={routines}
           tab={tab}

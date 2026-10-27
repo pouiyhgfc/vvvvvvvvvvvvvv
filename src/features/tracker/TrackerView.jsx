@@ -7,6 +7,7 @@ import TodayHeader from "./TodayHeader.jsx";
 import DaySummary from "./DaySummary.jsx";
 import RoutineCard from "./RoutineCard.jsx";
 import TodayLogCard from "./TodayLogCard.jsx";
+import UpNextCard from "./UpNextCard.jsx";
 
 const EntryPage = lazy(() => import("../logbook/EntryPage.jsx"));
 
@@ -15,6 +16,8 @@ export default function TrackerView({
   onNav,
   onToday,
   banner,
+  calEvents,
+  onOpenPlanning,
   routines,
   tab,
   setTab,
@@ -59,6 +62,11 @@ export default function TrackerView({
           pPct={pPct}
           routines={routines}
           streak={streak}
+        />
+        <UpNextCard
+          date={date}
+          calEvents={calEvents}
+          onOpen={onOpenPlanning}
         />
         <RoutineCard
           routines={routines}
