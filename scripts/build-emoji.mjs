@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { emojiCodepoint } from "../src/lib/emojiCodepoint.js";
 import {
-  EMOJI_CATEGORIES,
+  ICON_CATEGORIES,
   DEFAULT_ROUTINES,
   DEFAULT_CAL_TEMPLATES,
   MOODS,
@@ -65,7 +65,7 @@ const UI_EMOJIS = [
 ];
 
 const chars = new Set(UI_EMOJIS);
-for (const cat of EMOJI_CATEGORIES) for (const e of cat.emojis) chars.add(e);
+for (const cat of ICON_CATEGORIES) for (const e of cat.emojis) chars.add(e);
 for (const period of Object.values(DEFAULT_ROUTINES))
   for (const r of period) chars.add(r.icon);
 for (const t of DEFAULT_CAL_TEMPLATES) chars.add(t.icon);

@@ -3,7 +3,7 @@ import { GLYPHS } from "../ui/glyphs.js";
 import {
   DEFAULT_CAL_TEMPLATES,
   DEFAULT_ROUTINES,
-  EMOJI_CATEGORIES,
+  ICON_CATEGORIES,
   MOODS,
 } from "./constants.js";
 import { EMOJI_GLYPH, glyphForEmoji } from "./emojiGlyph.js";
@@ -16,13 +16,21 @@ describe("emoji → icoon", () => {
 
   it("elk emoji dat de app kan tonen krijgt een icoon of lettertegel", () => {
     const all = [
-      ...EMOJI_CATEGORIES.flatMap((c) => c.emojis),
+      ...ICON_CATEGORIES.flatMap((c) => c.emojis),
       ...Object.values(DEFAULT_ROUTINES).flatMap((p) => p.map((r) => r.icon)),
       ...DEFAULT_CAL_TEMPLATES.map((t) => t.icon),
       ...MOODS.map((m) => m.emoji),
     ];
     const missing = all.filter((e) => !glyphForEmoji(e));
     expect(missing).toEqual([]);
+  });
+
+  it("de kiezer toont elk icoon maar één keer", () => {
+    const shown = ICON_CATEGORIES.flatMap((c) => c.emojis).map((e) =>
+      JSON.stringify(glyphForEmoji(e)),
+    );
+    const dupes = shown.filter((g, i) => shown.indexOf(g) !== i);
+    expect(dupes).toEqual([]);
   });
 
   it("negeert de variantselector", () => {

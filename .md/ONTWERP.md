@@ -124,7 +124,7 @@ het `EVENT_COLORS`-palet en de maand-heatmap-schaal. Die volgen het accent niet.
 | `ConfirmDialog`                            | Gecentreerd bevestigen. Props: `title`, `message`, `confirmLabel?`, `danger?`, `onConfirm`, `onCancel`, of `actions[]` voor meerkeuze.       |
 | `Button`                                   | `variant`: `primary`/`secondary`/`danger`/`dangerSolid`/`ghost`; `size`: `md`/`sm`; `full`.                                                  |
 | `Field`, `TextInput`, `TextArea`, `Select` | Velden met label/hint en centrale groene focus-border.                                                                                       |
-| `IconField`                                | Emoji-knop + uitklap-`EmojiPicker`. Plaats in een `flexWrap:"wrap"`-rij. Props: `value`, `onChange`.                                         |
+| `IconField`                                | Icoonknop + uitklap-icoonkiezer (`ICON_CATEGORIES`). Plaats in een `flexWrap:"wrap"`-rij. Props: `value`, `onChange`.                      |
 | `ColorPicker`                              | Swatch-rij + custom kleur (🎨). Props: `value`, `onChange`, `colors?`.                                                                       |
 | `Section`                                  | Inklapbare instellingen-sectie. Props: `title`, `icon?`, `right?`, `tone?` (`default`/`accent`/`danger`), `defaultOpen?`.                    |
 | `Emoji`                                    | Toont een data-emoji als lijnicoon (onbekend: Twemoji). Props: `char`, `size?`, `style?`.                                                    |

@@ -1,132 +1,118 @@
 import { useState } from "react";
-import { EMOJI_CATEGORIES } from "../lib/constants.js";
+import { ICON_CATEGORIES } from "../lib/constants.js";
 import Emoji from "./Emoji.jsx";
+import { TextInput } from "./Field.jsx";
 
-export default function EmojiPicker({
-  value,
-  onPick,
-  size = 30,
-  height = 170,
-}) {
+// Icoonkiezer: zoeken of een groep kiezen, dan een icoon aantikken. Slaat
+// het emoji op dat bij het icoon hoort (zie ICON_CATEGORIES).
+export default function EmojiPicker({ value, onPick }) {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState(0);
   const query = q.trim().toLowerCase();
 
   let emojis;
   if (query) {
-    const hits = EMOJI_CATEGORIES.filter((c) =>
+    const hits = ICON_CATEGORIES.filter((c) =>
       (c.name + " " + c.kw).toLowerCase().includes(query),
     );
-    emojis = [
-      ...new Set(
-        (hits.length ? hits : EMOJI_CATEGORIES).flatMap((c) => c.emojis),
-      ),
-    ];
+    emojis = hits.flatMap((c) => c.emojis);
   } else {
-    emojis = EMOJI_CATEGORIES[cat].emojis;
+    emojis = ICON_CATEGORIES[cat].emojis;
   }
 
   return (
     <div
       style={{
         background: "var(--card)",
-        borderRadius: 8,
-        border: "1px solid var(--border)",
-        padding: 6,
+        borderRadius: "var(--r-md)",
+        border: "1px solid var(--border-soft)",
+        padding: "var(--sp-3)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--sp-3)",
       }}
     >
-      <input
-        type="text"
+      <TextInput
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="🔍 Zoek (bv. sport, eten, gebed)..."
-        style={{
-          width: "100%",
-          padding: "6px 9px",
-          borderRadius: 6,
-          border: "1px solid var(--border)",
-          fontSize: 12,
-          outline: "none",
-          marginBottom: 6,
-          background: "var(--input-bg)",
-          color: "var(--text)",
-        }}
+        placeholder="Zoek, bv. sport, gebed, taal"
+        aria-label="Zoek icoon"
+        style={{ fontSize: "var(--fs-md)" }}
       />
       {!query && (
         <div
           style={{
             display: "flex",
-            gap: 4,
+            gap: "var(--sp-2)",
             overflowX: "auto",
-            paddingBottom: 5,
-            marginBottom: 5,
-            borderBottom: "1px solid var(--border)",
             WebkitOverflowScrolling: "touch",
           }}
         >
-          {EMOJI_CATEGORIES.map((c, i) => (
+          {ICON_CATEGORIES.map((c, i) => (
             <button
               key={c.name}
+              type="button"
               onClick={() => setCat(i)}
+              aria-pressed={cat === i}
               style={{
                 flexShrink: 0,
-                fontSize: 10,
-                fontWeight: 600,
-                padding: "4px 9px",
-                borderRadius: 99,
+                minHeight: 36,
+                padding: "0 var(--sp-3)",
+                borderRadius: "var(--r-pill)",
                 whiteSpace: "nowrap",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                border:
-                  cat === i
-                    ? "1.5px solid var(--accent)"
-                    : "1px solid var(--border)",
-                background: cat === i ? "var(--sel-bg)" : "var(--card)",
+                fontSize: "var(--fs-sm)",
+                fontWeight: 500,
+                border: "none",
+                background: cat === i ? "var(--accent-bg)" : "var(--sunken)",
                 color: cat === i ? "var(--accent-text)" : "var(--text-muted)",
               }}
             >
               {c.name}
-              <Emoji char={c.emojis[0]} size={12} />
             </button>
           ))}
         </div>
       )}
       <div
         style={{
-          display: "flex",
-          gap: 4,
-          flexWrap: "wrap",
-          maxHeight: height,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(44px, 1fr))",
+          gap: 6,
+          maxHeight: 200,
           overflowY: "auto",
           padding: 2,
         }}
       >
-        {emojis.map((e, idx) => (
+        {emojis.map((e) => (
           <button
-            key={e + idx}
+            key={e}
+            type="button"
             onClick={() => onPick(e)}
+            aria-pressed={value === e}
             style={{
-              width: size,
-              height: size,
-              borderRadius: 6,
-              border:
-                value === e
-                  ? "2px solid var(--accent)"
-                  : "1px solid var(--border)",
-              background: value === e ? "var(--sel-bg)" : "var(--card)",
+              height: 44,
+              borderRadius: "var(--r-sm)",
+              border: "none",
+              outline: value === e ? "2px solid var(--accent)" : "none",
+              background: value === e ? "var(--accent-bg)" : "var(--sunken)",
+              color: value === e ? "var(--accent-text)" : "var(--text)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              flexShrink: 0,
               padding: 0,
             }}
           >
-            <Emoji char={e} size={Math.round(size * 0.62)} />
+            <Emoji char={e} size={24} />
           </button>
         ))}
         {emojis.length === 0 && (
-          <div style={{ fontSize: 11, color: "var(--text-faint)", padding: 8 }}>
+          <div
+            style={{
+              gridColumn: "1 / -1",
+              fontSize: "var(--fs-sm)",
+              color: "var(--text-muted)",
+              padding: "var(--sp-2)",
+            }}
+          >
             Niets gevonden.
           </div>
         )}
