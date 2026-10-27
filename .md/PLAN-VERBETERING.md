@@ -155,12 +155,14 @@ onmogelijk.
 
 ### 1d — CI (GitHub Actions)
 
-- [ ] Workflow bij elke push naar `main`: `npm ci`, lint, knip, `npm test`, build, Playwright
-      (functioneel + screenshots). Faalt er iets, dan zie je dat in GitHub; de deploy op Vercel
-      kun je dan terugdraaien.
-- [ ] jscpd (duplicatie-detector) als rapport, nog niet blokkerend.
+- [x] Workflow bij elke push naar `main` (ubuntu-24.04): `npm ci`, lint, knip, `npm test`,
+      build, functionele e2e. Faalt er iets, dan zie je dat in GitHub; de deploy op Vercel kun
+      je dan terugdraaien. De screenshot-vergelijking draait **niet** in CI (andere fonts op
+      GitHubs machine) maar in de cloud-sessie (`npm run test:visual`).
+- [x] jscpd (duplicatie-detector) als rapport, nog niet blokkerend (nulmeting: 2,6% van de
+      regels in `src/`).
 
-- [ ] **Fase 1 afgerond** (alle tests groen in CI; screenshots als baseline gecommit)
+- [x] **Fase 1 afgerond** (alle tests groen in CI; screenshots als baseline gecommit)
 
 **Telefoontest:** Instellingen → opslag beschermd = ja; export maken en terugzetten werkt.
 
