@@ -14,7 +14,12 @@ export default defineConfig({
   use: { baseURL: "http://localhost:5173" },
   snapshotPathTemplate: "{testDir}/__screenshots__/{arg}{ext}",
   expect: {
-    toHaveScreenshot: { animations: "disabled", maxDiffPixelRatio: 0.01 },
+    // Streng: baselines komen uit dezelfde omgeving, dus elke kleur telt.
+    toHaveScreenshot: {
+      animations: "disabled",
+      threshold: 0.02,
+      maxDiffPixelRatio: 0.001,
+    },
   },
   projects: [
     {
