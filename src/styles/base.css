@@ -1,5 +1,4 @@
-/* Basisstijlen en kleurtokens (licht + donker). Verplaatst uit index.html
-   zodat ze bij de rest van de code staan; waarden ongewijzigd. */
+/* Basisstijlen en kleurtokens (licht + donker). */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -12,66 +11,97 @@ body,
   height: 100%;
 }
 :root {
+  /* Ontwerp v2 (richting B "Zacht") — zie .md/ONTWERP.md. Oude tokennamen
+     blijven bestaan en wijzen naar de dichtstbijzijnde nieuwe waarde, zodat
+     schermen die nog niet zijn omgebouwd meteen de nieuwe kleuren krijgen. */
   --ff-display: "Schibsted Grotesk Variable", sans-serif;
   --ff-head: "Outfit Variable", sans-serif;
   --ff-body: "DM Sans Variable", sans-serif;
-  --bg: #f6f5f1;
+
+  --bg: #eef1ec;
   --card: #ffffff;
-  --card2: #fbfaf7;
-  --text: #1a211e;
-  --text-muted: #697069;
-  --text-faint: #a2a8a2;
-  --border: #e9e7e1;
-  --border-soft: #f1efe9;
-  --border-mid: #e9e7e1;
-  --input-bg: #f8f7f3;
-  --shadow: rgba(20, 30, 25, 0.06);
-  --tint-alpha: 18;
+  --sunken: #f1f3f0;
+  --track: #e3ebe5;
+  --control-border: #c3ccc6;
+  --text: #17201b;
+  --text-muted: #56605a;
+  --text-faint: #8a948e;
   --accent: #0e7a52;
   --accent-strong: #0a5a3c;
-  --accent-contrast: #ffffff;
-  --accent-bg: #eef7f2;
-  --accent-border: #c5e6d6;
   --accent-text: #0a5a3c;
-  --sel-bg: #f0f8f4;
-  --danger-bg: #fdf3f2;
+  --accent-bg: #e1f1e8;
+  --accent-border: #c5e6d6;
+  --accent-contrast: #ffffff;
+  --sel-bg: #e9f5ee;
+  --danger-text: #b42318;
+  --danger-bg: #fdf0ee;
   --danger-border: #f3d2cf;
-  --danger-text: #c0392f;
   --purple-bg: #f5f3ff;
   --purple-border: #ddd6fe;
   --purple-text: #6d28d9;
-  --heat0: #f1efe9;
+  --shadow: rgba(20, 40, 30, 0.06);
+  --shadow-float: 0 6px 24px rgba(20, 40, 30, 0.1);
+  --heat0: #e3ebe5;
+  --tint-alpha: 18;
+
+  /* Oude namen → nieuwe waarden */
+  --card2: var(--sunken);
+  --input-bg: var(--sunken);
+  --border: var(--track);
+  --border-mid: var(--track);
+  --border-soft: #eef1ec;
+
+  /* Typeschaal: niets kleiner dan 12 px */
+  --fs-xs: 12px;
+  --fs-sm: 14px;
+  --fs-md: 16px;
+  --fs-lg: 18px;
+  --fs-xl: 20px;
+  --fs-2xl: 30px;
+
+  /* Ruimte en hoeken */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 24px;
+  --r-pill: 999px;
 }
 html[data-theme="dark"] {
-  --bg: #0e1210;
-  --card: #171c19;
-  --card2: #1f2521;
+  --bg: #0f1411;
+  --card: #182019;
+  --sunken: #1f2822;
+  --track: #26312b;
+  --control-border: #4a554e;
   --text: #e8ece9;
-  --text-muted: #98a09a;
-  --text-faint: #646b66;
-  --border: #2a312d;
-  --border-soft: #242b27;
-  --border-mid: #2a312d;
-  --input-bg: #1f2521;
-  --shadow: rgba(0, 0, 0, 0.45);
-  --tint-alpha: 30;
+  --text-muted: #9aa39d;
+  --text-faint: #6b766f;
   --accent: #1fa06a;
   --accent-strong: #5fd6a0;
-  --accent-contrast: #06140d;
+  --accent-text: #5fd6a0;
   --accent-bg: #10251b;
   --accent-border: #1d4534;
-  --accent-text: #5fd6a0;
+  --accent-contrast: #06140d;
   --sel-bg: #13271d;
+  --danger-text: #f0867c;
   --danger-bg: #2a1614;
   --danger-border: #4a2521;
-  --danger-text: #f0867c;
   --purple-bg: #1c1830;
   --purple-border: #352c54;
   --purple-text: #c4b5fd;
-  --heat0: #242b27;
+  --shadow: rgba(0, 0, 0, 0.45);
+  --shadow-float: 0 6px 24px rgba(0, 0, 0, 0.45);
+  --heat0: #26312b;
+  --tint-alpha: 30;
+  --border-soft: #1f2822;
 }
 body {
-  font-family: "DM Sans Variable", sans-serif;
+  font-family: var(--ff-body);
   background: var(--bg);
   color: var(--text);
   transition: background 0.25s;
@@ -157,7 +187,7 @@ textarea::placeholder {
   transform: scale(0.98);
 }
 .cal-hour-cell:hover {
-  background: rgba(14, 122, 82, 0.06) !important;
+  background: var(--sel-bg) !important;
 }
 .drag-handle {
   touch-action: none;
