@@ -236,9 +236,11 @@ export default function BlockHandle({ editor, containerRef }) {
     endDrag();
   };
 
+  // 27 × 40: past samen in de 54px-goot links, maar is hoog genoeg om met
+  // een duim te raken zonder op de tekst ernaast te tikken.
   const btnStyle = {
-    width: 24,
-    height: 26,
+    width: 27,
+    height: 40,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -259,7 +261,8 @@ export default function BlockHandle({ editor, containerRef }) {
         <div
           style={{
             position: "absolute",
-            top: pos.top,
+            // 7px omhoog: de 40px-knoppen centreren op de eerste regel (~26px).
+            top: pos.top - 7,
             left: 0,
             display: "flex",
             alignItems: "center",

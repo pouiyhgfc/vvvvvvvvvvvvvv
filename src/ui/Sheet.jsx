@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { useGhostClickShield } from "../hooks/useGhostClickShield.js";
+import Icon from "./Icon.jsx";
 
-// Gedeelde bottom-sheet modal (de weekplanner-popup, veralgemeniseerd).
-// Sluit op backdrop-klik en Escape; vergrendelt de achtergrond-scroll.
-// `backdrop="light"`: nauwelijks gedimde achtergrond, voor sheets waarbij je
-// de inhoud erachter wilt blijven zien (zoals het blok-menu in de editor).
+// Gedeelde bottom-sheet. Sluit op een tik naast het paneel en op Escape;
+// vergrendelt de achtergrond-scroll. `backdrop="light"`: nauwelijks gedimd,
+// voor sheets waarbij je de inhoud erachter wilt blijven zien (zoals het
+// blok-menu in de editor).
 export default function Sheet({
   title,
   subtitle,
@@ -12,12 +14,7 @@ export default function Sheet({
   footer,
   backdrop = "dark",
 }) {
-  // Negeer een "spook"-klik (touch genereert ~300ms later nog een klik die
-  // anders op de backdrop landt en de net-geopende sheet meteen sluit).
-  const openedAt = useRef(null);
-  useEffect(() => {
-    openedAt.current = Date.now();
-  }, []);
+  const shield = useGhostClickShield();
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onClose();
@@ -37,37 +34,27 @@ export default function Sheet({
         position: "fixed",
         inset: 0,
         background:
-          backdrop === "light" ? "rgba(0,0,0,.08)" : "rgba(0,0,0,.55)",
+          backdrop === "light" ? "rgba(0,0,0,.08)" : "rgba(0,0,0,.45)",
         zIndex: 200,
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "center",
       }}
+      {...shield}
       onClick={(e) => {
-        if (
-          e.target === e.currentTarget &&
-          openedAt.current &&
-          Date.now() - openedAt.current > 400
-        )
-          onClose();
+        if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         style={{
-          // Bij een lichte backdrop is het paneel zelf ook semi-transparant
-          // met een heel lichte blur: je ziet vrijwel alles erachter.
-          background:
-            backdrop === "light"
-              ? "color-mix(in srgb, var(--card) 30%, transparent)"
-              : "var(--card)",
-          ...(backdrop === "light"
-            ? {
-                backdropFilter: "blur(2px)",
-                WebkitBackdropFilter: "blur(2px)",
-              }
-            : null),
-          borderRadius: "16px 16px 0 0",
-          padding: 20,
+          background: "var(--card)",
+          borderRadius: "var(--r-xl) var(--r-xl) 0 0",
+          boxShadow: "var(--shadow-float)",
+          padding:
+            "var(--sp-4) var(--sp-5) calc(var(--sp-5) + env(safe-area-inset-bottom))",
           width: "100%",
           maxWidth: 540,
           maxHeight: "92vh",
@@ -80,38 +67,47 @@ export default function Sheet({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: subtitle ? 4 : 12,
+            gap: "var(--sp-2)",
+            marginBottom: subtitle ? 0 : "var(--sp-3)",
           }}
         >
           <h3
             style={{
+              margin: 0,
               fontFamily: "var(--ff-head)",
-              fontSize: 16,
-              fontWeight: 700,
+              fontSize: "var(--fs-lg)",
+              fontWeight: 600,
             }}
           >
             {title}
           </h3>
           <button
+            type="button"
             onClick={onClose}
             aria-label="Sluiten"
             style={{
-              fontSize: 20,
-              color: "var(--text-faint)",
-              background: "none",
-              padding: 4,
-              lineHeight: 1,
+              width: 44,
+              height: 44,
+              marginRight: -10,
+              borderRadius: "var(--r-pill)",
+              border: "none",
+              background: "transparent",
+              color: "var(--text-muted)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            ✕
+            <Icon name="x" size={22} />
           </button>
         </div>
         {subtitle && (
           <div
             style={{
-              fontSize: 11,
-              color: "var(--text-faint)",
-              marginBottom: 12,
+              fontSize: "var(--fs-sm)",
+              color: "var(--text-muted)",
+              marginBottom: "var(--sp-3)",
             }}
           >
             {subtitle}

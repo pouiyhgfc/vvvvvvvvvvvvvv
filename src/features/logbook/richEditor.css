@@ -207,3 +207,25 @@
   padding: 3px;
   gap: 1px;
 }
+
+/* Op een telefoon past de toolbar niet op één regel: laten doorlopen naar
+   een tweede regel i.p.v. buiten beeld te vallen. */
+.bn-toolbar {
+  flex-wrap: wrap;
+  max-width: calc(100vw - 16px);
+}
+
+/* Sneltoetsen (Ctrl-Alt-1) en uitleg-regels zijn op een telefoon ruis: het
+   menu wordt er alleen lang van. De titel zegt genoeg. */
+.bn-mt-suggestion-menu-item-section[data-position="right"],
+.bn-mt-suggestion-menu-item-subtitle {
+  display: none;
+}
+
+/* Vinkje groot genoeg om met een duim te raken. */
+.bn-container
+  .bn-block-content[data-content-type="checkListItem"]
+  input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}

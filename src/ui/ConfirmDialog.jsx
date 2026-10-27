@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { useGhostClickShield } from "../hooks/useGhostClickShield.js";
 import Button from "./Button.jsx";
 
 // Gecentreerd bevestig-dialoog. Vervangt native confirm().
@@ -14,10 +15,7 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }) {
-  const openedAt = useRef(null);
-  useEffect(() => {
-    openedAt.current = Date.now();
-  }, []);
+  const shield = useGhostClickShield();
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onCancel();
@@ -40,13 +38,9 @@ export default function ConfirmDialog({
         justifyContent: "center",
         padding: 20,
       }}
+      {...shield}
       onClick={(e) => {
-        if (
-          e.target === e.currentTarget &&
-          openedAt.current &&
-          Date.now() - openedAt.current > 400
-        )
-          onCancel();
+        if (e.target === e.currentTarget) onCancel();
       }}
     >
       <div

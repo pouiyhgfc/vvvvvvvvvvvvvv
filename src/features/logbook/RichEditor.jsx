@@ -62,8 +62,9 @@ const SLASH_KEYS = new Set([
 
 // Gecureerde opmaak-toolbar: tekststijlen, uitlijning, kleur, inspringen, link.
 // Comment-knoppen weg (geen backend); bestand-knoppen tonen toch alleen bij files.
+// Geen bloktype-keuze: die zit in het ⠿-menu, en BlockNote's lijst (Kop 1–6,
+// uitklapbare koppen …) is op een telefoon te lang.
 const TOOLBAR_KEYS = new Set([
-  "blockTypeSelect",
   "boldStyleButton",
   "italicStyleButton",
   "underlineStyleButton",
