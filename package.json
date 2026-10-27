@@ -15,9 +15,9 @@
     "test:visual": "playwright test --project=mobiel"
   },
   "dependencies": {
-    "@blocknote/core": "0.55.0",
-    "@blocknote/mantine": "0.55.0",
-    "@blocknote/react": "0.55.0",
+    "@blocknote/core": "0.56.0",
+    "@blocknote/mantine": "0.56.0",
+    "@blocknote/react": "0.56.0",
     "@fontsource-variable/dm-sans": "^5.1.1",
     "@fontsource-variable/outfit": "^5.1.1",
     "@fontsource-variable/schibsted-grotesk": "^5.2.8",
