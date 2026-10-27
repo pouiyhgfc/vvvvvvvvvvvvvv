@@ -1,21 +1,10 @@
+import { bodyPreview } from "../../lib/notes.js";
 import Card from "../../ui/Card.jsx";
 import Icon from "../../ui/Icon.jsx";
 
-// Eerste echte tekstregel uit de opgeslagen markdown; kopjes (zoals
-// "Vandaag:" uit het sjabloon) alleen als er niets anders is.
-function previewOf(body = "") {
-  const lines = body
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean);
-  const plain = (l) => l.replace(/^(#+|[-*>]|\d+\.|\[.?\])\s*/, "").trim();
-  const text = lines.find((l) => !l.startsWith("#") && plain(l));
-  return plain(text ?? lines[0] ?? "");
-}
-
 // Ingang naar het logboek van deze dag, met de eerste regel als voorproefje.
 export default function TodayLogCard({ entry, onOpen }) {
-  const preview = entry && previewOf(entry.body);
+  const preview = entry && bodyPreview(entry.body);
   return (
     <Card
       onClick={onOpen}
