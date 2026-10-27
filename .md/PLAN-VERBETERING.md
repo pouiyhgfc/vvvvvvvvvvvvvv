@@ -124,15 +124,19 @@ onmogelijk.
 
 ### 1b — E2E en screenshots (Playwright)
 
-- [ ] Tweede Playwright-project "mobiel" (Pixel 7-emulatie, touch aan).
-- [ ] Vaste testdata (seed via de import-functie) en een vaste datum (`page.clock`), zodat
+- [x] Tweede Playwright-project "mobiel" (Pixel 7-emulatie, touch aan).
+- [x] Vaste testdata (seed via de import-functie) en een vaste datum (`page.clock`), zodat
       screenshots stabiel zijn.
-- [ ] Screenshot-baseline per tab (Tracker, Planner, Logboek, notitie open, Hifd Vandaag +
+- [x] Screenshot-baseline per tab (Tracker, Planner, Logboek, notitie open, Hifd Vandaag +
       Voortgang, Statistieken, Instellingen) in licht én donker; animaties uit.
-- [ ] Baselines alleen op Linux maken en vergelijken (CI of cloud-sessie). Lokaal op Windows
+- [x] Baselines alleen op Linux maken en vergelijken (CI of cloud-sessie). Lokaal op Windows
       geven fonts andere pixels; daar draai je alleen de functionele e2e.
-- [ ] E2E-flows die nog ontbreken: routine afvinken, event aanmaken/slepen, Hifd beoordelen,
+- [x] E2E-flows die nog ontbreken: routine afvinken, event aanmaken/slepen, Hifd beoordelen,
       volledige backup-roundtrip via de UI.
+
+  Gevonden voor fase 2/4: inklapbare sectiekoppen zijn geen `<button>` (niet bereikbaar met
+  toetsenbord/schermlezer); in Hifd-kaarten husselt de Arabische surahnaam de volgorde van
+  "#1 · 7 verzen" door elkaar (bidi); datumkop verschilt per scherm.
 
 ### 1c — Data zichtbaar veilig
 

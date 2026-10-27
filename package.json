@@ -10,8 +10,9 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "deadcode": "knip",
-    "test:e2e": "playwright test",
-    "test": "vitest run"
+    "test:e2e": "playwright test --project=chromium",
+    "test": "vitest run",
+    "test:visual": "playwright test --project=mobiel"
   },
   "dependencies": {
     "@blocknote/core": "^0.51.4",
