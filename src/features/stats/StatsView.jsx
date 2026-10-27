@@ -7,7 +7,21 @@ import {
 } from "../../lib/constants.js";
 import Emoji from "../../ui/Emoji.jsx";
 import Ring from "../../ui/Ring.jsx";
+import Icon from "../../ui/Icon.jsx";
 import { heatColor } from "../../lib/heat.js";
+
+const navBtn = {
+  width: 44,
+  height: 44,
+  borderRadius: "var(--r-pill)",
+  border: "none",
+  background: "var(--card)",
+  color: "var(--text)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+};
 
 export default function StatsView({
   routines,
@@ -18,6 +32,9 @@ export default function StatsView({
   setView,
   statsPeriod,
   setStatsPeriod,
+  periodLabel,
+  periodSub,
+  onNav,
 }) {
   const total = Object.values(routines).flat().length;
   const allR = Object.values(routines).flat();
@@ -193,44 +210,132 @@ export default function StatsView({
   const today = new Date();
 
   const pillStyle = (active) => ({
-    flex: 1,
-    padding: "7px 0",
-    borderRadius: 10,
-    fontSize: 13,
+    minHeight: 36,
+    padding: "0 var(--sp-3)",
+    borderRadius: "var(--r-sm)",
+    fontSize: "var(--fs-sm)",
     fontWeight: 600,
     border: "none",
-    cursor: "pointer",
     background: active ? "var(--card)" : "transparent",
     color: active ? "var(--text)" : "var(--text-muted)",
-    boxShadow: active ? "0 1px 4px var(--shadow)" : "none",
-    transition: "background .15s",
   });
 
   return (
-    <div style={{ padding: "14px 12px 24px", animation: "fadeUp .3s ease" }}>
-      {/* Segment switcher */}
+    <div
+      style={{
+        padding: "var(--sp-2) var(--sp-4) var(--sp-6)",
+        animation: "fadeUp .3s ease",
+      }}
+    >
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--sp-2)",
+          padding: "var(--sp-2) 4px var(--sp-3)",
+          flexWrap: "wrap",
+        }}
+      >
+        <h1
+          style={{
+            flex: 1,
+            margin: 0,
+            fontFamily: "var(--ff-head)",
+            fontSize: "var(--fs-2xl)",
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          Statistieken
+        </h1>
+        <div
+          role="tablist"
+          aria-label="Periode"
+          style={{
+            display: "flex",
+            gap: 4,
+            padding: 4,
+            borderRadius: "var(--r-md)",
+            background: "var(--track)",
+          }}
+        >
+          {[
+            ["week", "Week"],
+            ["month", "Maand"],
+            ["year", "Jaar"],
+          ].map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={statsPeriod === id}
+              onClick={() => setStatsPeriod(id)}
+              style={pillStyle(statsPeriod === id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Periode kiezen: vorige/volgende; tik op het label = nu */}
       <div
         style={{
           display: "flex",
-          background: "var(--border-soft)",
-          borderRadius: 13,
-          padding: 3,
-          marginBottom: 14,
+          alignItems: "center",
+          gap: 4,
+          marginBottom: "var(--sp-3)",
         }}
       >
-        {[
-          ["week", "Week"],
-          ["month", "Maand"],
-          ["year", "Jaar"],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setStatsPeriod(id)}
-            style={pillStyle(statsPeriod === id)}
+        <button
+          type="button"
+          aria-label="Vorige periode"
+          onClick={() => onNav(-1)}
+          style={navBtn}
+        >
+          <Icon name="caret-left" size={20} />
+        </button>
+        <button
+          type="button"
+          onClick={() => setDate(new Date())}
+          style={{
+            flex: 1,
+            border: "none",
+            background: "transparent",
+            color: "var(--text)",
+            minHeight: 44,
+          }}
+        >
+          <span
+            style={{
+              display: "block",
+              fontFamily: "var(--ff-head)",
+              fontSize: "var(--fs-md)",
+              fontWeight: 600,
+            }}
           >
-            {label}
-          </button>
-        ))}
+            {periodLabel}
+          </span>
+          {periodSub && (
+            <span
+              style={{
+                display: "block",
+                fontSize: "var(--fs-xs)",
+                color: "var(--accent-text)",
+              }}
+            >
+              {periodSub}
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
+          aria-label="Volgende periode"
+          onClick={() => onNav(1)}
+          style={navBtn}
+        >
+          <Icon name="caret-right" size={20} />
+        </button>
       </div>
 
       {/* ── WEEK ─────────────────────────────────────────── */}
@@ -239,10 +344,9 @@ export default function StatsView({
           <div
             style={{
               background: "var(--card)",
-              borderRadius: 14,
+              borderRadius: "var(--r-lg)",
               padding: 20,
               marginBottom: 10,
-              boxShadow: "0 1px 3px var(--shadow)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -255,7 +359,7 @@ export default function StatsView({
                 style={{
                   fontFamily: "var(--ff-head)",
                   fontSize: 22,
-                  fontWeight: 800,
+                  fontWeight: 600,
                   color: "var(--text)",
                   lineHeight: 1,
                 }}
@@ -264,7 +368,7 @@ export default function StatsView({
               </div>
               <div
                 style={{
-                  fontSize: 11,
+                  fontSize: "var(--fs-xs)",
                   color: "var(--text-muted)",
                   marginTop: 3,
                 }}
@@ -292,7 +396,7 @@ export default function StatsView({
                     color: "var(--accent-text)",
                   }}
                 >
-                  {streak} dag streak
+                  {streak} {streak === 1 ? "dag" : "dagen"} op rij
                 </span>
               </div>
             )}
@@ -302,10 +406,9 @@ export default function StatsView({
             <div
               style={{
                 background: "var(--card)",
-                borderRadius: 14,
+                borderRadius: "var(--r-lg)",
                 padding: "14px 12px",
                 marginBottom: 10,
-                boxShadow: "0 1px 3px var(--shadow)",
               }}
             >
               <div
@@ -345,7 +448,7 @@ export default function StatsView({
                       <Ring value={pct} size={60} stroke={6} color={st.text} />
                       <div
                         style={{
-                          fontSize: 9,
+                          fontSize: "var(--fs-xs)",
                           fontWeight: 600,
                           color: "var(--text-muted)",
                           textAlign: "center",
@@ -367,9 +470,8 @@ export default function StatsView({
           <div
             style={{
               background: "var(--card)",
-              borderRadius: 14,
+              borderRadius: "var(--r-lg)",
               padding: "14px 12px",
-              boxShadow: "0 1px 3px var(--shadow)",
             }}
           >
             <div
@@ -405,7 +507,7 @@ export default function StatsView({
                 >
                   <span
                     style={{
-                      fontSize: 9,
+                      fontSize: "var(--fs-xs)",
                       fontWeight: 700,
                       color: d.pct > 0 ? "var(--accent)" : "transparent",
                     }}
@@ -427,7 +529,7 @@ export default function StatsView({
                   />
                   <span
                     style={{
-                      fontSize: 9,
+                      fontSize: "var(--fs-xs)",
                       color: "var(--text-muted)",
                       fontWeight: 600,
                     }}
@@ -446,9 +548,8 @@ export default function StatsView({
         <div
           style={{
             background: "var(--card)",
-            borderRadius: 14,
+            borderRadius: "var(--r-lg)",
             padding: "14px 10px",
-            boxShadow: "0 1px 3px var(--shadow)",
           }}
         >
           <div
@@ -464,7 +565,7 @@ export default function StatsView({
                 key={d}
                 style={{
                   textAlign: "center",
-                  fontSize: 10,
+                  fontSize: "var(--fs-xs)",
                   fontWeight: 600,
                   color: "var(--text-faint)",
                   padding: 2,
@@ -512,7 +613,7 @@ export default function StatsView({
                 >
                   <div
                     style={{
-                      fontSize: 11,
+                      fontSize: "var(--fs-xs)",
                       fontWeight: isT ? 800 : 500,
                       color: d.pct >= 75 ? "white" : "var(--text)",
                     }}
@@ -551,7 +652,12 @@ export default function StatsView({
                     background: c,
                   }}
                 />
-                <span style={{ fontSize: 9, color: "var(--text-muted)" }}>
+                <span
+                  style={{
+                    fontSize: "var(--fs-xs)",
+                    color: "var(--text-muted)",
+                  }}
+                >
                   {l}
                 </span>
               </div>
@@ -576,7 +682,7 @@ export default function StatsView({
               {
                 icon: "🔥",
                 val: yearData.longestStreak,
-                label: "Langste streak",
+                label: "Langste reeks",
               },
               {
                 icon: "📊",
@@ -591,7 +697,6 @@ export default function StatsView({
                   borderRadius: 12,
                   padding: "12px 8px",
                   textAlign: "center",
-                  boxShadow: "0 1px 3px var(--shadow)",
                 }}
               >
                 <div style={{ marginBottom: 4 }}>
@@ -600,7 +705,7 @@ export default function StatsView({
                 <div
                   style={{
                     fontSize: 18,
-                    fontWeight: 800,
+                    fontWeight: 600,
                     color: "var(--accent)",
                     fontFamily: "var(--ff-head)",
                     lineHeight: 1,
@@ -611,7 +716,7 @@ export default function StatsView({
                 </div>
                 <div
                   style={{
-                    fontSize: 9,
+                    fontSize: "var(--fs-xs)",
                     color: "var(--text-muted)",
                     lineHeight: 1.3,
                   }}
@@ -625,9 +730,8 @@ export default function StatsView({
           <div
             style={{
               background: "var(--card)",
-              borderRadius: 14,
+              borderRadius: "var(--r-lg)",
               padding: "14px 10px",
-              boxShadow: "0 1px 3px var(--shadow)",
               marginBottom: 10,
               overflowX: "auto",
               WebkitOverflowScrolling: "touch",
@@ -670,9 +774,8 @@ export default function StatsView({
           <div
             style={{
               background: "var(--card)",
-              borderRadius: 14,
+              borderRadius: "var(--r-lg)",
               padding: "14px 12px",
-              boxShadow: "0 1px 3px var(--shadow)",
             }}
           >
             <div
@@ -721,7 +824,7 @@ export default function StatsView({
                   />
                   <span
                     style={{
-                      fontSize: 8,
+                      fontSize: "var(--fs-xs)",
                       color: "var(--text-muted)",
                       fontWeight: 600,
                     }}

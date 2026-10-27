@@ -22,7 +22,6 @@ import {
   importData as readImportFile,
   performFullImport,
 } from "./lib/backup.js";
-import NavBtn from "./ui/NavBtn.jsx";
 import TrackerView from "./features/tracker/TrackerView.jsx";
 import PlanningView from "./features/planner/PlanningView.jsx";
 import StatsView from "./features/stats/StatsView.jsx";
@@ -532,55 +531,6 @@ export default function App({ startupErrors = [] }) {
         </div>
       )}
 
-      {/* DATUM-KAART */}
-      {view === "stats" && (
-        <div style={{ padding: "12px 14px 0", background: "var(--bg)" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              background: "var(--card)",
-              border: "1px solid var(--border)",
-              borderRadius: 14,
-              padding: "10px 12px",
-            }}
-          >
-            <NavBtn onClick={() => goNav(-1)}>◀</NavBtn>
-            <div
-              style={{ flex: 1, textAlign: "center", cursor: "pointer" }}
-              onClick={() => setDate(new Date())}
-            >
-              <div
-                style={{
-                  fontFamily: "var(--ff-display)",
-                  fontSize: 20,
-                  fontWeight: 700,
-                  color: "var(--text)",
-                  letterSpacing: "-.01em",
-                  lineHeight: 1.1,
-                }}
-              >
-                {dateMain}
-              </div>
-              {dateSub && (
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: "var(--accent)",
-                    fontWeight: 600,
-                    marginTop: 2,
-                  }}
-                >
-                  {dateSub}
-                </div>
-              )}
-            </div>
-            <NavBtn onClick={() => goNav(1)}>▶</NavBtn>
-          </div>
-        </div>
-      )}
-
       {/* TRACKER */}
       {view === "tracker" && (
         <TrackerView
@@ -626,6 +576,9 @@ export default function App({ startupErrors = [] }) {
           setView={setView}
           statsPeriod={statsPeriod}
           setStatsPeriod={setStatsPeriod}
+          periodLabel={dateMain}
+          periodSub={dateSub}
+          onNav={goNav}
         />
       )}
 
