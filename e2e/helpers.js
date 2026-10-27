@@ -8,15 +8,20 @@ export async function openTab(page, label) {
 
 // Zet de klok vast, laadt de app en zet de demodata terug via de echte
 // import-flow (Config → Backup & Data → Importeer → Volledig vervangen).
-// "Backup & Data" staat standaard open, dus het bestandsveld is er meteen.
 export async function loadDemo(page, options) {
+  await importBackup(page, demoBackup(options));
+}
+
+// Importeert een backup-object via de UI. "Backup & Data" staat standaard
+// open, dus het bestandsveld is er meteen.
+export async function importBackup(page, backup) {
   await page.clock.setFixedTime(NOW);
   await page.goto("/");
   await openTab(page, "Config");
   await page.locator('input[type="file"]').setInputFiles({
-    name: "demo-backup.json",
+    name: "backup.json",
     mimeType: "application/json",
-    buffer: Buffer.from(JSON.stringify(demoBackup(options))),
+    buffer: Buffer.from(JSON.stringify(backup)),
   });
   await page.getByRole("button", { name: "Volledig vervangen" }).click();
   await expect(page.getByText(/Import gelukt/)).toBeVisible();
@@ -28,4 +33,14 @@ export async function loadDemo(page, options) {
 export async function settle(page) {
   await page.waitForLoadState("networkidle");
   await page.evaluate(() => document.fonts.ready);
+}
+
+// Klikt "Exporteer alles" en geeft de gedownloade backup terug als object.
+export async function exportBackup(page) {
+  await openTab(page, "Config");
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: /Exporteer alles/ }).click();
+  const file = await (await download).path();
+  const { readFile } = await import("node:fs/promises");
+  return JSON.parse(await readFile(file, "utf8"));
 }
