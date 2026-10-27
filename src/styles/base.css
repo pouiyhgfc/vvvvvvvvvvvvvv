@@ -14,9 +14,13 @@ body,
   /* Ontwerp v2 (richting B "Zacht") — zie .md/ONTWERP.md. Oude tokennamen
      blijven bestaan en wijzen naar de dichtstbijzijnde nieuwe waarde, zodat
      schermen die nog niet zijn omgebouwd meteen de nieuwe kleuren krijgen. */
-  --ff-display: "Schibsted Grotesk Variable", sans-serif;
-  --ff-head: "Outfit Variable", sans-serif;
-  --ff-body: "DM Sans Variable", sans-serif;
+  /* Twee families + Arabisch. Noto Naskh staat achteraan in elke stapel: de
+     browser pakt hem alleen voor Arabische tekens (unicode-range), dus Arabisch
+     in titels, notities en Hifd rendert overal met een echt Arabisch font. */
+  --ff-arabic: "Noto Naskh Arabic Variable", serif;
+  --ff-display: "Outfit Variable", var(--ff-arabic);
+  --ff-head: "Outfit Variable", var(--ff-arabic);
+  --ff-body: "DM Sans Variable", var(--ff-arabic);
 
   --bg: #eef1ec;
   --card: #ffffff;
@@ -49,7 +53,8 @@ body,
   --input-bg: var(--sunken);
   --border: var(--track);
   --border-mid: var(--track);
-  --border-soft: #eef1ec;
+  /* Zichtbaar op zowel de ondergrond als een witte kaart. */
+  --border-soft: #e6ebe7;
 
   /* Typeschaal: niets kleiner dan 12 px */
   --fs-xs: 12px;
@@ -98,7 +103,7 @@ html[data-theme="dark"] {
   --shadow-float: 0 6px 24px rgba(0, 0, 0, 0.45);
   --heat0: #26312b;
   --tint-alpha: 30;
-  --border-soft: #1f2822;
+  --border-soft: #222b25;
 }
 body {
   font-family: var(--ff-body);

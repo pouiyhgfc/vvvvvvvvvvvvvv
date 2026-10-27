@@ -16,7 +16,7 @@ export default function Ring({
           cy={size / 2}
           r={r}
           fill="none"
-          style={{ stroke: "var(--border-soft)" }}
+          style={{ stroke: "var(--track)" }}
           strokeWidth={stroke}
         />
         <circle
