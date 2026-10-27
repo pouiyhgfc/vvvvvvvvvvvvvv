@@ -191,9 +191,6 @@ textarea::placeholder {
 .routine-item:active {
   transform: scale(0.98);
 }
-.cal-hour-cell:hover {
-  background: var(--sel-bg) !important;
-}
 .drag-handle {
   touch-action: none;
   cursor: grab;

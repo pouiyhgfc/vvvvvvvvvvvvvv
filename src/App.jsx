@@ -24,7 +24,7 @@ import {
 } from "./lib/backup.js";
 import NavBtn from "./ui/NavBtn.jsx";
 import TrackerView from "./features/tracker/TrackerView.jsx";
-import WeekView from "./features/planner/WeekView.jsx";
+import PlanningView from "./features/planner/PlanningView.jsx";
 import StatsView from "./features/stats/StatsView.jsx";
 import SettingsPanel from "./features/settings/SettingsPanel.jsx";
 import LogbookView from "./features/logbook/LogbookView.jsx";
@@ -533,7 +533,7 @@ export default function App({ startupErrors = [] }) {
       )}
 
       {/* DATUM-KAART */}
-      {(view === "week" || view === "stats") && (
+      {view === "stats" && (
         <div style={{ padding: "12px 14px 0", background: "var(--bg)" }}>
           <div
             style={{
@@ -607,8 +607,7 @@ export default function App({ startupErrors = [] }) {
 
       {/* WEEK VIEW */}
       {view === "week" && (
-        <WeekView
-          date={date}
+        <PlanningView
           calTemplates={calTemplates}
           calEvents={calEvents}
           setCalEvents={setCalEvents}

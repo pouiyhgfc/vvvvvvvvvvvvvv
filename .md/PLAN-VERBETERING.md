@@ -301,24 +301,27 @@ toevoegen is omslachtig, herhalen/sjablonen zijn verwarrend en wat gepland staat
 zichtbaar vanaf het overzicht. Gebruik: vaste lessen/afspraken + de dag inplannen (time
 blocking). Ontwerp: canvas-rij "B — Weekplanning, opnieuw".
 
-- [ ] **Dag als standaard:** weekstrip (ma–zo, bolletje als er iets gepland is) + één brede
+- [x] **Dag als standaard:** weekstrip (ma–zo, bolletje als er iets gepland is) + één brede
       tijdlijn voor de gekozen dag, met een "nu"-lijn. **Week** wordt een lijst per dag i.p.v.
       zeven smalle kolommen.
 - [ ] **Slepen opnieuw:** ingedrukt houden = verplaatsen (in stappen van 15 min), handvat
       onderaan = langer/korter maken; trilfeedback bij oppakken. Tik op leeg vlak = nieuw blok
       op dat tijdstip.
-- [ ] **Blok toevoegen in één sheet:** titel, snelkeuze (de huidige event-sjablonen),
+- [x] **Blok toevoegen in één sheet:** titel, snelkeuze (de huidige event-sjablonen),
       begintijd, duur-knoppen (30 m–3 u), herhalen (eenmalig / elke week / elke dag), melding.
-- [ ] **Herhalen begrijpelijk:** bij bewerken of verwijderen van een herhalend blok altijd de
+- [x] **Herhalen begrijpelijk:** bij bewerken of verwijderen van een herhalend blok altijd de
       keuze "alleen deze" of "alle"; op het blok een klein herhaal-icoon.
-- [ ] **Zichtbaar vanaf Vandaag:** kaart "Nu en straks" op het Vandaag-overzicht.
-- [ ] **Weekschema-sjablonen** (hele week opslaan/laden) verhuizen naar Meer → Planning;
-      functie en data blijven bestaan, ze staan alleen niet meer in de weg.
-- [ ] **Data blijft gelijk:** `calEvents` (date, startTime, endTime, repeat, exDates, color, …),
+- [x] **Zichtbaar vanaf Vandaag:** kaart "Nu en straks" op het Vandaag-overzicht.
+- [x] **Weekschema-sjablonen** (hele week opslaan/laden) staan niet meer in de weg: laden
+      via ⋯ in de Planning-kop ("Erbij" of "Vervangen"), opslaan/beheren onder Meer →
+      Weekschema's. Functie en data blijven bestaan. (Melding per blok uit de mockup: niet
+      gebouwd, dat zou een nieuw dataveld zijn.)
+- [x] **Data blijft gelijk:** `calEvents` (date, startTime, endTime, repeat, exDates, color, …),
       `calTemplates` en `weekTemplates` houden hun formaat; geen migratie nodig. Het oude
       `icon`-veld blijft bewaard maar wordt niet meer getoond.
-- [ ] Tests: unit-tests voor tijdrekenen/overlap/herhalingen, e2e voor toevoegen, verplaatsen,
-      herhalend bewerken ("alleen deze" vs "alle"); telefoontest voor slepen.
+- [x] Tests: unit-tests voor tijdrekenen/overlap/herhalingen (planner.test.js), e2e voor
+      toevoegen, verplaatsen, herhalend bewerken/verwijderen (planning.spec.js).
+- [ ] Telefoontest slepen en langer/korter maken (eigenaar).
 
 ### 4d — Bewaking tegen nieuwe slop
 

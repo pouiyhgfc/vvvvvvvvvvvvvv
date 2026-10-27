@@ -65,15 +65,17 @@ test("'Exporteer alles' levert een volledige backup op", async ({ page }) => {
   expect(backup.notebooks.map((n) => n.id)).toEqual(["logboek", "studie"]);
 });
 
-test("een event aanmaken via een tik in de weekkalender blijft staan", async ({
+test("een blok aanmaken via een tik in de tijdlijn blijft staan", async ({
   page,
 }) => {
   await page.goto("/");
   await openTab(page, "Planning");
 
-  // Middelste uurcel van de eerste dagkolom: een tik (geen sleep) opent de sheet.
-  await page.locator(".cal-hour-cell").nth(4).click();
-  await page.getByPlaceholder("Naam activiteit...").fill("E2E-afspraak");
+  // Een tik op een leeg stuk van de tijdlijn opent de sheet.
+  await page
+    .getByRole("button", { name: "Nieuw blok op dit tijdstip" })
+    .click({ position: { x: 120, y: 200 } });
+  await page.getByPlaceholder("Bv. Studeren RTE").fill("E2E-afspraak");
   await page.getByRole("button", { name: /Toevoegen/ }).click();
   await expect(page.getByText("E2E-afspraak")).toBeVisible();
 
