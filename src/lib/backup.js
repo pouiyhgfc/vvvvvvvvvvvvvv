@@ -55,6 +55,9 @@ export async function exportData({
     hifd: hifdData,
     hifdLog: hifdLogData,
   });
+  // Voor de backup-herinnering. In meta (niet in settings), zodat het bij dit
+  // toestel hoort en niet met een import wordt overschreven.
+  await db.meta.put({ key: "lastExportAt", value: new Date().toISOString() });
 }
 
 export function exportRoutines(routines) {

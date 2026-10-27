@@ -125,3 +125,26 @@ test("'volledig vervangen' downloadt eerst een veiligheidsbackup", async ({
   const checkedDays = Object.values(safety.days).filter((d) => d.checked?.o1);
   expect(checkedDays).toHaveLength(1);
 });
+
+test("backup-herinnering: verschijnt zonder backup, 'later' en exporteren verbergen hem", async ({
+  page,
+}) => {
+  const reminder = page.getByText(/nog geen backup gemaakt/);
+  await page.goto("/");
+  await expect(reminder).toBeVisible();
+
+  await page.getByRole("button", { name: "Over een week" }).click();
+  await expect(reminder).toBeHidden();
+  await page.reload();
+  await expect(page.getByText("Duah", { exact: true })).toBeVisible();
+  await expect(reminder).toBeHidden();
+
+  // In een schone context: exporteren verbergt hem ook.
+  await page.evaluate(() => indexedDB.deleteDatabase("routine-tracker"));
+  await page.reload();
+  await expect(reminder).toBeVisible();
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Exporteer nu" }).click();
+  await download;
+  await expect(reminder).toBeHidden();
+});

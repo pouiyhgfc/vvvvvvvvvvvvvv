@@ -140,15 +140,18 @@ onmogelijk.
 
 ### 1c — Data zichtbaar veilig
 
-- [ ] Startmigraties: fouten niet alleen in de console, maar verzamelen en tonen als
+- [x] Startmigraties: fouten niet alleen in de console, maar verzamelen en tonen als
       waarschuwing ("Migratie X mislukt — maak nu een export") zodat het niet ongemerkt blijft.
-- [ ] Uitkomst van `persist()` tonen in Instellingen ("Opslag beschermd: ja/nee").
-- [ ] Import-validatie: eigen kleine validator (geen extra dependency) die per onderdeel type
+- [x] Uitkomst van `persist()` tonen in Instellingen ("Opslag beschermd: ja/nee").
+- [x] Import-validatie: eigen kleine validator (geen extra dependency) die per onderdeel type
       en verplichte velden checkt en een duidelijke foutmelding geeft vóór er iets wordt
       overschreven.
-- [ ] Vóór een "vervangen"-import automatisch eerst een veiligheidsexport downloaden.
-- [ ] Backup-herinnering (backlog-idee): `lastExportAt` bijhouden; na 30 dagen een
-      niet-opdringerige melding in Instellingen/Tracker.
+- [x] Vóór een "vervangen"-import automatisch eerst een veiligheidsexport downloaden.
+- [x] Backup-herinnering (backlog-idee): `lastExportAt` in `db.meta` (hoort bij het toestel,
+      gaat niet mee in een backup); na 30 dagen of zonder backup een melding op Dag, met
+      "Over een week" en "Exporteer nu".
+- [x] Extra gevonden en gerepareerd: "vervangen" met een backup zonder Hifd leegde Hifd;
+      een backup met een ontbrekend dagdeel liet de app permanent crashen (wit scherm).
 
 ### 1d — CI (GitHub Actions)
 

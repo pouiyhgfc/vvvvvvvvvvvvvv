@@ -34,6 +34,9 @@ import HifdView from "./features/hifd/HifdView.jsx";
 import ToastHost from "./ui/Toast.jsx";
 import ConfirmDialog from "./ui/ConfirmDialog.jsx";
 import Emoji from "./ui/Emoji.jsx";
+import Banner from "./ui/Banner.jsx";
+import Button from "./ui/Button.jsx";
+import BackupReminder from "./features/settings/BackupReminder.jsx";
 
 // Leest de PWA-shortcut-/share-target-parameters uit de URL (?action=…,
 // /share met title/text/url). Puur lezen — geen state, geen side effects.
@@ -49,7 +52,7 @@ function parseLaunchAction() {
   return { action, isShareTarget, params };
 }
 
-export default function App() {
+export default function App({ startupErrors = [] }) {
   // --- Dexie reactive queries ---
   const settingsRecord = useLiveQuery(() => db.settings.get("singleton"));
   const settings = settingsRecord ?? DEFAULT_SETTINGS;
@@ -565,6 +568,25 @@ export default function App() {
           })}
         </div>
       </div>
+
+      {startupErrors.length > 0 && (
+        <Banner
+          tone="danger"
+          icon="⚠️"
+          actions={
+            <Button size="sm" variant="danger" onClick={exportData}>
+              Exporteer nu
+            </Button>
+          }
+        >
+          Er ging iets mis bij het opstarten ({startupErrors.join(", ")}). De
+          app werkt verder, maar maak voor de zekerheid nu een export voordat je
+          iets wijzigt.
+        </Banner>
+      )}
+      {view === "tracker" && !showSettings && (
+        <BackupReminder onExport={exportData} />
+      )}
 
       {/* SETTINGS PANEL */}
       {showSettings && (

@@ -27,7 +27,7 @@ _Daarvóór:_ _Notities beter organiseren — vastzetten, archief/prullenbak (za
 - [x] **Hifd-module** — je memorisatiesysteem als aparte feature op deze datalaag.
 - [ ] **Sync telefoon ↔ laptop** — pas als je het echt nodig hebt (Dexie Cloud of export/import-flow).
 - [ ] **Betrouwbaardere meldingen** — Android-installatie of later Capacitor-wrapper.
-- [ ] **Automatische backup-herinnering** — maandelijkse prompt om te exporteren.
+- [x] **Automatische backup-herinnering** — gebouwd in Verbeterplan fase 1c (melding op Dag na 30 dagen).
 - [x] **Mobiele editor-werkbalk** — opgelost via het touch blok-handvat (⠿) i.p.v. een vaste balk:
       tik = blok-menu (sheet), ingedrukt houden = verslepen. De oude `MobileToolbar`-balk crashte
       (VisualViewport + vaste positionering); de nieuwe aanpak vermijdt dat. Zie de fase onderaan.

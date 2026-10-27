@@ -18,6 +18,7 @@ import Button from "../../ui/Button.jsx";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import { Field, TextInput } from "../../ui/Field.jsx";
 import RoutineSheet from "./RoutineSheet.jsx";
+import StorageStatus from "./StorageStatus.jsx";
 import TemplateSheet from "./TemplateSheet.jsx";
 import AreaSheet from "./AreaSheet.jsx";
 import WeekTemplateSheet from "./WeekTemplateSheet.jsx";
@@ -525,6 +526,7 @@ export default function SettingsPanel({
         tone="accent"
         defaultOpen
       >
+        <StorageStatus />
         <div style={{ marginBottom: 6 }}>
           <div
             style={{
