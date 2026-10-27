@@ -1,15 +1,8 @@
+import { bodyPreview } from "../../lib/notes.js";
 import DragHandle from "../../ui/DragHandle.jsx";
 import Emoji from "../../ui/Emoji.jsx";
-import { fmtDay, tagColor } from "./noteHelpers.js";
-
-const cardBase = {
-  background: "var(--card)",
-  borderRadius: 12,
-  padding: 14,
-  marginBottom: 8,
-  boxShadow: "0 1px 3px var(--shadow)",
-  cursor: "pointer",
-};
+import Icon from "../../ui/Icon.jsx";
+import { fmtDay } from "./noteHelpers.js";
 
 // Eén notitiekaart, voor zowel de vastgezet-sectie als de rest. Long-press
 // en klikken regelt LogbookView (selectiemodus, openen).
@@ -27,15 +20,21 @@ export default function NoteCard({
   onLongPressEnd,
 }) {
   const isLog = entry._type === "log";
+  const preview = bodyPreview(entry.body);
+  const day = entry.updatedAt ? entry.updatedAt.slice(0, 10) : entry.date;
   return (
     <div
       data-srow={isLog && canSort ? "1" : undefined}
       style={{
-        ...cardBase,
+        background: "var(--card)",
+        borderRadius: "var(--r-lg)",
+        padding: "14px 16px 14px 18px",
+        marginBottom: 10,
+        cursor: "pointer",
         display: "flex",
-        alignItems: "flex-start",
-        gap: 0,
-        outline: selected ? "1.5px solid var(--accent)" : "none",
+        alignItems: "center",
+        gap: 12,
+        outline: selected ? "2px solid var(--accent)" : "none",
       }}
       onPointerDown={() => {
         if (isLog && !selectMode) onLongPressStart(entry.id);
@@ -46,116 +45,120 @@ export default function NoteCard({
       onClick={onClick}
     >
       {isLog && selectMode && (
-        <div
-          style={{ alignSelf: "center", marginRight: 8, flexShrink: 0 }}
+        <label
           onClick={(e) => e.stopPropagation()}
+          style={{ display: "flex", flexShrink: 0, cursor: "pointer" }}
         >
           <input
             type="checkbox"
             checked={selected}
             onChange={onToggleSelect}
-            style={{ width: 18, height: 18, cursor: "pointer" }}
             aria-label="Selecteren"
+            style={{ position: "absolute", opacity: 0, width: 1, height: 1 }}
           />
-        </div>
+          <span
+            aria-hidden="true"
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 8,
+              boxSizing: "border-box",
+              border: selected ? "none" : "1.5px solid var(--control-border)",
+              background: selected ? "var(--accent)" : "transparent",
+              color: "var(--accent-contrast)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {selected && <Icon name="check" size={16} />}
+          </span>
+        </label>
       )}
-      {isLog && canSort && (
-        <div
-          style={{
-            alignSelf: "center",
-            marginRight: 2,
-            flexShrink: 0,
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <DragHandle onPointerDown={(e) => handleDown(e, idx, entry.id)} />
-        </div>
-      )}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+        }}
+      >
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: 6,
-            flexWrap: "wrap",
-            marginBottom: 6,
+            fontSize: "var(--fs-xs)",
+            fontWeight: 600,
+            color: "var(--text-muted)",
           }}
         >
-          {entry.pinnedAt && <Emoji char="📌" size={12} />}
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--text-muted)",
-            }}
-          >
-            {fmtDay(
-              entry.updatedAt ? entry.updatedAt.slice(0, 10) : entry.date,
-            )}
-          </span>
-          {!isLog && (
-            <span
-              style={{
-                fontSize: 9,
-                padding: "1px 7px",
-                borderRadius: 99,
-                background: "var(--border-soft)",
-                color: "var(--text-faint)",
-                fontWeight: 600,
-              }}
-            >
-              Dagnotitie
-            </span>
+          {entry.pinnedAt && (
+            <span style={{ color: "var(--accent-text)" }}>Vastgezet ·</span>
           )}
+          <span>{fmtDay(day)}</span>
+          {!isLog && <span>· Dagnotitie</span>}
           {!isLog && entry.mood && (
-            <Emoji char={moodEmoji(entry.mood)} size={15} />
+            <Emoji char={moodEmoji(entry.mood)} size={14} />
           )}
-          <span style={{ flex: 1 }} />
-          <span style={{ fontSize: 15, color: "var(--text-faint)" }}>›</span>
         </div>
         {entry.title && (
           <div
+            dir="auto"
             style={{
-              fontSize: 14,
-              fontWeight: 700,
+              fontFamily: "var(--ff-head)",
+              fontSize: "var(--fs-lg)",
+              fontWeight: 600,
               color: "var(--text)",
-              marginBottom: 3,
             }}
           >
             {entry.title}
           </div>
         )}
-        {entry.tags?.length > 0 && (
+        {preview && (
           <div
+            dir="auto"
             style={{
-              display: "flex",
-              gap: 4,
-              flexWrap: "wrap",
-              marginTop: 8,
+              fontSize: "var(--fs-sm)",
+              lineHeight: 1.45,
+              color: "var(--text-muted)",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
             }}
           >
-            {entry.tags.map((tag) => {
-              const c = tagColor(tag);
-              return (
-                <span
-                  key={tag}
-                  style={{
-                    fontSize: 10,
-                    padding: "2px 8px",
-                    borderRadius: 99,
-                    background: c + "22",
-                    color: c,
-                    border: `1px solid ${c}44`,
-                    fontWeight: 600,
-                  }}
-                >
-                  #{tag}
-                </span>
-              );
-            })}
+            {preview}
+          </div>
+        )}
+        {entry.tags?.length > 0 && (
+          <div
+            style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}
+          >
+            {entry.tags.map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontSize: "var(--fs-xs)",
+                  padding: "2px 8px",
+                  borderRadius: "var(--r-pill)",
+                  background: "var(--accent-bg)",
+                  color: "var(--accent-text)",
+                  fontWeight: 500,
+                }}
+              >
+                {tag}
+              </span>
+            ))}
           </div>
         )}
       </div>
+      {isLog && canSort && (
+        <div style={{ flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
+          <DragHandle onPointerDown={(e) => handleDown(e, idx, entry.id)} />
+        </div>
+      )}
     </div>
   );
 }

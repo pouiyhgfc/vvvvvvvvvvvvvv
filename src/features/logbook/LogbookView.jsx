@@ -14,6 +14,7 @@ import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import ArchiveSheet from "./ArchiveSheet.jsx";
 import NoteCard from "./NoteCard.jsx";
 import NotebookOrderSheet from "./NotebookOrderSheet.jsx";
+import NotesMenuSheet from "./NotesMenuSheet.jsx";
 import SelectionBar from "./SelectionBar.jsx";
 import TemplatePickerSheet from "./TemplatePickerSheet.jsx";
 import TrashSheet from "./TrashSheet.jsx";
@@ -22,11 +23,40 @@ import {
   groupLabel,
   nbOf,
   stripBlockIds,
-  tagColor,
 } from "./noteHelpers.js";
 import LogEntrySheet from "./LogEntrySheet.jsx";
 import NotebookSheet from "./NotebookSheet.jsx";
 import EntryPage from "./EntryPage.jsx";
+
+const squareBtn = {
+  width: 44,
+  height: 44,
+  borderRadius: "var(--r-md)",
+  border: "none",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flexShrink: 0,
+};
+const chip = {
+  flexShrink: 0,
+  minHeight: 40,
+  display: "flex",
+  alignItems: "center",
+  gap: 6,
+  padding: "0 14px",
+  borderRadius: "var(--r-pill)",
+  border: "none",
+  fontSize: "var(--fs-sm)",
+  fontWeight: 500,
+  whiteSpace: "nowrap",
+};
+const sectionLabel = {
+  fontSize: "var(--fs-xs)",
+  fontWeight: 600,
+  color: "var(--text-muted)",
+  margin: "4px 4px 8px",
+};
 
 export default function LogbookView() {
   const [search, setSearch] = useState("");
@@ -37,6 +67,7 @@ export default function LogbookView() {
   const [nbSheet, setNbSheet] = useState(null); // "new" | notebook
   const [pageEntry, setPageEntry] = useState(null); // "new" | { _draft } | log-entry
   const [sortNbSheet, setSortNbSheet] = useState(false);
+  const [menuSheet, setMenuSheet] = useState(false);
   const [templatePicker, setTemplatePicker] = useState(false);
   const [confirmDeleteTpl, setConfirmDeleteTpl] = useState(null);
   const [archiveSheet, setArchiveSheet] = useState(false);
@@ -407,17 +438,6 @@ export default function LogbookView() {
 
   const moodEmoji = (val) => MOODS.find((m) => m.value === val)?.emoji;
 
-  const inputStyle = {
-    width: "100%",
-    padding: "9px 12px",
-    borderRadius: 9,
-    border: "1.5px solid var(--border)",
-    fontSize: 13,
-    background: "var(--input-bg)",
-    color: "var(--text)",
-    outline: "none",
-  };
-
   // Long-press (450ms) op een kaart start de selectiemodus. Eén timer-ref
   // volstaat: er kan maar één kaart tegelijk worden ingedrukt.
   const longPressTimer = useRef(null);
@@ -467,156 +487,42 @@ export default function LogbookView() {
     );
   };
 
-  return (
-    <div style={{ padding: "14px 12px 24px", animation: "fadeUp .3s ease" }}>
-      {/* Notitieboek-tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: 6,
-          overflowX: "auto",
-          paddingBottom: 8,
-          marginBottom: 10,
-          WebkitOverflowScrolling: "touch",
-        }}
-      >
-        {notebooks.map((n) => {
-          const active = n.id === activeId;
-          return (
-            <button
-              key={n.id}
-              onClick={() => (active ? setNbSheet(n) : switchNotebook(n.id))}
-              style={{
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "6px 12px",
-                borderRadius: 99,
-                fontSize: 12,
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                border: active
-                  ? `1.5px solid ${n.color}`
-                  : "1px solid var(--border)",
-                background: active ? "var(--sel-bg)" : "var(--card)",
-                color: active ? "var(--text)" : "var(--text-muted)",
-              }}
-            >
-              <Emoji char={n.icon} size={14} />
-              {n.name}
-            </button>
-          );
-        })}
-        <button
-          onClick={() => setNbSheet("new")}
-          aria-label="Nieuw notitieboek"
-          style={{
-            flexShrink: 0,
-            padding: "6px 12px",
-            borderRadius: 99,
-            fontSize: 14,
-            fontWeight: 700,
-            border: "1px dashed var(--border)",
-            background: "var(--card)",
-            color: "var(--text-muted)",
-          }}
-        >
-          +
-        </button>
-        {notebooks.length > 1 && (
-          <button
-            onClick={() => setSortNbSheet(true)}
-            aria-label="Volgorde wijzigen"
-            style={{
-              flexShrink: 0,
-              padding: "6px 10px",
-              borderRadius: 99,
-              fontSize: 13,
-              border: "1px solid var(--border)",
-              background: "var(--card)",
-              color: "var(--text-faint)",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Icon name="arrows-down-up" size={16} />
-          </button>
-        )}
-        <button
-          onClick={() => setArchiveSheet(true)}
-          aria-label="Archief"
-          title="Archief"
-          style={{
-            flexShrink: 0,
-            padding: "6px 10px",
-            borderRadius: 99,
-            fontSize: 13,
-            border: "1px solid var(--border)",
-            background: "var(--card)",
-            color: "var(--text-faint)",
-            display: "flex",
-            alignItems: "center",
-            gap: 3,
-          }}
-        >
-          <Emoji char="🗄️" size={13} />
-          {archivedEntries.length > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 700 }}>
-              {archivedEntries.length}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setTrashSheet(true)}
-          aria-label="Prullenbak"
-          title="Prullenbak"
-          style={{
-            flexShrink: 0,
-            padding: "6px 10px",
-            borderRadius: 99,
-            fontSize: 13,
-            border: "1px solid var(--border)",
-            background: "var(--card)",
-            color: "var(--text-faint)",
-            display: "flex",
-            alignItems: "center",
-            gap: 3,
-          }}
-        >
-          <Emoji char="🗑️" size={13} />
-          {trashedEntries.length > 0 && (
-            <span style={{ fontSize: 10, fontWeight: 700 }}>
-              {trashedEntries.length}
-            </span>
-          )}
-        </button>
-      </div>
+  const newNote = () =>
+    entryTemplates.length ? setTemplatePicker(true) : setPageEntry("new");
 
-      {/* Kop: actief notitieboek + nieuwe entry, of selectie-status */}
+  return (
+    <div
+      style={{
+        padding: "var(--sp-6) var(--sp-4) var(--sp-6)",
+        animation: "fadeUp .3s ease",
+      }}
+    >
+      {/* Kop: titel + menu + nieuwe notitie, of de selectie-status */}
       {selectMode ? (
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
-            marginBottom: 12,
+            gap: "var(--sp-2)",
+            minHeight: 48,
+            marginBottom: "var(--sp-4)",
+            padding: "0 var(--sp-1)",
           }}
         >
           <span
             style={{
               flex: 1,
-              fontSize: 14,
-              fontWeight: 700,
-              color: "var(--text)",
+              fontFamily: "var(--ff-head)",
+              fontSize: "var(--fs-xl)",
+              fontWeight: 600,
             }}
           >
             {selectedIds.size} geselecteerd
           </span>
-          <Button size="sm" variant="secondary" onClick={selectAllVisible}>
+          <Button variant="secondary" size="sm" onClick={selectAllVisible}>
             Alles
           </Button>
-          <Button size="sm" variant="secondary" onClick={exitSelectMode}>
+          <Button variant="secondary" size="sm" onClick={exitSelectMode}>
             Annuleren
           </Button>
         </div>
@@ -625,119 +531,122 @@ export default function LogbookView() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
-            marginBottom: 12,
+            gap: "var(--sp-2)",
+            marginBottom: "var(--sp-4)",
+            padding: "0 var(--sp-1)",
           }}
         >
-          <h2
+          <h1
             style={{
-              fontFamily: "var(--ff-head)",
-              fontSize: 18,
-              fontWeight: 700,
               flex: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 7,
+              margin: 0,
+              fontFamily: "var(--ff-head)",
+              fontSize: "var(--fs-2xl)",
+              fontWeight: 600,
+              letterSpacing: "-0.01em",
             }}
           >
-            <Emoji char={activeNotebook?.icon ?? "📖"} size={20} />
-            {activeNotebook?.name ?? "Logboek"}
-          </h2>
-          {selectableIds.length > 0 && (
-            <button
-              onClick={() => setSelectMode(true)}
-              aria-label="Selecteren"
-              title="Selecteren"
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 99,
-                border: "1px solid var(--border)",
-                background: "var(--card)",
-                color: "var(--text-faint)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Icon name="list-checks" size={16} />
-            </button>
-          )}
-          <Button
-            size="sm"
-            onClick={() =>
-              entryTemplates.length
-                ? setTemplatePicker(true)
-                : setPageEntry("new")
-            }
+            Notities
+          </h1>
+          <button
+            type="button"
+            aria-label="Meer opties"
+            onClick={() => setMenuSheet(true)}
+            style={{
+              ...squareBtn,
+              background: "var(--card)",
+              color: "var(--text)",
+            }}
           >
-            + Nieuw
-          </Button>
+            <Icon name="dots-three-vertical" size={22} />
+          </button>
+          <button
+            type="button"
+            aria-label="Nieuwe notitie"
+            onClick={newNote}
+            style={{
+              ...squareBtn,
+              background: "var(--accent)",
+              color: "var(--accent-contrast)",
+            }}
+          >
+            <Icon name="plus" size={24} />
+          </button>
         </div>
       )}
 
       {/* Zoekbalk */}
-      <div style={{ position: "relative", marginBottom: 10 }}>
-        <span
-          style={{
-            position: "absolute",
-            left: 10,
-            top: "50%",
-            transform: "translateY(-50%)",
-            pointerEvents: "none",
-            display: "flex",
-          }}
-        >
-          <Emoji char="🔍" size={14} />
-        </span>
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          height: 48,
+          padding: "0 var(--sp-4)",
+          borderRadius: "var(--r-md)",
+          background: "var(--card)",
+          marginBottom: "var(--sp-3)",
+          color: "var(--text-muted)",
+        }}
+      >
+        <Icon name="magnifying-glass" size={20} />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Zoek in tekst of tags..."
-          style={{ ...inputStyle, paddingLeft: 32 }}
+          placeholder="Zoeken in notities en tags"
+          style={{
+            flex: 1,
+            minWidth: 0,
+            border: "none",
+            outline: "none",
+            background: "transparent",
+            color: "var(--text)",
+            fontSize: "var(--fs-md)",
+          }}
         />
-      </div>
+      </label>
 
-      {/* Sorteermodus: handmatig slepen vs. gegroepeerd op datum */}
+      {/* Notitieboeken */}
       <div
         style={{
           display: "flex",
-          gap: 4,
-          marginBottom: 12,
-          border: "1px solid var(--border)",
-          borderRadius: 99,
-          padding: 2,
-          width: "fit-content",
+          gap: "var(--sp-2)",
+          overflowX: "auto",
+          marginBottom: "var(--sp-3)",
+          WebkitOverflowScrolling: "touch",
         }}
       >
-        {[
-          ["eigen", "arrows-down-up", "Eigen"],
-          ["datum", "calendar-blank", "Datum"],
-        ].map(([mode, ic, label]) => {
-          const on = sortMode === mode;
+        {notebooks.map((n) => {
+          const active = n.id === activeId;
           return (
             <button
-              key={mode}
-              onClick={() => setSortMode(mode)}
+              key={n.id}
+              type="button"
+              aria-pressed={active}
+              onClick={() => (active ? setNbSheet(n) : switchNotebook(n.id))}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "4px 10px",
-                borderRadius: 99,
-                fontSize: 11,
-                fontWeight: 600,
-                border: "none",
-                background: on ? "var(--sel-bg)" : "transparent",
-                color: on ? "var(--text)" : "var(--text-faint)",
+                ...chip,
+                background: active ? "var(--text)" : "var(--card)",
+                color: active ? "var(--bg)" : "var(--text)",
               }}
             >
-              <Icon name={ic} size={14} />
-              {label}
+              <Emoji char={n.icon} size={16} />
+              {n.name}
             </button>
           );
         })}
+        <button
+          type="button"
+          onClick={() => setNbSheet("new")}
+          aria-label="Nieuw notitieboek"
+          style={{
+            ...chip,
+            background: "var(--card)",
+            color: "var(--text-muted)",
+          }}
+        >
+          <Icon name="plus" size={16} />
+        </button>
       </div>
 
       {/* Tag-filter */}
@@ -747,27 +656,26 @@ export default function LogbookView() {
             display: "flex",
             gap: 6,
             flexWrap: "wrap",
-            marginBottom: 12,
+            marginBottom: "var(--sp-4)",
           }}
         >
           {allTags.map((tag) => {
-            const c = tagColor(tag);
-            const tagActive = activeTag === tag;
+            const on = activeTag === tag;
             return (
               <button
                 key={tag}
-                onClick={() => setActiveTag(tagActive ? null : tag)}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setActiveTag(on ? null : tag)}
                 style={{
-                  padding: "3px 10px",
-                  borderRadius: 99,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  border: tagActive
-                    ? `1.5px solid ${c}`
-                    : "1px solid var(--border)",
-                  background: tagActive ? c + "22" : "var(--card)",
-                  color: tagActive ? c : "var(--text-muted)",
+                  minHeight: 32,
+                  padding: "0 var(--sp-3)",
+                  borderRadius: "var(--r-pill)",
+                  border: "none",
+                  fontSize: "var(--fs-sm)",
+                  background: on ? "var(--accent-bg)" : "transparent",
+                  color: on ? "var(--accent-text)" : "var(--text-muted)",
+                  fontWeight: on ? 600 : 500,
                 }}
               >
                 #{tag}
@@ -782,17 +690,19 @@ export default function LogbookView() {
         <div
           style={{
             textAlign: "center",
-            padding: 40,
-            color: "var(--text-faint)",
+            padding: "var(--sp-6) var(--sp-4)",
+            color: "var(--text-muted)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "var(--sp-2)",
           }}
         >
-          <div style={{ marginBottom: 6 }}>
-            <Emoji char="📭" size={32} />
-          </div>
-          <p style={{ fontSize: 12 }}>
+          <Icon name="tray" size={32} />
+          <p style={{ margin: 0, fontSize: "var(--fs-sm)" }}>
             {search || activeTag
               ? "Geen resultaten."
-              : "Nog niets hier — druk op + Nieuw."}
+              : "Nog niets hier. Tik op + voor een nieuwe notitie."}
           </p>
         </div>
       )}
@@ -800,20 +710,8 @@ export default function LogbookView() {
       {/* Entry-kaarten: vastgezet-sectie (eigen sleep-container) + de rest */}
       {pinnedFiltered.length > 0 && (
         <>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: "var(--text-faint)",
-              marginBottom: 6,
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-            }}
-          >
-            <Emoji char="📌" size={12} /> Vastgezet
-          </div>
-          <div ref={pinnedSortRef} style={{ marginBottom: 14 }}>
+          <div style={sectionLabel}>Vastgezet</div>
+          <div ref={pinnedSortRef} style={{ marginBottom: 6 }}>
             {pinnedFiltered.map((entry, i) =>
               renderCard(entry, i, onPinnedHandleDown),
             )}
@@ -835,14 +733,7 @@ export default function LogbookView() {
               return (
                 <div key={entry.id}>
                   {showHeader && (
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: "var(--text-faint)",
-                        margin: "14px 0 6px",
-                      }}
-                    >
+                    <div style={{ ...sectionLabel, marginTop: 14 }}>
                       {label}
                     </div>
                   )}
@@ -865,6 +756,22 @@ export default function LogbookView() {
         </div>
       )}
 
+      {menuSheet && (
+        <NotesMenuSheet
+          sortMode={sortMode}
+          onSort={setSortMode}
+          onSelect={selectableIds.length > 0 ? () => setSelectMode(true) : null}
+          onEditNotebook={() => setNbSheet(activeNotebook)}
+          onOrderNotebooks={
+            notebooks.length > 1 ? () => setSortNbSheet(true) : null
+          }
+          onArchive={() => setArchiveSheet(true)}
+          onTrash={() => setTrashSheet(true)}
+          archiveCount={archivedEntries.length}
+          trashCount={trashedEntries.length}
+          onClose={() => setMenuSheet(false)}
+        />
+      )}
       {pageEntry && (
         <EntryPage
           entry={pageEntry === "new" || pageEntry._draft ? null : pageEntry}

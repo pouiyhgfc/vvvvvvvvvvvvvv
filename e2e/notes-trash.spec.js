@@ -9,7 +9,7 @@ async function openLogbook(page) {
 }
 
 async function createNote(page, title) {
-  await page.getByRole("button", { name: "+ Nieuw" }).click();
+  await page.getByRole("button", { name: "Nieuwe notitie" }).click();
   await page.waitForSelector(".ProseMirror");
   await page.getByPlaceholder("Titel…").fill(title);
   await page.click(".ProseMirror");
@@ -71,6 +71,7 @@ test("archiveren haalt de entry uit de lijst; herstellen zet 'm terug", async ({
 
   await expect(page.getByText("Archive-test", { exact: true })).toHaveCount(0);
 
+  await page.click('button[aria-label="Meer opties"]');
   await page.click('button[aria-label="Archief"]');
   await expect(page.getByText("Archief")).toBeVisible();
   await expect(page.getByText("Archive-test", { exact: true })).toBeVisible();
@@ -94,6 +95,7 @@ test("verwijderen gaat naar de prullenbak; herstellen en definitief verwijderen 
 
   await expect(page.getByText("Trash-test", { exact: true })).toHaveCount(0);
 
+  await page.click('button[aria-label="Meer opties"]');
   await page.click('button[aria-label="Prullenbak"]');
   await expect(
     page.getByRole("heading", { name: "Prullenbak", exact: true }),
@@ -110,6 +112,7 @@ test("verwijderen gaat naar de prullenbak; herstellen en definitief verwijderen 
   await page.click('button[aria-label="Naar prullenbak"]');
   await confirmDialogButton(page, "Naar prullenbak").click();
 
+  await page.click('button[aria-label="Meer opties"]');
   await page.click('button[aria-label="Prullenbak"]');
   await page.click('button[aria-label="Definitief verwijderen"]');
   await confirmDialogButton(page, "Verwijderen").click();
@@ -129,6 +132,7 @@ test("prullenbak legen verwijdert alle items definitief", async ({ page }) => {
     await confirmDialogButton(page, "Naar prullenbak").click();
   }
 
+  await page.click('button[aria-label="Meer opties"]');
   await page.click('button[aria-label="Prullenbak"]');
   await page.getByRole("button", { name: "Prullenbak legen" }).click();
   await confirmDialogButton(page, "Verwijderen").click();

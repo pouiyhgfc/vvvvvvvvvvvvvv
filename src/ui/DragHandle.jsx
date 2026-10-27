@@ -1,3 +1,5 @@
+import Icon from "./Icon.jsx";
+
 export default function DragHandle({ onPointerDown }) {
   // Groot genoeg raakdoel voor een vinger (min. ~40px) met behoud van compacte
   // weergave; touchAction:none zodat een sleep op het handvat niet scrollt.
@@ -5,21 +7,20 @@ export default function DragHandle({ onPointerDown }) {
     <span
       className="drag-handle"
       onPointerDown={onPointerDown}
+      aria-hidden="true"
       style={{
-        fontSize: 17,
         color: "var(--text-faint)",
-        padding: "10px 12px",
+        padding: "10px 8px",
         margin: "-6px -4px",
         borderRadius: 6,
         userSelect: "none",
-        lineHeight: 1,
         touchAction: "none",
         display: "inline-flex",
         alignItems: "center",
         alignSelf: "stretch",
       }}
     >
-      ⠿
+      <Icon name="dots-six-vertical" size={20} />
     </span>
   );
 }

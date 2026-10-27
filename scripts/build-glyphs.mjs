@@ -23,6 +23,8 @@ const UI_GLYPHS = [
   "caret-right",
   "arrows-down-up",
   "check",
+  "dots-six-vertical",
+  "dots-three-vertical",
 ];
 
 const circle = (cx, cy, r) =>

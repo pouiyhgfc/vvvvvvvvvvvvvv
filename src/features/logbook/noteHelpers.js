@@ -1,16 +1,9 @@
-import { DAYS_NL, MONTHS_NL, EVENT_COLORS } from "../../lib/constants.js";
+import { DAYS_NL, MONTHS_NL } from "../../lib/constants.js";
 import { isToday, getMonday } from "../../lib/date.js";
-
-export function tagColor(tag) {
-  let h = 0;
-  for (let i = 0; i < tag.length; i++)
-    h = (h * 31 + tag.charCodeAt(i)) & 0xffff;
-  return EVENT_COLORS[h % EVENT_COLORS.length];
-}
 
 export function fmtDay(str) {
   const d = new Date(str + "T12:00:00");
-  return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()]}`;
+  return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()].toLowerCase()}`;
 }
 
 // Vormen waarop je een entry op datum kunt vinden: ISO, "25 juni",

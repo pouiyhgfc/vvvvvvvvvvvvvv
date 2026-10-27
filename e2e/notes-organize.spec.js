@@ -9,7 +9,7 @@ async function openLogbook(page) {
 }
 
 async function createNote(page, title) {
-  await page.getByRole("button", { name: "+ Nieuw" }).click();
+  await page.getByRole("button", { name: "Nieuwe notitie" }).click();
   await page.waitForSelector(".ProseMirror");
   await page.getByPlaceholder("Titel…").fill(title);
   await page.click(".ProseMirror");
@@ -54,6 +54,7 @@ test("Datum-modus toont groepskoppen en geen sleephandvatten", async ({
 
   await expect(page.locator(".drag-handle")).toHaveCount(1);
 
+  await page.click('button[aria-label="Meer opties"]');
   await page.getByRole("button", { name: "Datum" }).click();
   await expect(page.getByText("Vandaag", { exact: true })).toBeVisible();
   await expect(page.locator(".drag-handle")).toHaveCount(0);
@@ -67,6 +68,7 @@ test("multi-select en bulk archiveren via de actiebalk", async ({ page }) => {
   await createNote(page, "Bulk-A");
   await createNote(page, "Bulk-B");
 
+  await page.click('button[aria-label="Meer opties"]');
   await page.click('button[aria-label="Selecteren"]');
   await page.getByText("Bulk-A", { exact: true }).click();
   await page.getByText("Bulk-B", { exact: true }).click();
@@ -77,6 +79,7 @@ test("multi-select en bulk archiveren via de actiebalk", async ({ page }) => {
   await expect(page.getByText("Bulk-A", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Bulk-B", { exact: true })).toHaveCount(0);
 
+  await page.click('button[aria-label="Meer opties"]');
   await page.click('button[aria-label="Archief"]');
   await expect(page.getByText("Bulk-A", { exact: true })).toBeVisible();
   await expect(page.getByText("Bulk-B", { exact: true })).toBeVisible();
@@ -91,6 +94,7 @@ test("multi-select en bulk verplaatsen naar een ander notitieboek", async ({
   await createNote(page, "BulkMove-A");
   await createNote(page, "BulkMove-B");
 
+  await page.click('button[aria-label="Meer opties"]');
   await page.click('button[aria-label="Selecteren"]');
   await page.getByText("BulkMove-A", { exact: true }).click();
   await page.getByText("BulkMove-B", { exact: true }).click();
@@ -117,7 +121,10 @@ test("slepen tijdens zoeken bewaart de relatieve volgorde van verborgen entries"
   await createNote(page, "DragTest-C");
   // Zonder handmatige sleep staan nieuwe entries nieuwste-eerst: C, B, A.
 
-  await page.fill('input[placeholder="Zoek in tekst of tags..."]', "DragTest");
+  await page.fill(
+    'input[placeholder="Zoeken in notities en tags"]',
+    "DragTest",
+  );
   await expect(page.getByText("Other-B", { exact: true })).toHaveCount(0);
 
   // Sleep de zichtbare rij "DragTest-C" naar onder "DragTest-A" — "Other-B"
@@ -145,7 +152,7 @@ test("slepen tijdens zoeken bewaart de relatieve volgorde van verborgen entries"
   await page.mouse.up();
   await page.waitForTimeout(300);
 
-  await page.fill('input[placeholder="Zoek in tekst of tags..."]', "");
+  await page.fill('input[placeholder="Zoeken in notities en tags"]', "");
 
   const posB = await page.getByText("Other-B", { exact: true }).boundingBox();
   const posA = await page
