@@ -8,6 +8,8 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
+  // In CI ook als GitHub-annotaties, zodat fouten direct bij de run staan.
+  reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: { baseURL: "http://localhost:5173" },
   snapshotPathTemplate: "{testDir}/__screenshots__/{arg}{ext}",
   expect: {
