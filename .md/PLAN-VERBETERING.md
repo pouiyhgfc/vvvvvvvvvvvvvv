@@ -172,12 +172,22 @@ onmogelijk.
 
 **Doel:** vastleggen hoe de app eruit moet zien, vóórdat we tokens en componenten bouwen.
 
-- [ ] **2.1 Nulmeting:** de screenshots uit fase 1 + een korte analyse per scherm (wat werkt,
+- [x] **2.1 Nulmeting:** de screenshots uit fase 1 + een korte analyse per scherm (wat werkt,
       wat rommelig is: 14 lettergroottes, 8–10 px tekst, wisselende kaartstijlen).
-- [ ] **2.2 Brief met de eigenaar:** gevoel van de app, wat Evergreen moet blijven, dichtheid,
+- [x] **2.2 Brief met de eigenaar:** gevoel van de app, wat Evergreen moet blijven, dichtheid,
       donker thema, navigatie, wel/geen "Vandaag"-startscherm (backlog-idee), iconen.
-- [ ] **2.3 Twee à drie richtingen** als mockups voor drie sleutelschermen: Vandaag/Tracker,
+- [x] **2.3 Twee à drie richtingen** als mockups voor drie sleutelschermen: Vandaag/Tracker,
       Logboek + open notitie, Hifd. De eigenaar reageert, er wordt één richting gekozen.
+
+  **Besluit (27-10-2026): richting B — "Zacht".** Ronde witte kaarten op een licht groengrijze
+  ondergrond (#eef1ec), Evergreen-groen als enige accent, Outfit voor koppen + DM Sans voor
+  tekst, Noto Naskh Arabic voor Arabisch. Geen emoji meer als UI-icoon: lijniconen; routines
+  krijgen een kleurbolletje van hun gebied. Zwevende tabbalk onderin met vijf plekken
+  (Vandaag, Planning, Notities, Hifd, Meer); Stats en Instellingen onder "Meer". "Vandaag" is
+  een overzicht: voortgang, wat nu/straks gepland staat, open routines, logboek van vandaag.
+  Brief van de eigenaar: rustig en minimaal, niet te veel opties, alles moet goed werken.
+  Mockups: Design-canvas "Routine redesign — richtingen" (claude.ai).
+
 - [ ] **2.4 Volledige set** in de gekozen richting: ook Planner, Statistieken, Instellingen,
       sheets, lege staten, licht + donker.
 - [ ] **2.5 Beslissingen vastleggen** in een nieuwe `ONTWERP.md`:
@@ -269,13 +279,39 @@ Volgorde: Statistieken → Planner → Tracker (+ "Vandaag" indien gekozen) → 
 3. Nieuw ontwerp toepassen (uiterlijk-commit, nieuwe baselines).
 
 - [ ] Statistieken (`StatsView`, 748 regels)
-- [ ] Planner (`WeekView` 784, `EventModal` 359)
+- [ ] Planner (`WeekView` 784, `EventModal` 359) → wordt **opnieuw gebouwd**, zie 4e.
 - [ ] Tracker (`TrackerView` 420) + eventueel Vandaag-dashboard
 - [ ] Instellingen (`SettingsPanel` 986 → één bestand per sectie)
 - [ ] Hifd (`HifdView` 1.052 → RecallCard, LearningCard, VandaagView, VoortgangView, SurahSheet
       als eigen bestanden)
 - [ ] Logboek (`LogbookView` 1.538 → notitieboek-tabs, lijst/kaarten, multi-select-balk,
       archief/prullenbak, sorteerlogica als hook; `EntryPage` 596)
+
+### 4e — Planning opnieuw (besluit eigenaar 27-10-2026)
+
+De eigenaar: slepen werkt slecht, zeven kolommen zijn te krap op een telefoon, een blok
+toevoegen is omslachtig, herhalen/sjablonen zijn verwarrend en wat gepland staat is niet
+zichtbaar vanaf het overzicht. Gebruik: vaste lessen/afspraken + de dag inplannen (time
+blocking). Ontwerp: canvas-rij "B — Weekplanning, opnieuw".
+
+- [ ] **Dag als standaard:** weekstrip (ma–zo, bolletje als er iets gepland is) + één brede
+      tijdlijn voor de gekozen dag, met een "nu"-lijn. **Week** wordt een lijst per dag i.p.v.
+      zeven smalle kolommen.
+- [ ] **Slepen opnieuw:** ingedrukt houden = verplaatsen (in stappen van 15 min), handvat
+      onderaan = langer/korter maken; trilfeedback bij oppakken. Tik op leeg vlak = nieuw blok
+      op dat tijdstip.
+- [ ] **Blok toevoegen in één sheet:** titel, snelkeuze (de huidige event-sjablonen),
+      begintijd, duur-knoppen (30 m–3 u), herhalen (eenmalig / elke week / elke dag), melding.
+- [ ] **Herhalen begrijpelijk:** bij bewerken of verwijderen van een herhalend blok altijd de
+      keuze "alleen deze" of "alle"; op het blok een klein herhaal-icoon.
+- [ ] **Zichtbaar vanaf Vandaag:** kaart "Nu en straks" op het Vandaag-overzicht.
+- [ ] **Weekschema-sjablonen** (hele week opslaan/laden) verhuizen naar Meer → Planning;
+      functie en data blijven bestaan, ze staan alleen niet meer in de weg.
+- [ ] **Data blijft gelijk:** `calEvents` (date, startTime, endTime, repeat, exDates, color, …),
+      `calTemplates` en `weekTemplates` houden hun formaat; geen migratie nodig. Het oude
+      `icon`-veld blijft bewaard maar wordt niet meer getoond.
+- [ ] Tests: unit-tests voor tijdrekenen/overlap/herhalingen, e2e voor toevoegen, verplaatsen,
+      herhalend bewerken ("alleen deze" vs "alle"); telefoontest voor slepen.
 
 ### 4d — Bewaking tegen nieuwe slop
 
