@@ -11,7 +11,6 @@ import { BlockNoteView } from "@blocknote/mantine";
 import BlockHandle from "./BlockHandle.jsx";
 import { filterSuggestionItems } from "@blocknote/core";
 import { nl } from "@blocknote/core/locales";
-import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 import "./richEditor.css";
 
