@@ -164,3 +164,28 @@ test("slepen tijdens zoeken bewaart de relatieve volgorde van verborgen entries"
   expect(posB.y).toBeLessThan(posA.y);
   expect(posA.y).toBeLessThan(posC.y);
 });
+
+test("rustig slepen aan het handvat start geen selectie", async ({ page }) => {
+  await openLogbook(page);
+  await createNote(page, "Hold-A");
+  await createNote(page, "Hold-B");
+
+  const bRow = page.locator('[data-srow="1"]').filter({ hasText: "Hold-B" });
+  const aRow = page.locator('[data-srow="1"]').filter({ hasText: "Hold-A" });
+  const handleBox = await bRow.locator(".drag-handle").boundingBox();
+  const aBox = await aRow.boundingBox();
+  const x = handleBox.x + handleBox.width / 2;
+
+  // Vasthouden langer dan de long-press (450 ms) en dan pas bewegen.
+  await page.mouse.move(x, handleBox.y + handleBox.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(700);
+  await page.mouse.move(x, aBox.y + aBox.height / 2 + 5, { steps: 10 });
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+
+  await expect(page.getByText(/geselecteerd/)).toHaveCount(0);
+  const posA = await page.getByText("Hold-A", { exact: true }).boundingBox();
+  const posB = await page.getByText("Hold-B", { exact: true }).boundingBox();
+  expect(posA.y).toBeLessThan(posB.y);
+});

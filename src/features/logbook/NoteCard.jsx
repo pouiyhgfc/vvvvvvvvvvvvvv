@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { bodyPreview } from "../../lib/notes.js";
 import DragHandle from "../../ui/DragHandle.jsx";
 import Emoji from "../../ui/Emoji.jsx";
@@ -19,6 +20,7 @@ export default function NoteCard({
   onLongPressStart,
   onLongPressEnd,
 }) {
+  const start = useRef(null);
   const isLog = entry._type === "log";
   const preview = bodyPreview(entry.body);
   const day = entry.updatedAt ? entry.updatedAt.slice(0, 10) : entry.date;
@@ -36,8 +38,17 @@ export default function NoteCard({
         gap: 12,
         outline: selected ? "2px solid var(--accent)" : "none",
       }}
-      onPointerDown={() => {
+      onPointerDown={(e) => {
+        start.current = { x: e.clientX, y: e.clientY };
         if (isLog && !selectMode) onLongPressStart(entry.id);
+      }}
+      onPointerMove={(e) => {
+        // Bewegen (scrollen) is geen ingedrukt houden.
+        const p = start.current;
+        if (p && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 8) {
+          start.current = null;
+          onLongPressEnd();
+        }
       }}
       onPointerUp={onLongPressEnd}
       onPointerLeave={onLongPressEnd}
@@ -155,7 +166,12 @@ export default function NoteCard({
         )}
       </div>
       {isLog && canSort && (
-        <div style={{ flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
+        <div
+          style={{ flexShrink: 0 }}
+          onClick={(e) => e.stopPropagation()}
+          // Slepen is geen long-press: de kaart mag hier geen selectie starten.
+          onPointerDown={(e) => e.stopPropagation()}
+        >
           <DragHandle onPointerDown={(e) => handleDown(e, idx, entry.id)} />
         </div>
       )}
