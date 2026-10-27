@@ -1,6 +1,7 @@
 ---
 paths:
   - "src/**/*.{jsx,css}"
+  - "src/styles/**"
   - "index.html"
 ---
 

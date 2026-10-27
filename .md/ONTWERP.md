@@ -94,7 +94,7 @@ kop of een eigen subpagina onder Meer, en krijgt een echte `<button>` als kop.
 
 ## Tokens (CSS-variabelen)
 
-Gedefinieerd in de `<style>` van `index.html`, met een licht en een donker thema
+Gedefinieerd in `src/styles/base.css`, met een licht en een donker thema
 (`html[data-theme="dark"]`). Gebruik altijd tokens, nooit losse hex voor UI-kleur.
 
 Het palet is **Evergreen**: warm-groene neutralen, diep groen accent (`#0e7a52`).

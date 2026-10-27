@@ -1,6 +1,7 @@
 import "@fontsource-variable/outfit";
 import "@fontsource-variable/dm-sans";
 import "@fontsource-variable/schibsted-grotesk";
+import "./styles/base.css";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import {
