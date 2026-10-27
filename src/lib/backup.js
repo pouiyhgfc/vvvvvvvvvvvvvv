@@ -1,4 +1,4 @@
-import { db } from "./db.js";
+import { db, seedHifd } from "./db.js";
 import { dk } from "./date.js";
 import { DEFAULT_NOTEBOOKS, DEFAULT_SETTINGS } from "./constants.js";
 import { showToast } from "./toast.js";
@@ -187,6 +187,7 @@ export async function performFullImport(data, merge) {
     db.logEntries,
     db.hifd,
     db.hifdLogV2,
+    db.meta,
     async () => {
       if (!merge) {
         await db.days.clear();
@@ -194,6 +195,9 @@ export async function performFullImport(data, merge) {
         await db.logEntries.clear();
         await db.hifd.clear();
         await db.hifdLogV2.clear();
+        // Zonder deze reset zou seedHifd hieronder denken dat de 114 surahs er
+        // al staan, en blijft Hifd leeg bij een backup zonder Hifd-gegevens.
+        await db.meta.delete("hifd_seeded");
       }
       await db.blobs.put({ key: "routines", data: data.routines });
       if (data.calTemplates)
@@ -235,6 +239,7 @@ export async function performFullImport(data, merge) {
         );
     },
   );
+  await seedHifd();
   showToast(
     `✓ Import gelukt! ${Object.keys(data.days).length} dagen geïmporteerd.`,
   );

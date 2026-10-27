@@ -155,17 +155,14 @@ describe("volledige backup", () => {
     expect(await db.logEntries.get("n1")).toBeTruthy();
   });
 
-  // Bekende bug (fase 1c): "vervangen" met een backup zonder Hifd leegt de
-  // hifd-tabel en vult hem niet opnieuw, waardoor de Hifd-pagina leeg is.
-  test.fails(
-    "vervangen met een backup zonder Hifd laat 114 surahs staan",
-    async () => {
-      await seed();
-      const v1 = { version: 1, routines: {}, days: {} };
+  // Was een bug: "vervangen" met een backup zonder Hifd leegde de tabel en
+  // vulde hem niet opnieuw, waardoor de Hifd-pagina leeg bleef.
+  test("vervangen met een backup zonder Hifd laat 114 surahs staan", async () => {
+    await seed();
+    const v1 = { version: 1, routines: {}, days: {} };
 
-      await performFullImport(v1, false);
+    await performFullImport(v1, false);
 
-      expect(await db.hifd.count()).toBe(114);
-    },
-  );
+    expect(await db.hifd.count()).toBe(114);
+  });
 });
