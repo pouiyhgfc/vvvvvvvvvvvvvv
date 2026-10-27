@@ -1,0 +1,37 @@
+# Controleert elke push naar main (en pull requests): lint, dode code,
+# unit-tests, build, e2e en screenshots. Vercel deployt los hiervan; faalt CI,
+# draai de deploy dan terug via Vercel → Deployments → Instant Rollback.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run deadcode
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: E2E (desktop) en screenshots (mobiel)
+        run: npx playwright test
+      - name: Duplicatie-rapport (nog niet blokkerend)
+        if: always()
+        run: npx --yes jscpd@5.4.2 src --min-tokens 50 --reporters console --silent
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-resultaten
+          path: test-results/
+          retention-days: 7
