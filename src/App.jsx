@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   DEFAULT_ROUTINES,
@@ -101,6 +101,9 @@ export default function App({ startupErrors = [] }) {
   );
   const [date, setDate] = useState(new Date());
   const [tab, setTab] = useState(() => periodForHour(new Date().getHours()));
+  // Het dagdeel dat we het laatst automatisch kozen. Pas als de klok een
+  // nieuw dagdeel ingaat, springt de tab mee; zelf wisselen blijft staan.
+  const autoPeriod = useRef(tab);
   const [view, setView] = useState("tracker");
   const [pop, setPop] = useState(null);
   const [statsPeriod, setStatsPeriod] = useState("week");
@@ -139,6 +142,11 @@ export default function App({ startupErrors = [] }) {
   useEffect(() => {
     const checkDate = () => {
       const now = new Date();
+      const period = periodForHour(now.getHours());
+      if (period !== autoPeriod.current) {
+        autoPeriod.current = period;
+        setTab(period);
+      }
       const todayKey = dk(now);
       const currentKey = dk(date);
       if (currentKey !== todayKey) {
