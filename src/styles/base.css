@@ -207,15 +207,6 @@ textarea::placeholder {
 .dragging {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22) !important;
 }
-@media (max-width: 400px) {
-  .period-tabs {
-    gap: 3px !important;
-  }
-  .period-tabs button {
-    font-size: 11px !important;
-    padding: 8px 4px !important;
-  }
-}
 /* toggle switch */
 .switch {
   position: relative;

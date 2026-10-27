@@ -141,24 +141,30 @@ test("een verwijderde 'vandaag'-entry verdwijnt uit het widget op Dag", async ({
 }) => {
   await page.goto("/");
   await expect(
-    page.getByText("Nieuw logboek voor vandaag aanmaken"),
+    page.getByRole("button", { name: "Nieuw logboek voor vandaag aanmaken" }),
   ).toBeVisible();
 
-  await page.getByText("Nieuw logboek voor vandaag aanmaken").click();
+  await page
+    .getByRole("button", { name: "Nieuw logboek voor vandaag aanmaken" })
+    .click();
   await page.waitForSelector(".ProseMirror");
   await page.click(".ProseMirror");
   await page.keyboard.type("Test-inhoud voor vandaag");
   await page.click('button[aria-label="Terug"]');
   await page.waitForTimeout(700);
 
-  await expect(page.getByText("Logboek voor vandaag openen")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Logboek voor vandaag openen" }),
+  ).toBeVisible();
 
-  await page.getByText("Logboek voor vandaag openen").click();
+  await page
+    .getByRole("button", { name: "Logboek voor vandaag openen" })
+    .click();
   await page.waitForSelector(".ProseMirror");
   await page.click('button[aria-label="Naar prullenbak"]');
   await confirmDialogButton(page, "Naar prullenbak").click();
 
   await expect(
-    page.getByText("Nieuw logboek voor vandaag aanmaken"),
+    page.getByRole("button", { name: "Nieuw logboek voor vandaag aanmaken" }),
   ).toBeVisible();
 });

@@ -8,7 +8,6 @@ import {
   DEFAULT_NOTEBOOKS,
   buildAreaStyles,
   MONTHS_NL,
-  DAYS_NL,
 } from "./lib/constants.js";
 import { dk, fmtDate, isToday, getMonday } from "./lib/date.js";
 import { buzz } from "./lib/storage.js";
@@ -424,12 +423,6 @@ export default function App({ startupErrors = [] }) {
 
   // Datum-kaart: label + subtitel op basis van actieve view en statsPeriod
   const getDateCard = () => {
-    if (view === "tracker") {
-      const d = date.getDate();
-      const monthName = MONTHS_NL[date.getMonth()].toLowerCase();
-      const sub = isToday(date) ? "Vandaag" : DAYS_NL[date.getDay()];
-      return { main: `${d} ${monthName}`, sub };
-    }
     if (view === "week" || (view === "stats" && statsPeriod === "week")) {
       const mon = getMonday(date);
       const sun = new Date(mon);
@@ -490,7 +483,6 @@ export default function App({ startupErrors = [] }) {
           iets wijzigt.
         </Banner>
       )}
-      {view === "tracker" && <BackupReminder onExport={exportData} />}
 
       {/* MEER: statistieken-ingang + instellingen */}
       {view === "meer" && (
@@ -533,7 +525,7 @@ export default function App({ startupErrors = [] }) {
       )}
 
       {/* DATUM-KAART */}
-      {view !== "logbook" && view !== "meer" && (
+      {view !== "logbook" && view !== "meer" && view !== "tracker" && (
         <div style={{ padding: "12px 14px 0", background: "var(--bg)" }}>
           <div
             style={{
@@ -584,6 +576,10 @@ export default function App({ startupErrors = [] }) {
       {/* TRACKER */}
       {view === "tracker" && (
         <TrackerView
+          date={date}
+          onNav={goNav}
+          onToday={() => setDate(new Date())}
+          banner={<BackupReminder onExport={exportData} />}
           dateKey={key}
           routines={routines}
           tab={tab}
