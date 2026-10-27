@@ -74,3 +74,24 @@ test("een event aanmaken via een tik in de weekkalender blijft staan", async ({
   await openTab(page, "Week");
   await expect(page.getByText("E2E-afspraak")).toBeVisible();
 });
+
+test("een kapotte backup wordt afgekeurd en verandert niets", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByText("Duah", { exact: true }).click();
+  await openTab(page, "Config");
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "kapot.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify({ routines: "fout", days: {} })),
+  });
+
+  await expect(page.getByText(/Backup afgekeurd/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Volledig vervangen" }),
+  ).toHaveCount(0);
+  await openTab(page, "Config");
+  await expect(page.getByText("1/13").first()).toBeVisible();
+});

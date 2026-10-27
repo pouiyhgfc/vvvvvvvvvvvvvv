@@ -2,6 +2,7 @@ import { db, seedHifd } from "./db.js";
 import { dk } from "./date.js";
 import { DEFAULT_NOTEBOOKS, DEFAULT_SETTINGS } from "./constants.js";
 import { showToast } from "./toast.js";
+import { BACKUP_VERSION, validateBackup } from "./validateBackup.js";
 
 // Genereert en downloadt een JSON-bestand — gedeelde Blob/anchor-boilerplate
 // voor alle export-functies hieronder.
@@ -39,7 +40,7 @@ export async function exportData({
   const hifdData = await db.hifd.toArray();
   const hifdLogData = await db.hifdLogV2.toArray();
   downloadJSON(`routine-backup-${dk(new Date())}.json`, {
-    version: 9,
+    version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     routines,
     areas,
@@ -103,6 +104,11 @@ export function importData(file, onFullBackup) {
   reader.onload = async (e) => {
     try {
       const data = JSON.parse(e.target.result);
+      const problems = validateBackup(data);
+      if (problems.length) {
+        showToast(`❌ Backup afgekeurd, er is niets gewijzigd. ${problems[0]}`);
+        return;
+      }
       const type = data.type || "full";
       if (
         !data.routines &&
