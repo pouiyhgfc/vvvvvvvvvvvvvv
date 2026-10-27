@@ -112,14 +112,15 @@ onmogelijk.
 
 ### 1a — Unit-tests (Vitest + fake-indexeddb)
 
-- [ ] Vitest en fake-indexeddb als devDependencies; script `npm test`.
-- [ ] `nextSrs`: alle vier beoordelingen, ease-grenzen (1,3), max-interval 30, lapses.
-- [ ] Migraties met fixture-data: `migrateFromLocalStorage` (incl. corrupte JSON),
+- [x] Vitest en fake-indexeddb als devDependencies; script `npm test`.
+- [x] `nextSrs`: alle vier beoordelingen, ease-grenzen (1,3), max-interval 30, lapses.
+- [x] Migraties met fixture-data: `migrateFromLocalStorage` (incl. corrupte JSON),
       `migrateNotesToLogEntries`, `migrateNotesOrderV1`, `migrateHifdSrsV2`, `purgeTrash`,
       Dexie v3→v5 (`hifdLog` → `hifdLogV2`).
-- [ ] Backup: export → import (vervangen én samenvoegen) geeft exact dezelfde data terug;
-      oude backup-versies (fixtures v1, v8, v9) importeren zonder fouten.
-- [ ] Pure helpers in `lib/date.js` (`dk`, `getMonday`, `eventsOnDate` met herhalingen).
+- [x] Backup: export → import (vervangen én samenvoegen) geeft exact dezelfde data terug;
+      een oude backup (v1, zonder logboek/Hifd) importeert. Gevonden: "vervangen" met een
+      backup zonder Hifd leegt de Hifd-tabel → vastgelegd als `test.fails`, fix in 1c.
+- [x] Pure helpers in `lib/date.js` (`dk`, `getMonday`, `eventsOnDate` met herhalingen).
 
 ### 1b — E2E en screenshots (Playwright)
 

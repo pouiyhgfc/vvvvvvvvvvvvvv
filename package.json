@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "deadcode": "knip",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test": "vitest run"
   },
   "dependencies": {
     "@blocknote/core": "^0.51.4",
@@ -27,16 +28,18 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "1.63.0",
     "@twemoji/svg": "^15.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^10.5.0",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "fake-indexeddb": "6.2.6",
     "globals": "^17.7.0",
     "knip": "^6.20.0",
     "prettier": "^3.8.4",
     "vite": "^6.3.5",
     "vite-plugin-pwa": "^0.21.1",
+    "vitest": "5.0.5",
     "workbox-precaching": "^7.3.0"
   }
 }

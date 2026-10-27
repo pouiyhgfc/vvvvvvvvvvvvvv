@@ -20,6 +20,7 @@ Persoonlijke life-OS (PWA): routine-tracker, weekplanner, logboek/notities (Bloc
 - `npm run build` — productiebuild
 - `npm run lint` — ESLint
 - `npm run deadcode` — Knip (ongebruikte bestanden/exports/dependencies)
+- `npm test` — unit-tests (Vitest, `src/**/*.test.js`)
 - `npm run test:e2e` — Playwright
 
 ## Zelf installeren
