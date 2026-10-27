@@ -14,12 +14,12 @@ export async function openTab(page, label) {
 }
 
 // Zet de klok vast, laadt de app en zet de demodata terug via de echte
-// import-flow (Config → Backup & Data → Importeer → Volledig vervangen).
+// import-flow (Meer → Backup en data → Importeer → Volledig vervangen).
 export async function loadDemo(page, options) {
   await importBackup(page, demoBackup(options));
 }
 
-// Importeert een backup-object via de UI. "Backup & Data" staat standaard
+// Importeert een backup-object via de UI. "Backup en data" staat standaard
 // open, dus het bestandsveld is er meteen.
 export async function importBackup(page, backup) {
   await page.clock.setFixedTime(NOW);

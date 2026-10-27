@@ -46,6 +46,13 @@ const emptyList = {
   fontSize: 12,
 };
 
+const subLabel = {
+  margin: "0 0 var(--sp-2)",
+  fontSize: "var(--fs-xs)",
+  fontWeight: 600,
+  color: "var(--text-muted)",
+};
+
 export default function SettingsPanel({
   settings,
   setSettings,
@@ -234,9 +241,8 @@ export default function SettingsPanel({
 
       {/* WEERGAVE & MELDINGEN */}
       <Section
-        title="Weergave & Meldingen"
-        icon={<Emoji char="🎨" size={16} />}
-        defaultOpen
+        title="Weergave en meldingen"
+        icon={<Emoji char="🎨" size={20} />}
       >
         <div
           style={{
@@ -459,7 +465,7 @@ export default function SettingsPanel({
       {/* FOCUSGEBIEDEN */}
       <Section
         title="Focusgebieden"
-        icon={<Emoji char="🎯" size={16} />}
+        icon={<Emoji char="🎯" size={20} />}
         right={
           <button onClick={() => setAreaSheet("new")} style={addBtn}>
             + Gebied
@@ -514,135 +520,73 @@ export default function SettingsPanel({
 
       {/* BACKUP */}
       <Section
-        title="Backup & Data"
-        icon={<Emoji char="💾" size={16} />}
-        tone="accent"
+        title="Backup en data"
+        icon={<Emoji char="💾" size={20} />}
         defaultOpen
       >
         <StorageStatus />
-        <div style={{ marginBottom: 6 }}>
-          <div
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "var(--sp-2)",
+            marginBottom: "var(--sp-3)",
+          }}
+        >
+          <Button onClick={exportData}>Exporteer alles</Button>
+          <label
             style={{
-              fontSize: 10,
-              fontWeight: 600,
+              minHeight: 44,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "var(--r-md)",
+              background: "var(--sunken)",
               color: "var(--text)",
-              marginBottom: 4,
+              fontSize: "var(--fs-md)",
+              fontWeight: 600,
+              cursor: "pointer",
             }}
           >
-            Alles in één
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 6,
-              marginBottom: 8,
-            }}
-          >
-            <button
-              onClick={exportData}
-              style={{
-                padding: "8px",
-                borderRadius: 7,
-                background: "var(--accent)",
-                color: "white",
-                fontSize: 12,
-                fontWeight: 600,
+            Importeer
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  importData(e.target.files[0]);
+                  e.target.value = "";
+                }
               }}
-            >
-              Exporteer alles
-            </button>
-            <label
-              style={{
-                padding: "8px",
-                borderRadius: 7,
-                background: "#0369a1",
-                color: "white",
-                fontSize: 12,
-                fontWeight: 600,
-                textAlign: "center",
-                cursor: "pointer",
-              }}
-            >
-              Importeer
-              <input
-                type="file"
-                accept="application/json,.json"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    importData(e.target.files[0]);
-                    e.target.value = "";
-                  }
-                }}
-                style={{ display: "none" }}
-              />
-            </label>
-          </div>
+              style={{ display: "none" }}
+            />
+          </label>
+        </div>
+        <p style={subLabel}>Los exporteren</p>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "var(--sp-2)",
+            marginBottom: "var(--sp-3)",
+          }}
+        >
+          <Button variant="secondary" size="sm" onClick={exportRoutines}>
+            Routines
+          </Button>
+          <Button variant="secondary" size="sm" onClick={exportWeekplanning}>
+            Weekplanning
+          </Button>
+          <Button variant="secondary" size="sm" onClick={exportNotities}>
+            Notities
+          </Button>
         </div>
         <div
           style={{
-            borderTop: "1px solid var(--accent-border)",
-            paddingTop: 8,
-            marginBottom: 8,
+            fontSize: "var(--fs-xs)",
+            color: "var(--text-muted)",
+            lineHeight: 1.6,
           }}
-        >
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: "var(--text)",
-              marginBottom: 4,
-            }}
-          >
-            Losse export
-          </div>
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}
-          >
-            <button
-              onClick={exportRoutines}
-              style={{
-                padding: "7px 8px",
-                borderRadius: 7,
-                background: "#d97706",
-                color: "white",
-                fontSize: 11,
-                fontWeight: 600,
-              }}
-            >
-              Export Routines
-            </button>
-            <button
-              onClick={exportWeekplanning}
-              style={{
-                padding: "7px 8px",
-                borderRadius: 7,
-                background: "#7c3aed",
-                color: "white",
-                fontSize: 11,
-                fontWeight: 600,
-              }}
-            >
-              Export Weekplanning
-            </button>
-            <button
-              onClick={exportNotities}
-              style={{
-                gridColumn: "1 / -1",
-                padding: "7px 8px",
-                borderRadius: 7,
-                background: "#0891b2",
-                color: "white",
-                fontSize: 11,
-                fontWeight: 600,
-              }}
-            >
-              Export Notities
-            </button>
-          </div>
-        </div>
-        <div
-          style={{ fontSize: 10, color: "var(--accent-text)", lineHeight: 1.6 }}
         >
           <div>
             <b>{dataInfo.dayCount}</b> dagen · <b>{total}</b> routines ·{" "}
@@ -658,8 +602,8 @@ export default function SettingsPanel({
 
       {/* WEEKPLANNER TEMPLATES */}
       <Section
-        title="Weekplanner Templates"
-        icon={<Emoji char="📅" size={16} />}
+        title="Planning-snelkeuzes"
+        icon={<Emoji char="📅" size={20} />}
         right={
           <button onClick={() => setTplSheet("new")} style={addBtn}>
             + Nieuw
@@ -684,8 +628,8 @@ export default function SettingsPanel({
 
       {/* WEEKSCHEMA TEMPLATES */}
       <Section
-        title="Weekschema Templates"
-        icon={<Emoji char="📅" size={16} />}
+        title="Weekschema's"
+        icon={<Emoji char="📅" size={20} />}
         right={
           <button
             onClick={() => {
@@ -715,7 +659,7 @@ export default function SettingsPanel({
       </Section>
 
       {/* ROUTINES */}
-      <Section title="Routines Beheren" icon={<Emoji char="📋" size={16} />}>
+      <Section title="Routines" icon={<Emoji char="📋" size={20} />}>
         <p
           style={{
             fontSize: 11,
@@ -810,7 +754,7 @@ export default function SettingsPanel({
       {/* DANGER ZONE */}
       <Section
         title="Gevarenzone"
-        icon={<Emoji char="⚠️" size={16} />}
+        icon={<Emoji char="⚠️" size={20} />}
         tone="danger"
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

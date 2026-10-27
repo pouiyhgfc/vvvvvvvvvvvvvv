@@ -5,9 +5,9 @@ const VARIANTS = {
     border: "1px solid var(--accent)",
   },
   secondary: {
-    background: "var(--card2)",
+    background: "var(--sunken)",
     color: "var(--text)",
-    border: "1px solid var(--border)",
+    border: "1px solid transparent",
   },
   danger: {
     background: "var(--danger-bg)",
@@ -27,8 +27,18 @@ const VARIANTS = {
 };
 
 const SIZES = {
-  md: { padding: "11px 16px", fontSize: 14, borderRadius: 10 },
-  sm: { padding: "6px 10px", fontSize: 12, borderRadius: 6 },
+  md: {
+    minHeight: 44,
+    padding: "0 16px",
+    fontSize: "var(--fs-md)",
+    borderRadius: "var(--r-md)",
+  },
+  sm: {
+    minHeight: 36,
+    padding: "0 12px",
+    fontSize: "var(--fs-sm)",
+    borderRadius: "var(--r-sm)",
+  },
 };
 
 export default function Button({

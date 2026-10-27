@@ -1,25 +1,9 @@
-import { useState } from "react";
+import { useId, useState } from "react";
+import Icon from "./Icon.jsx";
 
-const TONES = {
-  default: {
-    bg: "var(--card2)",
-    border: "var(--border)",
-    title: "var(--text)",
-  },
-  accent: {
-    bg: "var(--accent-bg)",
-    border: "var(--accent-border)",
-    title: "var(--accent-text)",
-  },
-  danger: {
-    bg: "var(--danger-bg)",
-    border: "var(--danger-border)",
-    title: "var(--danger-text)",
-  },
-};
-
-// Inklapbare instellingen-sectie (accordion). `right` is een optionele
-// actie-node in de kop (bv. een "+"-knop); `tone` kleurt de sectie.
+// Inklapbare instellingen-sectie als witte kaart (ontwerp B). De kop is een
+// echte knop (toetsenbord, schermlezer). `right` is een optionele actie in de
+// kop (bv. "+ Nieuw"); `tone="danger"` kleurt de titel rood.
 export default function Section({
   title,
   icon,
@@ -29,53 +13,73 @@ export default function Section({
   children,
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const t = TONES[tone];
+  const bodyId = useId();
+  const color = tone === "danger" ? "var(--danger-text)" : "var(--text)";
   return (
-    <div
+    <section
       style={{
-        background: t.bg,
-        border: `1px solid ${t.border}`,
-        borderRadius: 12,
-        marginBottom: 10,
+        background: "var(--card)",
+        borderRadius: "var(--r-lg)",
+        marginBottom: "var(--sp-3)",
         overflow: "hidden",
       }}
     >
-      <div
-        onClick={() => setOpen((o) => !o)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          padding: 12,
-          cursor: "pointer",
-        }}
-      >
-        <span
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={bodyId}
+          onClick={() => setOpen((o) => !o)}
           style={{
-            fontSize: 11,
-            color: "var(--text-faint)",
-            transition: "transform .2s",
-            transform: open ? "rotate(90deg)" : "none",
-            display: "inline-block",
-          }}
-        >
-          ▸
-        </span>
-        {icon != null && <span style={{ display: "inline-flex" }}>{icon}</span>}
-        <h3
-          style={{
-            fontFamily: "var(--ff-head)",
-            fontSize: 15,
-            fontWeight: 600,
             flex: 1,
-            color: t.title,
+            minWidth: 0,
+            minHeight: 56,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "0 var(--sp-2) 0 18px",
+            border: "none",
+            background: "transparent",
+            color,
+            textAlign: "left",
           }}
         >
-          {title}
-        </h3>
-        {right && <div onClick={(e) => e.stopPropagation()}>{right}</div>}
+          {icon != null && (
+            <span
+              style={{
+                display: "inline-flex",
+                color: tone === "danger" ? color : "var(--text-muted)",
+              }}
+            >
+              {icon}
+            </span>
+          )}
+          <span
+            style={{
+              flex: 1,
+              fontSize: "var(--fs-md)",
+              fontWeight: 500,
+            }}
+          >
+            {title}
+          </span>
+          <Icon
+            name="caret-down"
+            size={18}
+            style={{
+              color: "var(--text-muted)",
+              transition: "transform .2s",
+              transform: open ? "rotate(180deg)" : "none",
+            }}
+          />
+        </button>
+        {right && <div style={{ paddingRight: 14 }}>{right}</div>}
       </div>
-      {open && <div style={{ padding: "0 12px 12px" }}>{children}</div>}
-    </div>
+      {open && (
+        <div id={bodyId} style={{ padding: "0 18px 18px" }}>
+          {children}
+        </div>
+      )}
+    </section>
   );
 }
