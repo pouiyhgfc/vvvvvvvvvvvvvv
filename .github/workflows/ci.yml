@@ -12,7 +12,9 @@ on:
 
 jobs:
   checks:
-    runs-on: ubuntu-latest
+    # Vast op 24.04: op ubuntu-latest (Ubuntu 26) bleef
+    # `playwright install --with-deps` minutenlang hangen.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
@@ -26,6 +28,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
+        timeout-minutes: 5
       - name: E2E (desktop)
         run: npm run test:e2e
       - name: Duplicatie-rapport (nog niet blokkerend)
