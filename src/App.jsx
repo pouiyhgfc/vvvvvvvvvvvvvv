@@ -9,7 +9,7 @@ import {
   buildAreaStyles,
   MONTHS_NL,
 } from "./lib/constants.js";
-import { dk, fmtDate, isToday, getMonday } from "./lib/date.js";
+import { dk, fmtDate, isToday, getMonday, periodForHour } from "./lib/date.js";
 import { buzz } from "./lib/storage.js";
 import { showToast } from "./lib/toast.js";
 import { useNotifications } from "./lib/notify.js";
@@ -100,7 +100,7 @@ export default function App({ startupErrors = [] }) {
       : "unsupported",
   );
   const [date, setDate] = useState(new Date());
-  const [tab, setTab] = useState("ochtend");
+  const [tab, setTab] = useState(() => periodForHour(new Date().getHours()));
   const [view, setView] = useState("tracker");
   const [pop, setPop] = useState(null);
   const [statsPeriod, setStatsPeriod] = useState("week");

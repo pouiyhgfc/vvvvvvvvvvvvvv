@@ -82,3 +82,10 @@ export function minT(m) {
   let mm = Math.max(0, Math.min(1439, Math.round(m)));
   return `${String(Math.floor(mm / 60)).padStart(2, "0")}:${String(mm % 60).padStart(2, "0")}`;
 }
+
+// Dagdeel dat bij een uur hoort: tot 12 uur ochtend, tot 18 uur middag.
+export function periodForHour(hour) {
+  if (hour < 12) return "ochtend";
+  if (hour < 18) return "middag";
+  return "avond";
+}

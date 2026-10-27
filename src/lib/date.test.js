@@ -5,6 +5,7 @@ import {
   dk,
   eventsOnDate,
   getMonday,
+  periodForHour,
   minT,
   tMin,
 } from "./date.js";
@@ -82,5 +83,16 @@ describe("applyWeekTemplate", () => {
     const tpl = { events: [{ id: "z", date: "2026-01-07", title: "wo" }] };
     const [ev] = applyWeekTemplate(tpl, new Date(2026, 9, 26));
     expect(ev.date).toBe("2026-10-28");
+  });
+});
+
+describe("periodForHour", () => {
+  test("kiest het dagdeel bij het uur", () => {
+    expect(periodForHour(6)).toBe("ochtend");
+    expect(periodForHour(11)).toBe("ochtend");
+    expect(periodForHour(12)).toBe("middag");
+    expect(periodForHour(17)).toBe("middag");
+    expect(periodForHour(18)).toBe("avond");
+    expect(periodForHour(0)).toBe("ochtend");
   });
 });
