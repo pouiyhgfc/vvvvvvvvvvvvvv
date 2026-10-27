@@ -7,8 +7,8 @@ import { loadDemo, openTab, settle } from "./helpers.js";
 
 const screens = [
   ["dag", async () => {}],
-  ["week", (page) => openTab(page, "Week")],
-  ["stats", (page) => openTab(page, "Stats")],
+  ["week", (page) => openTab(page, "Planning")],
+  ["stats", (page) => openTab(page, "Statistieken")],
   ["notities", (page) => openTab(page, "Notities")],
   [
     "notitie-open",
@@ -26,7 +26,7 @@ const screens = [
       await page.getByRole("button", { name: "Voortgang" }).click();
     },
   ],
-  ["config", (page) => openTab(page, "Config")],
+  ["meer", (page) => openTab(page, "Meer")],
 ];
 
 for (const theme of ["light", "dark"]) {

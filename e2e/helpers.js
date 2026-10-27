@@ -1,9 +1,16 @@
 import { expect } from "@playwright/test";
 import { NOW, demoBackup } from "./fixtures/demo.js";
 
-// Opent een nav-tab onderin (Dag, Week, Stats, Notities, Hifd, Config).
+// Opent een tab in de tabbalk onderin (Vandaag, Planning, Notities, Hifd,
+// Meer). "Statistieken" zit onder Meer.
 export async function openTab(page, label) {
-  await page.getByRole("button").filter({ hasText: label }).first().click();
+  const nav = page.getByRole("navigation", { name: "Hoofdmenu" });
+  if (label === "Statistieken") {
+    await nav.getByRole("button", { name: "Meer" }).click();
+    await page.getByRole("button", { name: /Statistieken/ }).click();
+    return;
+  }
+  await nav.getByRole("button", { name: label }).click();
 }
 
 // Zet de klok vast, laadt de app en zet de demodata terug via de echte
@@ -17,7 +24,7 @@ export async function loadDemo(page, options) {
 export async function importBackup(page, backup) {
   await page.clock.setFixedTime(NOW);
   await page.goto("/");
-  await openTab(page, "Config");
+  await openTab(page, "Meer");
   await page.locator('input[type="file"]').setInputFiles({
     name: "backup.json",
     mimeType: "application/json",
@@ -26,7 +33,7 @@ export async function importBackup(page, backup) {
   await page.getByRole("button", { name: "Volledig vervangen" }).click();
   await expect(page.getByText(/Import gelukt/)).toBeVisible();
   await expect(page.getByText(/Import gelukt/)).toBeHidden({ timeout: 10_000 });
-  await openTab(page, "Config"); // instellingen weer sluiten
+  await openTab(page, "Vandaag");
 }
 
 // Wacht tot fonts en emoji-SVG's binnen zijn, zodat een screenshot stabiel is.
@@ -37,7 +44,7 @@ export async function settle(page) {
 
 // Klikt "Exporteer alles" en geeft de gedownloade backup terug als object.
 export async function exportBackup(page) {
-  await openTab(page, "Config");
+  await openTab(page, "Meer");
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: /Exporteer alles/ }).click();
   const file = await (await download).path();

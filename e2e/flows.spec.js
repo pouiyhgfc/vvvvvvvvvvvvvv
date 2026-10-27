@@ -42,7 +42,7 @@ test("een Hifd-revisie beoordelen haalt de surah uit de lijst en telt mee", asyn
 
 test("'Exporteer alles' levert een volledige backup op", async ({ page }) => {
   await loadDemo(page);
-  await openTab(page, "Config");
+  await openTab(page, "Meer");
 
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: /Exporteer alles/ }).click();
@@ -62,7 +62,7 @@ test("een event aanmaken via een tik in de weekkalender blijft staan", async ({
   page,
 }) => {
   await page.goto("/");
-  await openTab(page, "Week");
+  await openTab(page, "Planning");
 
   // Middelste uurcel van de eerste dagkolom: een tik (geen sleep) opent de sheet.
   await page.locator(".cal-hour-cell").nth(4).click();
@@ -71,7 +71,7 @@ test("een event aanmaken via een tik in de weekkalender blijft staan", async ({
   await expect(page.getByText("E2E-afspraak")).toBeVisible();
 
   await page.reload();
-  await openTab(page, "Week");
+  await openTab(page, "Planning");
   await expect(page.getByText("E2E-afspraak")).toBeVisible();
 });
 
@@ -80,7 +80,7 @@ test("een kapotte backup wordt afgekeurd en verandert niets", async ({
 }) => {
   await page.goto("/");
   await page.getByText("Duah", { exact: true }).click();
-  await openTab(page, "Config");
+  await openTab(page, "Meer");
 
   await page.locator('input[type="file"]').setInputFiles({
     name: "kapot.json",
@@ -92,7 +92,7 @@ test("een kapotte backup wordt afgekeurd en verandert niets", async ({
   await expect(
     page.getByRole("button", { name: "Volledig vervangen" }),
   ).toHaveCount(0);
-  await openTab(page, "Config");
+  await openTab(page, "Vandaag");
   await expect(page.getByText("1/13").first()).toBeVisible();
 });
 
@@ -101,7 +101,7 @@ test("'volledig vervangen' downloadt eerst een veiligheidsbackup", async ({
 }) => {
   await page.goto("/");
   await page.getByText("Duah", { exact: true }).click();
-  await openTab(page, "Config");
+  await openTab(page, "Meer");
   await page.locator('input[type="file"]').setInputFiles({
     name: "leeg.json",
     mimeType: "application/json",

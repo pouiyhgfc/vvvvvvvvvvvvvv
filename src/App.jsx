@@ -33,10 +33,12 @@ import EntryPage from "./features/logbook/EntryPage.jsx";
 import HifdView from "./features/hifd/HifdView.jsx";
 import ToastHost from "./ui/Toast.jsx";
 import ConfirmDialog from "./ui/ConfirmDialog.jsx";
-import Emoji from "./ui/Emoji.jsx";
 import Banner from "./ui/Banner.jsx";
 import Button from "./ui/Button.jsx";
 import BackupReminder from "./features/settings/BackupReminder.jsx";
+import MoreView from "./features/settings/MoreView.jsx";
+import TabBar from "./ui/TabBar.jsx";
+import BackButton from "./ui/BackButton.jsx";
 
 // Leest de PWA-shortcut-/share-target-parameters uit de URL (?action=…,
 // /share met title/text/url). Puur lezen — geen state, geen side effects.
@@ -51,6 +53,15 @@ function parseLaunchAction() {
     params.has("url");
   return { action, isShareTarget, params };
 }
+
+// Vaste plekken in de tabbalk. "stats" is een subpagina van Meer.
+const TABS = [
+  { id: "tracker", label: "Vandaag", icon: "today" },
+  { id: "week", label: "Planning", icon: "calendar" },
+  { id: "logbook", label: "Notities", icon: "notes" },
+  { id: "hifd", label: "Hifd", icon: "book" },
+  { id: "meer", label: "Meer", icon: "more" },
+];
 
 export default function App({ startupErrors = [] }) {
   // --- Dexie reactive queries ---
@@ -93,7 +104,6 @@ export default function App({ startupErrors = [] }) {
   const [tab, setTab] = useState("ochtend");
   const [view, setView] = useState("tracker");
   const [pop, setPop] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
   const [statsPeriod, setStatsPeriod] = useState("week");
   const [pendingImport, setPendingImport] = useState(null);
   // App-shortcuts ("Nieuwe notitie"/"Vandaag") en de share-target ("/share")
@@ -157,7 +167,7 @@ export default function App({ startupErrors = [] }) {
     if (meta)
       meta.setAttribute(
         "content",
-        settings.theme === "dark" ? "#0e1210" : "#0a3d2b",
+        settings.theme === "dark" ? "#0f1411" : "#eef1ec",
       );
   }, [settings.theme]);
 
@@ -460,115 +470,11 @@ export default function App({ startupErrors = [] }) {
         margin: "0 auto",
         background: "var(--bg)",
         minHeight: "100vh",
-        paddingBottom: 40,
+        paddingTop: "env(safe-area-inset-top)",
+        // Ruimte voor de zwevende tabbalk.
+        paddingBottom: 112,
       }}
     >
-      {/* HEADER */}
-      <div
-        style={{
-          background: "linear-gradient(140deg,#0a3d2b 0%,#0e7a52 100%)",
-          padding: "22px 16px 0",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            alignItems: "center",
-            marginBottom: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 11,
-              background: "rgba(255,255,255,.16)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Emoji char="🌿" size={20} />
-          </div>
-          <h1
-            style={{
-              fontFamily: "var(--ff-display)",
-              fontSize: 20,
-              fontWeight: 600,
-              letterSpacing: "-.01em",
-              color: "white",
-              lineHeight: 1.1,
-            }}
-          >
-            Routine
-          </h1>
-        </div>
-        <div style={{ display: "flex", gap: 0 }}>
-          {[
-            ["tracker", "✅", "Dag"],
-            ["week", "📅", "Week"],
-            ["stats", "📊", "Stats"],
-            ["logbook", "📓", "Notities"],
-            ["hifd", "🌙", "Hifd"],
-            ["settings", "⚙️", "Config"],
-          ].map(([v, ic, label]) => {
-            const active =
-              (view === v && v !== "settings") ||
-              (v === "settings" && showSettings);
-            return (
-              <button
-                key={v}
-                onClick={() => {
-                  v === "settings"
-                    ? setShowSettings(!showSettings)
-                    : setView(v);
-                  if (v !== "settings") setShowSettings(false);
-                }}
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "8px 2px 12px",
-                  background: "transparent",
-                }}
-              >
-                <div
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: active ? "#ffffff" : "rgba(255,255,255,.14)",
-                    border: active
-                      ? "1px solid #ffffff"
-                      : "1px solid rgba(255,255,255,.30)",
-                    transition: "background .2s, border-color .2s",
-                  }}
-                >
-                  <Emoji char={ic} size={17} />
-                </div>
-                <span
-                  style={{
-                    fontFamily: "var(--ff-body)",
-                    fontSize: 9,
-                    fontWeight: 600,
-                    color: "white",
-                  }}
-                >
-                  {label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {startupErrors.length > 0 && (
         <Banner
           tone="danger"
@@ -584,44 +490,50 @@ export default function App({ startupErrors = [] }) {
           iets wijzigt.
         </Banner>
       )}
-      {view === "tracker" && !showSettings && (
-        <BackupReminder onExport={exportData} />
+      {view === "tracker" && <BackupReminder onExport={exportData} />}
+
+      {/* MEER: statistieken-ingang + instellingen */}
+      {view === "meer" && (
+        <MoreView onOpenStats={() => setView("stats")}>
+          <SettingsPanel
+            settings={settings}
+            setSettings={setSettings}
+            notifPerm={notifPerm}
+            areas={areas}
+            setAreas={setAreas}
+            routines={routines}
+            setRoutines={setRoutines}
+            calTemplates={calTemplates}
+            setCalTemplates={setCalTemplates}
+            weekScheduleTemplates={weekScheduleTemplates}
+            setWeekScheduleTemplates={setWeekScheduleTemplates}
+            calEvents={calEvents}
+            setCalEvents={setCalEvents}
+            date={date}
+            total={total}
+            areaNames={areaNames}
+            areaStyles={areaStyles}
+            toggleNotifications={toggleNotifications}
+            clearAllDays={clearAllDays}
+            clearEverything={clearEverything}
+            exportData={exportData}
+            exportRoutines={exportRoutines}
+            exportWeekplanning={exportWeekplanning}
+            exportNotities={exportNotities}
+            importData={importData}
+            dataInfo={dataInfo}
+          />
+        </MoreView>
       )}
 
-      {/* SETTINGS PANEL */}
-      {showSettings && (
-        <SettingsPanel
-          settings={settings}
-          setSettings={setSettings}
-          notifPerm={notifPerm}
-          areas={areas}
-          setAreas={setAreas}
-          routines={routines}
-          setRoutines={setRoutines}
-          calTemplates={calTemplates}
-          setCalTemplates={setCalTemplates}
-          weekScheduleTemplates={weekScheduleTemplates}
-          setWeekScheduleTemplates={setWeekScheduleTemplates}
-          calEvents={calEvents}
-          setCalEvents={setCalEvents}
-          date={date}
-          total={total}
-          areaNames={areaNames}
-          areaStyles={areaStyles}
-          toggleNotifications={toggleNotifications}
-          clearAllDays={clearAllDays}
-          clearEverything={clearEverything}
-          exportData={exportData}
-          exportRoutines={exportRoutines}
-          exportWeekplanning={exportWeekplanning}
-          exportNotities={exportNotities}
-          importData={importData}
-          dataInfo={dataInfo}
-        />
+      {view === "stats" && (
+        <div style={{ padding: "var(--sp-2) var(--sp-2) 0" }}>
+          <BackButton onClick={() => setView("meer")}>Meer</BackButton>
+        </div>
       )}
 
       {/* DATUM-KAART */}
-      {!showSettings && view !== "logbook" && (
+      {view !== "logbook" && view !== "meer" && (
         <div style={{ padding: "12px 14px 0", background: "var(--bg)" }}>
           <div
             style={{
@@ -670,7 +582,7 @@ export default function App({ startupErrors = [] }) {
       )}
 
       {/* TRACKER */}
-      {view === "tracker" && !showSettings && (
+      {view === "tracker" && (
         <TrackerView
           day={day}
           saveDay={saveDay}
@@ -690,7 +602,7 @@ export default function App({ startupErrors = [] }) {
       )}
 
       {/* WEEK VIEW */}
-      {view === "week" && !showSettings && (
+      {view === "week" && (
         <WeekView
           date={date}
           calTemplates={calTemplates}
@@ -701,7 +613,7 @@ export default function App({ startupErrors = [] }) {
       )}
 
       {/* STATS VIEW */}
-      {view === "stats" && !showSettings && (
+      {view === "stats" && (
         <StatsView
           routines={routines}
           allDays={allDays}
@@ -715,10 +627,10 @@ export default function App({ startupErrors = [] }) {
       )}
 
       {/* LOGBOOK VIEW */}
-      {view === "logbook" && !showSettings && <LogbookView />}
+      {view === "logbook" && <LogbookView />}
 
       {/* HIFD VIEW */}
-      {view === "hifd" && !showSettings && <HifdView />}
+      {view === "hifd" && <HifdView />}
 
       {launchDraft && (
         <EntryPage
@@ -751,6 +663,11 @@ export default function App({ startupErrors = [] }) {
         />
       )}
 
+      <TabBar
+        items={TABS}
+        active={view === "stats" ? "meer" : view}
+        onSelect={setView}
+      />
       <ToastHost />
     </div>
   );

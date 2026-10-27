@@ -17,8 +17,8 @@ export default defineConfig({
         description: "Persoonlijke routine tracker en weekplanning",
         start_url: "/",
         display: "standalone",
-        background_color: "#f8f7f4",
-        theme_color: "#064e3b",
+        background_color: "#eef1ec",
+        theme_color: "#eef1ec",
         orientation: "portrait",
         icons: [
           {

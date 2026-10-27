@@ -220,14 +220,7 @@ export default function SettingsPanel({
   };
 
   return (
-    <div
-      style={{
-        background: "var(--card)",
-        borderBottom: "1px solid var(--border-mid)",
-        padding: 16,
-        animation: "fadeUp .2s ease",
-      }}
-    >
+    <div style={{ padding: 16 }}>
       <h2
         style={{
           fontFamily: "var(--ff-head)",
