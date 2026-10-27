@@ -584,8 +584,6 @@ export default function App({ startupErrors = [] }) {
       {/* TRACKER */}
       {view === "tracker" && (
         <TrackerView
-          day={day}
-          saveDay={saveDay}
           dateKey={key}
           routines={routines}
           tab={tab}

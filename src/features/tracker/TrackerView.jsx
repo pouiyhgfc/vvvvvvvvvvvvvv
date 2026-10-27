@@ -3,7 +3,6 @@ import { useLiveQuery } from "dexie-react-hooks";
 import {
   PERIOD_LABELS,
   PERIOD_COLORS,
-  MOODS,
   FALLBACK_AREA_STYLE,
   DAILY_LOG_TEMPLATE_DOC,
 } from "../../lib/constants.js";
@@ -15,8 +14,6 @@ import Emoji from "../../ui/Emoji.jsx";
 const EntryPage = lazy(() => import("../logbook/EntryPage.jsx"));
 
 export default function TrackerView({
-  day,
-  saveDay,
   routines,
   tab,
   setTab,
@@ -280,93 +277,6 @@ export default function TrackerView({
             </div>
           );
         })}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          padding: 12,
-          background: "var(--card)",
-          margin: "0 12px 8px",
-          borderRadius: 12,
-          boxShadow: "0 1px 3px var(--shadow)",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ flex: 1, minWidth: 130 }}>
-          <label
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--text)",
-              display: "block",
-              marginBottom: 5,
-            }}
-          >
-            Energie: {day.energy}/10
-          </label>
-          <input
-            type="range"
-            min={1}
-            max={10}
-            value={day.energy}
-            onChange={(e) => {
-              const v = +e.target.value;
-              saveDay({ ...day, energy: v });
-            }}
-          />
-        </div>
-        <div style={{ flex: 1, minWidth: 190 }}>
-          <label
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--text)",
-              display: "block",
-              marginBottom: 5,
-            }}
-          >
-            Hoe voel je je?
-          </label>
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {MOODS.map((m) => (
-              <button
-                key={m.value}
-                onClick={() => saveDay({ ...day, mood: m.value })}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 1,
-                  padding: "4px 7px",
-                  borderRadius: 7,
-                  border:
-                    day.mood === m.value
-                      ? "2px solid var(--accent)"
-                      : "1.5px solid var(--border)",
-                  background:
-                    day.mood === m.value ? "var(--sel-bg)" : "var(--card)",
-                  transition: "all .15s",
-                }}
-              >
-                <Emoji char={m.emoji} size={18} />
-                <span
-                  style={{
-                    fontSize: 8,
-                    fontWeight: 600,
-                    color:
-                      day.mood === m.value
-                        ? "var(--accent)"
-                        : "var(--text-faint)",
-                  }}
-                >
-                  {m.value}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       <div style={{ padding: "0 12px 16px" }}>
