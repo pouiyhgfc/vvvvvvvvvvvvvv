@@ -3,8 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 // Twee projecten tegen de Vite dev-server (hergebruikt een draaiende server):
 // - "chromium": functionele e2e-tests op desktop (`npm run test:e2e`).
 // - "mobiel": screenshot-nulmeting op telefoonformaat (`npm run test:visual`).
-//   Alleen op Linux draaien (CI of cloud-sessie): op Windows/macOS renderen
-//   fonts een paar pixels anders en falen de vergelijkingen onterecht.
+//   Alleen in de cloud-sessie draaien, waar de baselines gemaakt zijn: op
+//   andere machines (Windows, macOS, GitHub Actions) renderen fonts een paar
+//   pixels anders en falen de vergelijkingen onterecht.
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,

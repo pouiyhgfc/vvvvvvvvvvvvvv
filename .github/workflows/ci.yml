@@ -1,5 +1,7 @@
 # Controleert elke push naar main (en pull requests): lint, dode code,
-# unit-tests, build, e2e en screenshots. Vercel deployt los hiervan; faalt CI,
+# unit-tests, build en de functionele e2e-tests. De screenshot-vergelijking
+# (npm run test:visual) draait hier bewust niet: GitHubs machine tekent o.a.
+# Arabische tekst met een ander systeemfont, dus de pixels wijken af. Vercel deployt los hiervan; faalt CI,
 # draai de deploy dan terug via Vercel → Deployments → Instant Rollback.
 name: CI
 
@@ -24,8 +26,8 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - name: E2E (desktop) en screenshots (mobiel)
-        run: npx playwright test
+      - name: E2E (desktop)
+        run: npm run test:e2e
       - name: Duplicatie-rapport (nog niet blokkerend)
         if: always()
         run: npx --yes jscpd@5.4.2 src --min-tokens 50 --reporters console --silent
