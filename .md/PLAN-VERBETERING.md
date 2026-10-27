@@ -86,19 +86,19 @@ Fase 2 mag parallel aan fase 3 lopen (de ene is ontwerp, de andere code).
 **Waarom eerst:** de regels in `.md/CLAUDE.md` werden waarschijnlijk vaak niet geladen; dat
 verklaart een deel van de slop (inline styles, harde kleuren, dubbele helpers).
 
-- [ ] **0.1** `CLAUDE.md` naar de root, kort (< 120 regels): project, werkwijze, codekwaliteit,
+- [x] **0.1** `CLAUDE.md` naar de root, kort (< 120 regels): project, werkwijze, codekwaliteit,
       data-regels, documentatie-regels, verwijzingen naar `.md/`-docs met volledige paden.
-- [ ] **0.2** Domeinregels naar `.claude/rules/` met `paths`-frontmatter, zodat ze alleen laden
+- [x] **0.2** Domeinregels naar `.claude/rules/` met `paths`-frontmatter, zodat ze alleen laden
       als ze ertoe doen: `ui.md` (src/**/\*.jsx, CSS), `editor.md` (src/features/logbook/**),
       `data.md` (db.js, backup.js, main.jsx, hifd), `pwa.md` (sw.js, vite.config.js, notify.js).
-- [ ] **0.3** Hooks: Prettier na bewerken (blijft), lint bij Stop (blijft), plus `npm run build`
+- [x] **0.3** Hooks: Prettier na bewerken (blijft), lint bij Stop (blijft), plus `npm run build`
       bij Stop **alleen als er bronbestanden gewijzigd zijn**. `CODEKWALITEIT.md` bijwerken (jq is
       niet meer nodig).
-- [ ] **0.4** Restanten uit het esbuild-tijdperk weg uit de root: `build.cmd`, `manifest.json`,
+- [x] **0.4** Restanten uit het esbuild-tijdperk weg uit de root: `build.cmd`, `manifest.json`,
       `icon.svg`, `icon-192.png`, `icon-512.png` (identieke kopieën staan in `public/`),
       `generate-icons.html`. Eerst verifiëren dat niets ernaar verwijst.
-- [ ] **0.5** `README.md` vullen: wat de app is, hoe je hem draait, waar de docs staan.
-- [ ] **Fase 0 afgerond** (`/context` toont `CLAUDE.md` onder Memory files; build/lint groen)
+- [x] **0.5** `README.md` vullen: wat de app is, hoe je hem draait, waar de docs staan.
+- [x] **Fase 0 afgerond** (`/context` toont `CLAUDE.md` onder Memory files; build/lint groen)
 
 **Controle:** start een Claude Code-sessie in de repo en draai `/context` → `CLAUDE.md` staat
 onder "Memory files". Bewerk een `.jsx`-bestand → `ui.md` wordt geladen.
