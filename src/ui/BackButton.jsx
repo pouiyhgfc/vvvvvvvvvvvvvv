@@ -16,7 +16,7 @@ export default function BackButton({ onClick, children }) {
         fontSize: "var(--fs-md)",
       }}
     >
-      <Icon name="chevronLeft" size={20} />
+      <Icon name="caret-left" size={20} />
       {children}
     </button>
   );

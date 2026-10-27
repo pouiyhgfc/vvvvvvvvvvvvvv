@@ -56,11 +56,11 @@ function parseLaunchAction() {
 
 // Vaste plekken in de tabbalk. "stats" is een subpagina van Meer.
 const TABS = [
-  { id: "tracker", label: "Vandaag", icon: "today" },
-  { id: "week", label: "Planning", icon: "calendar" },
-  { id: "logbook", label: "Notities", icon: "notes" },
-  { id: "hifd", label: "Hifd", icon: "book" },
-  { id: "meer", label: "Meer", icon: "more" },
+  { id: "tracker", label: "Vandaag", icon: "check-circle" },
+  { id: "week", label: "Planning", icon: "calendar-blank" },
+  { id: "logbook", label: "Notities", icon: "notebook" },
+  { id: "hifd", label: "Hifd", icon: "book-open-text" },
+  { id: "meer", label: "Meer", icon: "dots-three" },
 ];
 
 export default function App({ startupErrors = [] }) {

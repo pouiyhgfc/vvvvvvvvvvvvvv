@@ -62,10 +62,12 @@ Niets kleiner dan 12 px. Regelhoogte 1,45 voor tekst, 1,2 voor koppen; Arabisch 
 
 ### Iconen
 
-Eigen lijniconen als inline SVG in `ui/Icon.jsx` (24 px, lijndikte 1,8, `currentColor`),
-geen dependency. Emoji verdwijnen uit de UI: routines en notitieboeken tonen het
-kleurbolletje van hun gebied/notitieboek. Het `icon`-veld in de data blijft bewaard (geen
-migratie). Emoji ín notities (BlockNote) blijven gewoon werken.
+Eén set lijniconen: Phosphor (regular, MIT) plus eigen tekeningen in dezelfde stijl
+(tasbih, gebedskleed, yaz). Paden staan in `ui/glyphs.js` (gegenereerd door
+`npm run glyphs`), getekend door `ui/Icon.jsx` in `currentColor`. Routines, sjablonen en
+notitieboeken houden hun emoji in het `icon`-veld (geen migratie); `<Emoji>` toont dat via
+`lib/emojiGlyph.js` als lijnicoon, een vlag als lettertegel met de taal (ع, 中, Fr). Een
+onbekend emoji valt terug op Twemoji. Emoji ín notities (BlockNote) blijven gewoon werken.
 
 ### Navigatie en schermen
 
@@ -125,7 +127,7 @@ het `EVENT_COLORS`-palet en de maand-heatmap-schaal. Die volgen het accent niet.
 | `IconField`                                | Emoji-knop + uitklap-`EmojiPicker`. Plaats in een `flexWrap:"wrap"`-rij. Props: `value`, `onChange`.                                         |
 | `ColorPicker`                              | Swatch-rij + custom kleur (🎨). Props: `value`, `onChange`, `colors?`.                                                                       |
 | `Section`                                  | Inklapbare instellingen-sectie. Props: `title`, `icon?`, `right?`, `tone?` (`default`/`accent`/`danger`), `defaultOpen?`.                    |
-| `Emoji`                                    | Rendert één icoon als Twemoji-SVG. Props: `char`, `size?`, `style?`.                                                                         |
+| `Emoji`                                    | Toont een data-emoji als lijnicoon (onbekend: Twemoji). Props: `char`, `size?`, `style?`.                                                    |
 | `Toast` (`ToastHost` + `showToast`)        | Korte in-app melding i.p.v. `alert`. `ToastHost` staat één keer in `App`.                                                                    |
 
 ### Voorbeeld — een create/edit-sheet

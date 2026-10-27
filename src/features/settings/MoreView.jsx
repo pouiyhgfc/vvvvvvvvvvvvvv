@@ -45,13 +45,13 @@ export default function MoreView({ onOpenStats, children }) {
               justifyContent: "center",
             }}
           >
-            <Icon name="chart" size={22} />
+            <Icon name="chart-bar" size={22} />
           </span>
           <span style={{ flex: 1, fontSize: "var(--fs-md)", fontWeight: 600 }}>
             Statistieken
           </span>
           <Icon
-            name="chevronRight"
+            name="caret-right"
             size={18}
             style={{ color: "var(--text-muted)" }}
           />

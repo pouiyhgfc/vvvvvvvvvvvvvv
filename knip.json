@@ -1,4 +1,10 @@
 {
-  "entry": ["src/sw.js", ".claude/hooks/*.mjs"],
-  "ignoreDependencies": ["@twemoji/svg"]
+  "entry": [
+    "src/sw.js",
+    ".claude/hooks/*.mjs"
+  ],
+  "ignoreDependencies": [
+    "@twemoji/svg",
+    "@phosphor-icons/core"
+  ]
 }
