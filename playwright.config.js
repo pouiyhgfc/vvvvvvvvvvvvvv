@@ -24,7 +24,8 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      // Zelfde tijdzone als de demodata (NOW = 09:30 Taipei), ook in CI (UTC).
+      use: { ...devices["Desktop Chrome"], timezoneId: "Asia/Taipei" },
       testIgnore: /visual\.spec\.js/,
     },
     {

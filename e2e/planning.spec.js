@@ -69,6 +69,7 @@ test("ingedrukt houden en slepen verschuift een blok per kwartier", async ({
   page,
 }) => {
   const lunch = block(page, "Lunch");
+  await lunch.scrollIntoViewIfNeeded();
   const box = await lunch.boundingBox();
   const x = box.x + box.width / 2;
   const y = box.y + 12;

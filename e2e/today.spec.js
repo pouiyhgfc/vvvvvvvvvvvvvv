@@ -7,8 +7,8 @@ import { expect, test } from "@playwright/test";
 const tab = (page, name) => page.getByRole("tab", { name: new RegExp(name) });
 
 test("het dagdeel springt om 12 uur vanzelf naar middag", async ({ page }) => {
-  // Lokale tijd van de browser (zelfde tijdzone als deze testmachine).
-  await page.clock.install({ time: new Date(2026, 9, 27, 11, 58, 30) });
+  // 11:58 in de browser-tijdzone (Asia/Taipei, zie playwright.config.js).
+  await page.clock.install({ time: "2026-10-27T11:58:30+08:00" });
   await page.goto("/");
   await expect(tab(page, "Ochtend")).toHaveAttribute("aria-selected", "true");
 
