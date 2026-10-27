@@ -202,25 +202,27 @@ Per stap: alle drie de `@blocknote/*`-pakketten op dezelfde versie, changelog na
 `npm run build` + lint + editor-e2e + doc-roundtrip-test (bestaande documenten laden en
 opslaan zonder verlies) groen.
 
-- [ ] **3.0** Voorbereiding: doc-roundtrip-test met fixtures (tabellen, geneste lijsten,
+- [x] **3.0** Voorbereiding: doc-roundtrip-test met fixtures (tabellen, geneste lijsten,
       checklists, kleuren, emoji, links); `_tiptapEditor`-gebruik opsommen (undo/redo-staat,
       `tableCommands.js`).
-- [ ] **3.1 → 0.52.x:** Yjs is losgekoppeld (wij gebruiken geen collaboratie → verwacht geen
+- [x] **3.1 → 0.52.x:** Yjs is losgekoppeld (wij gebruiken geen collaboratie → verwacht geen
       werk; verifiëren).
-- [ ] **3.2 → 0.54.x:** 0.53 breekt alleen de shadcn-variant (wij gebruiken Mantine). Nieuwe
+- [x] **3.2 → 0.54.x:** 0.53 breekt alleen de shadcn-variant (wij gebruiken Mantine). Nieuwe
       blokken (math, diagram) niet aanzetten.
-- [ ] **3.3 → 0.55.x (de belangrijke):** mobiele formatting toolbar boven het toetsenbord is
+- [x] **3.3 → 0.55.x (de belangrijke):** geüpgraded; de drie vragen hieronder wachten op de
+      telefoontest van de eigenaar. mobiele formatting toolbar boven het toetsenbord is
       nu officieel; Enter-fixes voor Android/iOS. Testen:
   - werkt BlockNote's eigen mobiele toolbar beter dan onze uitgeschakelde toolbar?
   - werkt een getypte "/" nu wel op Android?
   - welk deel van `BlockHandle`/`BlockMenuSheet` blijft nodig?
-- [ ] **3.4 → 0.56.x:** side-menu-hover herschreven (wij zetten het zijmenu uit → weinig
+- [x] **3.4 → 0.56.x:** side-menu-hover herschreven (wij zetten het zijmenu uit → weinig
       impact), Mod+A, backspace in geneste blokken, markdown-autolinks.
-- [ ] **3.5** `@blocknote/core/fonts/inter.css` weg (we overschrijven het font toch) → precache
+- [x] **3.5** `@blocknote/core/fonts/inter.css` weg (we overschrijven het font toch) → precache
       kleiner; meten vóór/na.
-- [ ] **3.6** Toetsenbord: `interactive-widget=resizes-content` in de viewport-meta testen,
+- [x] **3.6** Toetsenbord: `interactive-widget=resizes-content` in de viewport-meta testen,
       zodat de editor niet onder het toetsenbord verdwijnt.
-- [ ] **Fase 3 afgerond** (telefoontest afgevinkt)
+- [ ] **Fase 3 afgerond** (telefoontest afgevinkt) — code staat op 0.56.0, alle checks groen;
+      wacht op de telefoontest hieronder.
 
 **Telefoontest:** typen (ook Arabisch en Tarifit), "/" typen, Enter in lijst en checklist, een
 selectie overtypen, kopiëren/plakken, tabelacties, blokhandvat tikken/slepen, toolbar blijft
