@@ -251,13 +251,13 @@ bewust anders).
 
 ### 4a — Fundament
 
-- [ ] Tokens uit `index.html` naar `src/styles/tokens.css` + `base.css` (zelfde waarden →
+- [x] Tokens uit `index.html` naar `src/styles/base.css` (zelfde waarden →
       screenshots identiek), daarna de nieuwe tokens uit `ONTWERP.md` v2 toevoegen.
 - [ ] **Stijlaanpak (besluit):** inline styles → **CSS Modules** per component (Vite ondersteunt
       dit zonder extra dependency, de stijlen blijven bij het component en lekken niet).
       Alleen echte datakleuren (event-/routinekleur, heatmap) blijven inline of als
       CSS-variabele.
-- [ ] Fonts volgens `ONTWERP.md` v2; alleen de nodige gewichten; `latin-ext` blijft (Tarifit).
+- [x] Fonts volgens `ONTWERP.md` v2; alleen de nodige gewichten; `latin-ext` blijft (Tarifit).
 - [ ] RTL: `dir="auto"` op tekstvelden en titels; logische CSS-eigenschappen
       (`margin-inline-start` i.p.v. `margin-left`) waar het ertoe doet.
 
@@ -267,7 +267,14 @@ bewust anders).
       `src/ui/`.
 - [ ] `src/ui/`-primitives eerst naar de nieuwe stijl (Button, Sheet, Field, Section, Toast,
       ConfirmDialog, Ring, NavBtn) — dan erven alle schermen het automatisch.
-- [ ] Eventueel nieuwe primitives uit de componentspecs (Card, ListRow, EmptyState, Icon).
+- [ ] Eventueel nieuwe primitives uit de componentspecs (Card, ListRow, EmptyState).
+- [x] **Iconen (besluit eigenaar 27-10-2026):** emoji vervangen door één set lijniconen
+      (Phosphor regular, MIT, plus eigen tasbih, gebedskleed en yaz). Data bewaart het emoji;
+      `<Emoji>` toont het als icoon, een vlag als lettertegel (ع, 中). Icoonkiezer met negen
+      groepen. Emoji-voorvoegsels uit knoppen, labels en meldingen gehaald.
+- [x] **App-icoon:** "Ring" (voortgangsring met vinkje), randloze PNG's voor Android.
+- [ ] Twemoji opruimen: `build-emoji`, `public/emoji/`, `emoji-custom/` en `@twemoji/svg`
+      zijn alleen nog terugval voor onbekende emoji; nagaan of dat ooit voorkomt en dan weg.
 
 ### 4c — Schermen (klein → groot)
 

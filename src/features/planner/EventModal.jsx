@@ -252,7 +252,7 @@ export default function EventModal({
               marginTop: -4,
             }}
           >
-            ⚠️ {timeError}
+            {timeError}
           </div>
         )}
         <div
@@ -288,7 +288,7 @@ export default function EventModal({
           ))}
         </div>
 
-        <Field label="🔁 Herhalen">
+        <Field label="Herhalen">
           <div style={{ display: "flex", gap: 6 }}>
             {[
               ["none", "Niet"],

@@ -109,7 +109,7 @@ export function importData(file, onFullBackup) {
       const data = JSON.parse(e.target.result);
       const problems = validateBackup(data);
       if (problems.length) {
-        showToast(`❌ Backup afgekeurd, er is niets gewijzigd. ${problems[0]}`);
+        showToast(`Backup afgekeurd, er is niets gewijzigd. ${problems[0]}`);
         return;
       }
       const type = data.type || "full";
@@ -120,12 +120,12 @@ export function importData(file, onFullBackup) {
         !data.weekScheduleTemplates &&
         !data.logEntries
       ) {
-        showToast("❌ Ongeldig backup bestand.");
+        showToast("Ongeldig backup bestand.");
         return;
       }
       if (type === "notities") {
         if (!Array.isArray(data.logEntries)) {
-          showToast("❌ Geen notities gevonden in dit bestand.");
+          showToast("Geen notities gevonden in dit bestand.");
           return;
         }
         await db.transaction("rw", db.blobs, db.logEntries, async () => {
@@ -144,7 +144,7 @@ export function importData(file, onFullBackup) {
       }
       if (type === "routines") {
         if (!data.routines) {
-          showToast("❌ Geen routines gevonden in dit bestand.");
+          showToast("Geen routines gevonden in dit bestand.");
           return;
         }
         await db.blobs.put({ key: "routines", data: data.routines });
@@ -172,12 +172,12 @@ export function importData(file, onFullBackup) {
         return;
       }
       if (!data.routines || !data.days) {
-        showToast("❌ Ongeldig backup bestand.");
+        showToast("Ongeldig backup bestand.");
         return;
       }
       onFullBackup(data);
     } catch (err) {
-      showToast("❌ Fout bij importeren: " + err.message);
+      showToast("Fout bij importeren: " + err.message);
     }
   };
   reader.readAsText(file);

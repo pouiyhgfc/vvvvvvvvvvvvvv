@@ -304,7 +304,7 @@ export default function TrackerView({
               marginBottom: 5,
             }}
           >
-            ⚡ Energie: {day.energy}/10
+            Energie: {day.energy}/10
           </label>
           <input
             type="range"

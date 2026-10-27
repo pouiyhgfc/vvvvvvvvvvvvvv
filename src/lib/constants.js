@@ -79,9 +79,9 @@ export const PERIOD_COLORS = {
   avond: "#7c3aed",
 };
 export const PERIOD_LABELS = {
-  ochtend: "🌅 Ochtend",
-  middag: "🌤️ Middag",
-  avond: "🌙 Avond",
+  ochtend: "Ochtend",
+  middag: "Middag",
+  avond: "Avond",
 };
 export const MOODS = [
   { value: "Geweldig", emoji: "🔥" },

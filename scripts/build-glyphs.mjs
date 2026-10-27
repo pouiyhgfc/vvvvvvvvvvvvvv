@@ -21,6 +21,7 @@ const UI_GLYPHS = [
   "chart-bar",
   "caret-left",
   "caret-right",
+  "arrows-down-up",
 ];
 
 const circle = (cx, cy, r) =>

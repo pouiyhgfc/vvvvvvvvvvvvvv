@@ -1,6 +1,7 @@
 import { EVENT_COLORS } from "../lib/constants.js";
+import Icon from "./Icon.jsx";
 
-// Swatch-rij + custom kleur (conic-gradient 🎨). Eén bron voor alle kleurkiezers.
+// Swatch-rij + custom kleur (conic-gradient met palet-icoon). Eén bron voor alle kleurkiezers.
 export default function ColorPicker({
   value,
   onChange,
@@ -54,13 +55,17 @@ export default function ColorPicker({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: Math.round(size * 0.46),
         }}
       >
         {isPreset && (
-          <span style={{ filter: "drop-shadow(0 0 1px rgba(0,0,0,.4))" }}>
-            🎨
-          </span>
+          <Icon
+            name="palette"
+            size={Math.round(size * 0.55)}
+            style={{
+              color: "#fff",
+              filter: "drop-shadow(0 0 1px rgba(0,0,0,.5))",
+            }}
+          />
         )}
         <input
           type="color"

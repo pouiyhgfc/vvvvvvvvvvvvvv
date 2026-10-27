@@ -236,7 +236,7 @@ export default function EntryPage({
         deletedAt: new Date().toISOString(),
         pinnedAt: null,
       });
-      showToast("🗑️ Naar prullenbak");
+      showToast("Naar prullenbak");
     }
     onClose();
   };
@@ -248,7 +248,7 @@ export default function EntryPage({
       archivedAt: new Date().toISOString(),
       pinnedAt: null,
     });
-    showToast("🗄️ Gearchiveerd");
+    showToast("Gearchiveerd");
     onClose();
   };
 
@@ -258,7 +258,7 @@ export default function EntryPage({
     const next = pinned ? null : new Date().toISOString();
     await db.logEntries.update(idRef.current, { pinnedAt: next });
     setPinned(!!next);
-    showToast(next ? "📌 Vastgezet" : "📌 Losgemaakt");
+    showToast(next ? "Notitie vastgezet" : "Notitie losgemaakt");
   };
 
   const notebooksBlob = useLiveQuery(() => db.blobs.get("notebooks"));

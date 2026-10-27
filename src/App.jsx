@@ -302,7 +302,7 @@ export default function App({ startupErrors = [] }) {
       setSettings((s) => ({ ...s, notifEnabled: true }));
       // Android-PWA's tonen meldingen alleen via de service worker;
       // de `new Notification()`-constructor faalt daar stil.
-      const title = "🔔 Meldingen aan";
+      const title = "Meldingen aan";
       const body = "Je krijgt nu herinneringen voor je weekplanning.";
       if (navigator.serviceWorker) {
         navigator.serviceWorker.ready
@@ -354,7 +354,7 @@ export default function App({ startupErrors = [] }) {
       if (!merge) await exportData();
       await performFullImport(data, merge);
     } catch (err) {
-      showToast("❌ Fout bij importeren: " + err.message);
+      showToast("Fout bij importeren: " + err.message);
     } finally {
       setPendingImport(null);
     }

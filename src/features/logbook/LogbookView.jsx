@@ -13,6 +13,7 @@ import { showToast } from "../../lib/toast.js";
 import { isActive, isArchived, isTrashed } from "../../lib/notes.js";
 import { useSortable, arrMove } from "../../hooks/useSortable.js";
 import Emoji from "../../ui/Emoji.jsx";
+import Icon from "../../ui/Icon.jsx";
 import Button from "../../ui/Button.jsx";
 import DragHandle from "../../ui/DragHandle.jsx";
 import Sheet from "../../ui/Sheet.jsx";
@@ -376,7 +377,7 @@ export default function LogbookView() {
       archivedAt: null,
       deletedAt: new Date().toISOString(),
     });
-    showToast("🗑️ Naar prullenbak");
+    showToast("Naar prullenbak");
   };
   const restoreFromTrash = async (id) => {
     await db.logEntries.update(id, { deletedAt: null });
@@ -405,7 +406,7 @@ export default function LogbookView() {
     await db.logEntries.bulkPut(
       selected.map((e) => ({ ...e, pinnedAt: allPinned ? null : now })),
     );
-    showToast(allPinned ? "📌 Losgemaakt" : "📌 Vastgezet");
+    showToast(allPinned ? "Notities losgemaakt" : "Notities vastgezet");
     exitSelectMode();
   };
   const bulkArchive = async () => {
@@ -417,7 +418,7 @@ export default function LogbookView() {
         pinnedAt: null,
       })),
     );
-    showToast(`🗄️ ${selected.length} gearchiveerd`);
+    showToast(`${selected.length} gearchiveerd`);
     exitSelectMode();
   };
   const bulkTrash = async () => {
@@ -429,7 +430,7 @@ export default function LogbookView() {
         pinnedAt: null,
       })),
     );
-    showToast(`🗑️ ${selected.length} naar prullenbak`);
+    showToast(`${selected.length} naar prullenbak`);
     setConfirmBulkTrash(false);
     exitSelectMode();
   };
@@ -746,9 +747,11 @@ export default function LogbookView() {
               border: "1px solid var(--border)",
               background: "var(--card)",
               color: "var(--text-faint)",
+              display: "flex",
+              alignItems: "center",
             }}
           >
-            ↕
+            <Icon name="arrows-down-up" size={16} />
           </button>
         )}
         <button
@@ -863,11 +866,13 @@ export default function LogbookView() {
                 border: "1px solid var(--border)",
                 background: "var(--card)",
                 color: "var(--text-faint)",
-                fontSize: 14,
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              ☑
+              <Icon name="list-checks" size={16} />
             </button>
           )}
           <Button
@@ -918,8 +923,8 @@ export default function LogbookView() {
         }}
       >
         {[
-          ["eigen", "↕", "Eigen"],
-          ["datum", "📅", "Datum"],
+          ["eigen", "arrows-down-up", "Eigen"],
+          ["datum", "calendar-blank", "Datum"],
         ].map(([mode, ic, label]) => {
           const on = sortMode === mode;
           return (
@@ -939,7 +944,7 @@ export default function LogbookView() {
                 color: on ? "var(--text)" : "var(--text-faint)",
               }}
             >
-              <span>{ic}</span>
+              <Icon name={ic} size={14} />
               {label}
             </button>
           );

@@ -229,7 +229,7 @@ export default function SettingsPanel({
           marginBottom: 12,
         }}
       >
-        ⚙️ Instellingen
+        Instellingen
       </h2>
 
       {/* WEERGAVE & MELDINGEN */}
@@ -296,7 +296,7 @@ export default function SettingsPanel({
             <div
               style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}
             >
-              🔔 Meldingen weekplanning
+              Meldingen weekplanning
             </div>
             <div
               style={{
@@ -313,14 +313,14 @@ export default function SettingsPanel({
                 <span
                   style={{ color: "#dc2626", display: "block", marginTop: 2 }}
                 >
-                  ⚠️ Geblokkeerd in browserinstellingen.
+                  Geblokkeerd in browserinstellingen.
                 </span>
               )}
               {notifPerm === "unsupported" && (
                 <span
                   style={{ color: "#dc2626", display: "block", marginTop: 2 }}
                 >
-                  ⚠️ Niet ondersteund op dit apparaat.
+                  Niet ondersteund op dit apparaat.
                 </span>
               )}
             </div>
@@ -351,7 +351,7 @@ export default function SettingsPanel({
                 marginBottom: 6,
               }}
             >
-              ⏰ Tijd vooraf:{" "}
+              Tijd vooraf:{" "}
               {settings.notifLeadMin === 0
                 ? "op starttijd"
                 : `${settings.notifLeadMin} min vooraf`}
@@ -550,7 +550,7 @@ export default function SettingsPanel({
                 fontWeight: 600,
               }}
             >
-              📤 Exporteer alles
+              Exporteer alles
             </button>
             <label
               style={{
@@ -564,7 +564,7 @@ export default function SettingsPanel({
                 cursor: "pointer",
               }}
             >
-              📥 Importeer
+              Importeer
               <input
                 type="file"
                 accept="application/json,.json"
@@ -610,7 +610,7 @@ export default function SettingsPanel({
                 fontWeight: 600,
               }}
             >
-              📋 Export Routines
+              Export Routines
             </button>
             <button
               onClick={exportWeekplanning}
@@ -623,7 +623,7 @@ export default function SettingsPanel({
                 fontWeight: 600,
               }}
             >
-              📆 Export Weekplanning
+              Export Weekplanning
             </button>
             <button
               onClick={exportNotities}
@@ -637,7 +637,7 @@ export default function SettingsPanel({
                 fontWeight: 600,
               }}
             >
-              📓 Export Notities
+              Export Notities
             </button>
           </div>
         </div>
@@ -645,7 +645,7 @@ export default function SettingsPanel({
           style={{ fontSize: 10, color: "var(--accent-text)", lineHeight: 1.6 }}
         >
           <div>
-            📊 <b>{dataInfo.dayCount}</b> dagen · <b>{total}</b> routines ·{" "}
+            <b>{dataInfo.dayCount}</b> dagen · <b>{total}</b> routines ·{" "}
             <b>{calTemplates.length}</b> templates ·{" "}
             <b>{weekScheduleTemplates.length}</b> weekschema's ·{" "}
             <b>{dataInfo.kb} KB</b>
@@ -827,7 +827,7 @@ export default function SettingsPanel({
               textAlign: "left",
             }}
           >
-            🔄 Reset routines naar standaard{" "}
+            Reset routines naar standaard{" "}
             <span style={{ opacity: 0.7, fontWeight: 400 }}>
               (dagdata blijft)
             </span>
@@ -845,7 +845,7 @@ export default function SettingsPanel({
               textAlign: "left",
             }}
           >
-            🗑️ Wis alle dagdata{" "}
+            Wis alle dagdata{" "}
             <span style={{ opacity: 0.7, fontWeight: 400 }}>
               (routines blijven)
             </span>
@@ -863,7 +863,7 @@ export default function SettingsPanel({
               textAlign: "left",
             }}
           >
-            💥 Wis ALLES (reset naar fabrieksinstellingen)
+            Wis ALLES (reset naar fabrieksinstellingen)
           </button>
         </div>
       </Section>

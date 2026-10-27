@@ -19,6 +19,7 @@ import {
 import EventModal from "./EventModal.jsx";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import Emoji from "../../ui/Emoji.jsx";
+import Icon from "../../ui/Icon.jsx";
 
 // Assign a column slot to each event so overlapping events sit side by side.
 // Returns Map<id, {col, totalCols}>.
@@ -323,7 +324,7 @@ export default function WeekView({
               cursor: "pointer",
             }}
           >
-            {showTplPicker ? "✕ Sluiten" : "📅 Template laden"}
+            {showTplPicker ? "✕ Sluiten" : "Template laden"}
           </button>
         )}
       </div>
@@ -640,15 +641,11 @@ export default function WeekView({
                               {ev.title}
                             </span>
                             {ev._recur && (
-                              <span
-                                style={{
-                                  flexShrink: 0,
-                                  fontSize: 8,
-                                  opacity: 0.7,
-                                }}
-                              >
-                                🔁
-                              </span>
+                              <Icon
+                                name="repeat"
+                                size={10}
+                                style={{ opacity: 0.7 }}
+                              />
                             )}
                           </div>
                           {height > 38 && (
