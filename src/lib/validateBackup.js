@@ -3,7 +3,12 @@
 // kleine check i.p.v. een schema-library: alleen vorm en verplichte sleutels,
 // zodat oude backups (die velden missen) gewoon blijven werken.
 
+import { PERIOD_LABELS } from "./constants.js";
+
 export const BACKUP_VERSION = 9;
+
+// De tracker rendert elk dagdeel; ontbreekt er één, dan crasht de app.
+const PERIODS = Object.keys(PERIOD_LABELS);
 
 const isObject = (v) =>
   v !== null && typeof v === "object" && !Array.isArray(v);
@@ -36,8 +41,11 @@ export function validateBackup(data) {
   if ("routines" in data) {
     const ok =
       isObject(data.routines) &&
-      Object.values(data.routines).every(Array.isArray);
-    if (!ok) problems.push("Routines hebben een onbekend formaat.");
+      PERIODS.every((p) => Array.isArray(data.routines[p]));
+    if (!ok)
+      problems.push(
+        `Routines missen een dagdeel (nodig: ${PERIODS.join(", ")}).`,
+      );
   }
 
   if ("settings" in data && !isObject(data.settings))

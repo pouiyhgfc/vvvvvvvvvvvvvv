@@ -336,6 +336,9 @@ export default function App() {
 
   const runFullImport = async (data, merge) => {
     try {
+      // Vangnet: vóór "vervangen" de huidige staat downloaden, zodat een
+      // verkeerde backup nooit het enige exemplaar van je data wist.
+      if (!merge) await exportData();
       await performFullImport(data, merge);
     } catch (err) {
       showToast("❌ Fout bij importeren: " + err.message);
@@ -708,7 +711,7 @@ export default function App() {
       {pendingImport && (
         <ConfirmDialog
           title="Backup importeren"
-          message="Wil je deze backup samenvoegen met je huidige data, of je huidige data volledig vervangen?"
+          message="Samenvoegen voegt de backup toe aan je huidige data. Volledig vervangen wist eerst je huidige data — daarvoor wordt automatisch een veiligheidsbackup gedownload."
           danger={false}
           actions={[
             {

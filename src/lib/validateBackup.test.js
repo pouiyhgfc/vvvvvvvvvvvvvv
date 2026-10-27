@@ -2,13 +2,15 @@ import { describe, expect, test } from "vitest";
 import { demoBackup } from "../../e2e/fixtures/demo.js";
 import { validateBackup } from "./validateBackup.js";
 
+const routines = { ochtend: [], middag: [], avond: [] };
+
 describe("validateBackup", () => {
   test("een volledige actuele backup is in orde", () => {
     expect(validateBackup(demoBackup())).toEqual([]);
   });
 
   test("oude backups en deel-exports met ontbrekende velden zijn in orde", () => {
-    expect(validateBackup({ version: 1, routines: {}, days: {} })).toEqual([]);
+    expect(validateBackup({ version: 1, routines, days: {} })).toEqual([]);
     expect(validateBackup({ version: 1, areas: ["Deen", "Studie"] })).toEqual(
       [],
     );
@@ -23,8 +25,13 @@ describe("validateBackup", () => {
     expect(validateBackup("tekst")).toHaveLength(1);
   });
 
+  test("routines zonder alle dagdelen worden geweigerd (zou de app laten crashen)", () => {
+    expect(validateBackup({ routines: {} })).toHaveLength(1);
+    expect(validateBackup({ routines: { ochtend: [] } })).toHaveLength(1);
+  });
+
   test("een backup van een nieuwere app-versie wordt geweigerd", () => {
-    expect(validateBackup({ version: 99, routines: {} })[0]).toMatch(
+    expect(validateBackup({ version: 99, routines })[0]).toMatch(
       /nieuwere versie/,
     );
   });
@@ -38,7 +45,7 @@ describe("validateBackup", () => {
       calEvents: {},
     });
     expect(problems).toEqual([
-      "Routines hebben een onbekend formaat.",
+      "Routines missen een dagdeel (nodig: ochtend, middag, avond).",
       "Dagdata heeft een onbekend formaat.",
       '"calEvents" is geen lijst.',
       '1 ongeldige item(s) in "logEntries".',

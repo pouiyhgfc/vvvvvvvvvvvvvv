@@ -141,7 +141,7 @@ describe("volledige backup", () => {
     await seed();
     const v1 = {
       version: 1,
-      routines: { ochtend: [] },
+      routines: { ochtend: [], middag: [], avond: [] },
       areas: [{ id: "a2", name: "Studie" }],
       days: { "2026-01-01": { mood: 2 } },
       calEvents: [],
@@ -159,7 +159,11 @@ describe("volledige backup", () => {
   // vulde hem niet opnieuw, waardoor de Hifd-pagina leeg bleef.
   test("vervangen met een backup zonder Hifd laat 114 surahs staan", async () => {
     await seed();
-    const v1 = { version: 1, routines: {}, days: {} };
+    const v1 = {
+      version: 1,
+      routines: { ochtend: [], middag: [], avond: [] },
+      days: {},
+    };
 
     await performFullImport(v1, false);
 

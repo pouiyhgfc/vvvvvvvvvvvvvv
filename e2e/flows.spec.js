@@ -85,7 +85,7 @@ test("een kapotte backup wordt afgekeurd en verandert niets", async ({
   await page.locator('input[type="file"]').setInputFiles({
     name: "kapot.json",
     mimeType: "application/json",
-    buffer: Buffer.from(JSON.stringify({ routines: "fout", days: {} })),
+    buffer: Buffer.from(JSON.stringify({ routines: {}, days: {} })),
   });
 
   await expect(page.getByText(/Backup afgekeurd/)).toBeVisible();
@@ -94,4 +94,34 @@ test("een kapotte backup wordt afgekeurd en verandert niets", async ({
   ).toHaveCount(0);
   await openTab(page, "Config");
   await expect(page.getByText("1/13").first()).toBeVisible();
+});
+
+test("'volledig vervangen' downloadt eerst een veiligheidsbackup", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByText("Duah", { exact: true }).click();
+  await openTab(page, "Config");
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "leeg.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(
+      JSON.stringify({
+        version: 9,
+        routines: { ochtend: [], middag: [], avond: [] },
+        days: {},
+      }),
+    ),
+  });
+
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Volledig vervangen" }).click();
+  await expect(page.getByText(/Import gelukt/)).toBeVisible();
+  const file = await (await download).path();
+  const { readFile } = await import("node:fs/promises");
+  const safety = JSON.parse(await readFile(file, "utf8"));
+
+  // De veiligheidsbackup bevat de staat van vóór het vervangen.
+  const checkedDays = Object.values(safety.days).filter((d) => d.checked?.o1);
+  expect(checkedDays).toHaveLength(1);
 });
