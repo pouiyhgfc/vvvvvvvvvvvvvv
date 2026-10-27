@@ -188,9 +188,9 @@ onmogelijk.
   Brief van de eigenaar: rustig en minimaal, niet te veel opties, alles moet goed werken.
   Mockups: Design-canvas "Routine redesign — richtingen" (claude.ai).
 
-- [ ] **2.4 Volledige set** in de gekozen richting: ook Planner, Statistieken, Instellingen,
+- [x] **2.4 Volledige set** in de gekozen richting: ook Planner, Statistieken, Instellingen,
       sheets, lege staten, licht + donker.
-- [ ] **2.5 Beslissingen vastleggen** in een nieuwe `ONTWERP.md`:
+- [x] **2.5 Beslissingen vastleggen** in een nieuwe `ONTWERP.md`:
   - **Fonts:** blijft het bij drie families of gaan we naar twee? Plus een Arabisch font
     (voor notities bv. Noto Naskh/Sans Arabic; voor Koran-tekst in Hifd een Uthmani/Naskh-font
     met open licentie, zoals Amiri Quran — onderzoeken in deze stap).
@@ -199,7 +199,7 @@ onmogelijk.
   - **Tokens:** typeschaal (rem, minimaal ~12 px voor labels, ~16 px voor lopende tekst),
     spacing, radius, schaduw, beweging (duur/easing, `prefers-reduced-motion`), tikvlakken ≥ 44 px.
   - **Componentspecificaties:** knop, kaart, lijstrij, sheet, tabbalk, sectie, lege staat.
-- [ ] **Fase 2 afgerond** (richting gekozen; `ONTWERP.md` v2 gecommit)
+- [x] **Fase 2 afgerond** (richting gekozen; `ONTWERP.md` v2 gecommit)
 
 ---
 
