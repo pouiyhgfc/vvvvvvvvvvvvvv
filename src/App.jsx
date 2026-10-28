@@ -502,7 +502,11 @@ export default function App({ startupErrors = [] }) {
 
       {/* MEER: statistieken-ingang + instellingen */}
       {view === "meer" && (
-        <MoreView onOpenStats={() => setView("stats")}>
+        <MoreView
+          onOpenStats={() => setView("stats")}
+          routines={routines}
+          calEvents={calEvents}
+        >
           <SettingsPanel
             settings={settings}
             setSettings={setSettings}

@@ -41,6 +41,9 @@ const UI_GLYPHS = [
   "text-h",
   "plus",
   "file-text",
+  "chat-circle-text",
+  "copy",
+  "share-network",
 ];
 
 const circle = (cx, cy, r) =>

@@ -433,16 +433,19 @@ revisiedatum; beoordelen werkt; schaduwadvies is zichtbaar.
 
 ### 7a — AI zonder API
 
-- [ ] **Weekreview / muhasaba:** periode kiezen, aanvinken welke data meegaat (routines,
+- [x] **Weekreview / muhasaba:** periode kiezen, aanvinken welke data meegaat (routines,
       mood/energie, entries uit gekozen notitieboeken, Hifd-voortgang), sjabloon bewerkbaar
       (op basis van SPARPROMPT). Knoppen: **Delen** (Android-deelmenu → Claude-app) en
       **Kopiëren**.
-- [ ] **Antwoord terugzetten:** "Plak antwoord" maakt een entry in een notitieboek "Muhasaba"
+- [x] **Antwoord terugzetten:** "Plak antwoord" maakt een entry in een notitieboek "Muhasaba"
       met datum.
 - [ ] **Per notitie:** "Vraag Claude" met vaste opdrachten (samenvatten, structureren,
       actiepunten).
-- [ ] Privacy: data verlaat de app alleen bij een expliciete tik op Delen/Kopiëren; standaard
+- [x] Privacy: data verlaat de app alleen bij een expliciete tik op Delen/Kopiëren; standaard
       zo weinig mogelijk aangevinkt.
+      _28-10: Meer → "Weekreview naar Claude". Periode (deze/vorige week, 30 dagen), onderdelen
+      (standaard alleen routines), opdracht aanpasbaar (wordt nog niet bewaard), Delen/Kopiëren,
+      antwoord bewaren als notitie in "Muhasaba". Telefoontest: delen naar de Claude-app._
 - [ ] Onderzoek: is AI in de browser zelf (zonder server) inmiddels bruikbaar op Android-Chrome?
       Zo ja: optioneel later.
 
