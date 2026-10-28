@@ -21,19 +21,13 @@ const openMenu = (page) => page.tap('button[aria-label="Notitie-opties"]');
 test("zoeken in een notitie telt treffers, ook over vet heen", async ({
   page,
 }) => {
-  await newNote(page, ["Melk halen", "Brood en melk", "Niets"]);
-  // "lk" vet maken: de treffer "melk" loopt dan over twee tekst-nodes.
-  await page.evaluate(() => {
-    const node = [
-      ...document.querySelectorAll(".ProseMirror .bn-inline-content"),
-    ].find((e) => e.textContent === "Brood en melk").firstChild;
-    const r = document.createRange();
-    r.setStart(node, 11);
-    r.setEnd(node, 13);
-    getSelection().removeAllRanges();
-    getSelection().addRange(r);
-  });
+  // "lk" vet typen: de treffer "melk" loopt dan over twee tekst-nodes.
+  await newNote(page, ["Melk halen", "Brood en me"]);
   await page.keyboard.press("Control+b");
+  await page.keyboard.type("lk");
+  await page.keyboard.press("Control+b");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("Niets");
   await expect(page.locator(".ProseMirror strong")).toHaveText("lk");
 
   await openMenu(page);
