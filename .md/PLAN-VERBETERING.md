@@ -411,14 +411,15 @@ zien, notitielink volgen, zoeken vindt tekst uit een tabel, Arabische alinea sta
       Alternatieven: per pagina, per ruku', per rub' al-hizb. Wat betekent dat voor de data?
 - [x] Het max-interval van 30 dagen: is dat juist goed (manzil-cyclus) of te strikt?
 - [x] Wat meten we om het algoritme te kunnen beoordelen (fouten per vers, tijd, retentie)?
-- [ ] Uitkomst: een beslisdocument met advies; de eigenaar kiest.
+- [x] Uitkomst: een beslisdocument met advies; de eigenaar kiest. _(Gekozen 29-10: optie B.)_
       _Beslisdocument: [`.md/HIFD-ONDERZOEK.md`](HIFD-ONDERZOEK.md) (28-10). Wacht op de keuze._
 
 ### 6b — Bouwen (na de keuze)
 
 - [ ] Datamodel uitbreiden met een migratie die het **huidige schema meeneemt** (geen reset naar
       "nieuw"); nieuwe velden naast de oude.
-- [ ] **Schaduwmodus 2–4 weken:** het nieuwe algoritme rekent mee en toont zijn advies naast het
+- [ ] **Schaduwmodus 2–4 weken:** _(gestart 29-10 met optie B: kaart "Proef: sabqi + manzil" op
+      Hifd → Vandaag; fouten-aantal per revisie wordt gelogd)_ het nieuwe algoritme rekent mee en toont zijn advies naast het
       huidige; het oude blijft leidend. Pas na akkoord omschakelen. Terug kan altijd.
 - [ ] Unit-tests met fixtures van echte voortgang (gememoriseerd, lerend, veel lapses).
 - [ ] Ervaring: revisiesessie-flow, voorspelde intervallen op de knoppen (bestaat al),

@@ -10,6 +10,7 @@ import { today, shortDate } from "./hifdDates.js";
 import VandaagView from "./VandaagView.jsx";
 import VoortgangView from "./VoortgangView.jsx";
 import SurahSheet from "./SurahSheet.jsx";
+import ShadowPlanCard from "./ShadowPlanCard.jsx";
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
@@ -282,6 +283,11 @@ export default function HifdView() {
           onMarkMemorized={markMemorized}
           onRate={rateReview}
         />
+      )}
+      {tab === "vandaag" && (
+        <div style={{ padding: "var(--sp-3) var(--sp-4) 0" }}>
+          <ShadowPlanCard records={hifdRecords} budget={dailyCap} />
+        </div>
       )}
 
       {tab === "voortgang" && (
