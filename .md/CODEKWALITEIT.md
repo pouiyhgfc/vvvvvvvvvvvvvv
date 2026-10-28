@@ -13,7 +13,7 @@ Alleen regels in CLAUDE.md zetten is niet genoeg — in een lange sessie zakken 
 ## De tools (drie verschillende dingen)
 
 - **Prettier** → opmaak (inspringen, quotes, komma's). Puur stijl.
-- **ESLint** → ongebruikte variabelen/imports en simpele logica-fouten. Beperking: ziet maar één bestand tegelijk.
+- **ESLint** → ongebruikte variabelen/imports, niet-bestaande namen (`no-undef`, geeft anders pas een wit scherm als die code draait) en simpele logica-fouten. Beperking: ziet maar één bestand tegelijk, en een ontbrekende import van een component (`<Foo />`) vangt hij niet.
 - **Knip** → het gat dat ESLint mist: **ongebruikte bestanden, exports en dependencies** over je hele project. Dit is jouw "slob-code"-vanger bij uitstek. Let op: verifieer altijd vóór verwijderen — code kan dynamisch gebruikt zijn (vals positief).
 
 ## Waar alles staat
