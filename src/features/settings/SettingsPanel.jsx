@@ -15,6 +15,8 @@ import {
 } from "../../ui/SortableList.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 import Button from "../../ui/Button.jsx";
+import Icon from "../../ui/Icon.jsx";
+import TagManager from "./TagManager.jsx";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import { Field, TextInput } from "../../ui/Field.jsx";
 import RoutineSheet from "./RoutineSheet.jsx";
@@ -516,6 +518,11 @@ export default function SettingsPanel({
             <span style={{ fontSize: 16, color: "var(--text-faint)" }}>›</span>
           </div>
         ))}
+      </Section>
+
+      {/* TAGS */}
+      <Section title="Tags" icon={<Icon name="hash" size={20} />}>
+        <TagManager />
       </Section>
 
       {/* BACKUP */}

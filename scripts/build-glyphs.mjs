@@ -36,6 +36,7 @@ const UI_GLYPHS = [
   "text-indent",
   "text-outdent",
   "caret-line-down",
+  "hash",
 ];
 
 const circle = (cx, cy, r) =>
