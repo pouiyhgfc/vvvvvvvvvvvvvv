@@ -19,15 +19,13 @@ import IconField from "../../ui/IconField.jsx";
 import Emoji from "../../ui/Emoji.jsx";
 import Icon from "../../ui/Icon.jsx";
 import EntryMenuSheet from "./EntryMenuSheet.jsx";
+import TagField from "./TagField.jsx";
+import { cleanTags, tagStats } from "../../lib/tags.js";
+import { isActive } from "../../lib/notes.js";
 import { TextInput, Select } from "../../ui/Field.jsx";
 
 const RichEditor = lazy(() => import("./RichEditor.jsx"));
-
-const parseTags = (str) =>
-  str
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean);
+const NO_TAGS = [];
 
 // Korte datum voor de meta-regel, bv. "di 27 okt".
 function fmtDay(str) {
@@ -49,7 +47,12 @@ export default function EntryPage({
   onClose,
 }) {
   const [title, setTitle] = useState(entry?.title || draft?.title || "");
-  const [tags, setTags] = useState(entry?.tags?.join(", ") || "");
+  const [tags, setTags] = useState(entry?.tags ?? []);
+  // Je bestaande tags (actieve notities) voor de tagkiezer.
+  const knownTags =
+    useLiveQuery(async () =>
+      tagStats((await db.logEntries.toArray()).filter(isActive)),
+    ) ?? NO_TAGS;
   const [created, setCreated] = useState(!!entry?.id);
   const [pinned, setPinned] = useState(!!entry?.pinnedAt);
   const [currentNb, setCurrentNb] = useState(
@@ -109,7 +112,7 @@ export default function EntryPage({
         title: title.trim(),
         body: text || "",
         doc: doc || undefined,
-        tags: parseTags(tags),
+        tags: cleanTags(tags, knownTags),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -118,7 +121,7 @@ export default function EntryPage({
         title: title.trim(),
         body: text || "",
         doc: doc || undefined,
-        tags: parseTags(tags),
+        tags: cleanTags(tags, knownTags),
         updatedAt: new Date().toISOString(),
       });
     }
@@ -126,7 +129,7 @@ export default function EntryPage({
     setSaveState("saved");
     clearTimeout(savedTimerRef.current);
     savedTimerRef.current = setTimeout(() => setSaveState("idle"), 1500);
-  }, [title, tags, dateProp, currentNb]);
+  }, [title, tags, knownTags, dateProp, currentNb]);
 
   useEffect(() => {
     const t = setTimeout(persist, 500);
@@ -388,23 +391,12 @@ export default function EntryPage({
               </Select>
             </label>
             <span style={{ whiteSpace: "nowrap" }}>{fmtDay(entryDate)}</span>
-            <TextInput
-              value={tags}
-              onChange={(e) => {
+            <TagField
+              tags={tags}
+              known={knownTags}
+              onChange={(next) => {
                 markDirty();
-                setTags(e.target.value);
-              }}
-              placeholder="+ tags"
-              aria-label="Tags (komma-gescheiden)"
-              style={{
-                flex: 1,
-                minWidth: 90,
-                border: "none",
-                background: "transparent",
-                fontSize: "var(--fs-sm)",
-                color: "var(--accent-text)",
-                padding: 0,
-                boxShadow: "none",
+                setTags(next);
               }}
             />
             <span style={{ fontSize: "var(--fs-xs)" }}>

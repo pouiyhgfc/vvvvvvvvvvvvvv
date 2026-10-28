@@ -189,3 +189,34 @@ test("rustig slepen aan het handvat start geen selectie", async ({ page }) => {
   const posB = await page.getByText("Hold-B", { exact: true }).boundingBox();
   expect(posA.y).toBeLessThan(posB.y);
 });
+
+test("tags kies je uit je bestaande tags; hoofdletters geven geen dubbele", async ({
+  page,
+}) => {
+  await openLogbook(page);
+  await createNote(page, "Tag-A");
+  await page.getByText("Tag-A", { exact: true }).click();
+  await page.waitForSelector(".ProseMirror");
+  const input = page.getByRole("textbox", { name: "Tag toevoegen" });
+  await input.fill("Studie");
+  await input.press("Enter");
+  await page.click('button[aria-label="Terug"]');
+  await page.waitForTimeout(700);
+
+  await createNote(page, "Tag-B");
+  await page.getByText("Tag-B", { exact: true }).click();
+  await page.waitForSelector(".ProseMirror");
+  await input.fill("stu");
+  // De bestaande tag staat als keuze klaar, met hoe vaak hij voorkomt.
+  await page.getByRole("option", { name: /#Studie/ }).click();
+  await input.fill("STUDIE");
+  await input.press("Enter");
+  await expect(
+    page.getByRole("button", { name: /^Tag .* weghalen$/ }),
+  ).toHaveCount(1);
+  await page.click('button[aria-label="Terug"]');
+  await page.waitForTimeout(700);
+
+  await expect(page.getByRole("button", { name: "#Studie" })).toBeVisible();
+  await expect(page.getByText("#STUDIE", { exact: true })).toHaveCount(0);
+});
