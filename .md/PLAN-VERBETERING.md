@@ -356,8 +356,10 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
       neemt bestanden mee (formaatversie omhoog) — met waarschuwing over de bestandsgrootte.
 - [ ] **5.5 Links tussen notities + backlinks:** eigen inline-element "notitielink" met een
       zoek-pop-up (bijv. via "@"), en onderaan een notitie "Gelinkt vanuit…".
-- [ ] **5.6 Kleine Notion-dingen:** inhoudsopgave uit koppen, zoeken binnen een notitie,
+- [x] **5.6 Kleine Notion-dingen:** inhoudsopgave uit koppen, zoeken binnen een notitie,
       datum invoegen.
+      _Gedaan: ⋯ → "Zoeken in notitie" (treffers gemarkeerd via CSS Highlight API, raakt de
+      notitie niet) en "Inhoud" (alleen als er koppen zijn); +-menu → "Datum van vandaag"._
 - [x] **5.7 RTL in de editor:** per blok automatische schrijfrichting (`unicode-bidi: plaintext`)
       testen met Arabisch en Tarifit.
 - [x] **5.7b Werkbalk boven het toetsenbord:** blok invoegen, checklist, opsomming, genummerd,
