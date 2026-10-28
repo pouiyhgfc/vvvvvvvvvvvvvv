@@ -346,8 +346,10 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
       blokken en tabelcellen), berekend bij opslaan in plaats van bij elke toetsaanslag; nieuw
       afgeleid veld `searchText` (migratie vult het voor bestaande entries). `body` (markdown)
       blijft voor preview en export.
-- [ ] **5.2 Toggles:** toggle-lijst en inklapbare koppen zitten al in BlockNote, maar staan uit
+- [x] **5.2 Toggles:** toggle-lijst en inklapbare koppen zitten al in BlockNote, maar staan uit
       in `SLASH_KEYS` → aanzetten in slashmenu en blok-sheet. Snelle winst.
+      _Gedaan: "Uitklapbare lijst" en "Uitklapbare kop 2" in het +-menu, "Uitklaplijst" in het
+      blokmenu. Open/dicht onthoudt BlockNote zelf in localStorage (`toggle-<blok-id>`)._
 - [ ] **5.3 Callout-blok** (eigen blok via `createReactBlockSpec`), met emoji en kleur.
 - [ ] **5.4 Afbeeldingen lokaal:** `uploadFile` slaat een verkleinde afbeelding (max ~1600 px)
       op in een nieuwe Dexie-tabel `files`; `resolveFileUrl` maakt er een object-URL van. Backup
@@ -356,8 +358,12 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
       zoek-pop-up (bijv. via "@"), en onderaan een notitie "Gelinkt vanuit…".
 - [ ] **5.6 Kleine Notion-dingen:** inhoudsopgave uit koppen, zoeken binnen een notitie,
       datum invoegen.
-- [ ] **5.7 RTL in de editor:** per blok automatische schrijfrichting (`unicode-bidi: plaintext`)
+- [x] **5.7 RTL in de editor:** per blok automatische schrijfrichting (`unicode-bidi: plaintext`)
       testen met Arabisch en Tarifit.
+- [x] **5.7b Werkbalk boven het toetsenbord:** blok invoegen, checklist, opsomming, genummerd,
+      vet, cursief, in-/uitspringen, toetsenbord sluiten. Enter op een lege ingesprongen
+      lijstregel gaat één niveau terug. _Nog op Android te testen._
+- [x] **5.7c Overzicht "Alles":** alle notities over de notitieboeken heen, op datum.
 - [ ] **5.8 Onderzoek:** multi-block-selectie op touch (groot; pas na 0.56 beoordelen).
 - [ ] **5.9 Tags met structuur** (besluit eigenaar 27-10-2026: tags blijven, maar beter). Nu: los
       intypen, komma-gescheiden, eindeloze lijst zonder samenhang (#hifd naast gebied
@@ -373,6 +379,8 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
     gebiedskoppeling in een nieuwe blob `tagMeta` (meegenomen in de backup, formaatversie +1).
     Hernoemen/samenvoegen past `tags` in de entries aan in één transactie, na bevestiging.
   - Tests: normaliseren, samenvoegen, hernoemen (unit); tag kiezen + filteren (e2e).
+  - _Stand 28-10-2026: kiezen, normaliseren en tagbeheer (hernoemen/samenvoegen/verwijderen)
+    werken en zijn getest. Koppelen aan een focusgebied (`tagMeta`) is nog niet gebouwd._
 - [ ] **Fase 5 afgerond**
 
 **Bewust niet:** kolommen (`@blocknote/xl-multi-column` is GPL), AI- en exportpakketten uit de

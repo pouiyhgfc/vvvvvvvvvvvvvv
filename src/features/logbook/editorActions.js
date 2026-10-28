@@ -53,6 +53,7 @@ export function outdent(editor) {
 const LIST_TYPES = new Set([
   "bulletListItem",
   "numberedListItem",
+  "toggleListItem",
   "checkListItem",
 ]);
 

@@ -27,6 +27,7 @@ const TYPES = [
   { label: "Opsomming", type: "bulletListItem" },
   { label: "Genummerd", type: "numberedListItem" },
   { label: "Checklist", type: "checkListItem" },
+  { label: "Uitklaplijst", type: "toggleListItem" },
   { label: "Citaat", type: "quote" },
   { label: "Code", type: "codeBlock" },
 ];

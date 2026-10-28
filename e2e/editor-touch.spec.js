@@ -169,3 +169,25 @@ test("Enter op een lege ingesprongen regel gaat één niveau terug", async ({
   await page.keyboard.press("Enter");
   expect((await blockTypes(page)).at(-1)).toBe("paragraph");
 });
+
+test("een uitklaplijst klapt zijn inhoud in en uit", async ({ page }) => {
+  await newNote(page, [""]);
+  await page.tap(PLUS);
+  await page
+    .locator(".bn-suggestion-menu-item", { hasText: "Uitklapbare lijst" })
+    .tap();
+  await page.keyboard.type("Boodschappen");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("melk");
+  const melk = page.locator(".ProseMirror .bn-inline-content", {
+    hasText: "melk",
+  });
+  const knop = page.locator(".bn-toggle-button").first();
+  await expect(melk).toBeVisible();
+  await knop.tap();
+  await expect(knop).toHaveAttribute("aria-expanded", "false");
+  await expect(melk).toBeHidden();
+  await knop.tap();
+  await expect(melk).toBeVisible();
+});

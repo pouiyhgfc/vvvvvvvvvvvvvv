@@ -55,6 +55,8 @@ const SLASH_KEYS = new Set([
   "bullet_list",
   "numbered_list",
   "check_list",
+  "toggle_list",
+  "toggle_heading_2",
   "quote",
   "code_block",
   "divider",
