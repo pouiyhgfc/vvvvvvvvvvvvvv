@@ -127,7 +127,7 @@ const logEntries = [
     tags: ["wandelen"],
     mood: "Geweldig",
     createdAt: `${day(-2)}T20:00:00.000Z`,
-    updatedAt: `${day(-2)}T20:00:00.000Z`,
+    updatedAt: `${day(-2)}T12:00:00.000Z`, // 20:00 in Taiwan
     order: 1,
   },
   {
