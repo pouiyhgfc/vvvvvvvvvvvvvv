@@ -112,4 +112,11 @@ test("een notitie als sjabloon opslaan en gebruiken", async ({ page }) => {
   await expect(page.locator(".ProseMirror")).toContainText(
     "Doelen voor deze week",
   );
+
+  // Sjabloon weer weghalen vanuit de keuze bij "Nieuwe notitie".
+  await page.getByRole("button", { name: "Terug" }).tap();
+  await page.getByRole("button", { name: "Nieuwe notitie" }).tap();
+  await page.getByRole("button", { name: /verwijderen/ }).tap();
+  await page.getByRole("button", { name: "Verwijderen", exact: true }).tap();
+  await expect(page.getByText("Weekplan", { exact: true })).toBeHidden();
 });
