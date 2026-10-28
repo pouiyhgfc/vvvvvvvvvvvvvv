@@ -3,10 +3,15 @@ import { dk } from "./date.js";
 import { DEFAULT_NOTEBOOKS, DEFAULT_SETTINGS } from "./constants.js";
 import { showToast } from "./toast.js";
 import { BACKUP_VERSION, validateBackup } from "./validateBackup.js";
+import { shareJSON } from "./nativeFiles.js";
+import { isNativeApp } from "./platform.js";
 
 // Genereert en downloadt een JSON-bestand — gedeelde Blob/anchor-boilerplate
-// voor alle export-functies hieronder.
+// voor alle export-functies hieronder. In de Android-app werkt een download
+// niet (de WebView negeert hem): daar gaat het bestand via het deel-menu,
+// zodat je het in Drive of Bestanden kunt bewaren.
 function downloadJSON(filename, payload) {
+  if (isNativeApp) return shareJSON(filename, payload);
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json",
   });

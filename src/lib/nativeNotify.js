@@ -1,10 +1,9 @@
 import { useEffect } from "react";
-import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { isNativeApp } from "./platform.js";
 import { upcomingReminders } from "./reminders.js";
 
 // Alleen in de Android-app (Capacitor). In de PWA blijft notify.js gelden.
-export const isNativeApp = Capacitor.isNativePlatform();
 
 // Toestemming voor meldingen. Vanaf Android 12 komen ingeplande meldingen
 // alleen op de minuut als ook "Wekkers en herinneringen" aan staat; zonder

@@ -14,11 +14,11 @@ import { buzz } from "./lib/storage.js";
 import { showToast } from "./lib/toast.js";
 import { useNotifications } from "./lib/notify.js";
 import {
-  isNativeApp,
   notifyNow,
   requestNativePermission,
   useNativeNotifications,
 } from "./lib/nativeNotify.js";
+import { isNativeApp } from "./lib/platform.js";
 import { db, seedHifd } from "./lib/db.js";
 import {
   exportData as doExportData,

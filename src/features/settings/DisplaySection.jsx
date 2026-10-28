@@ -1,4 +1,4 @@
-import { isNativeApp } from "../../lib/nativeNotify.js";
+import { isNativeApp } from "../../lib/platform.js";
 import Emoji from "../../ui/Emoji.jsx";
 import Section from "../../ui/Section.jsx";
 
