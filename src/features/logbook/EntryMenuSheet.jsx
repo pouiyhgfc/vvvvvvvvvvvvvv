@@ -2,7 +2,8 @@ import Icon from "../../ui/Icon.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 
 // Acties voor één notitie achter de ⋯-knop. Vastzetten, archiveren en
-// verwijderen kan pas als de notitie bestaat (`created`).
+// verwijderen kan pas als de notitie bestaat (`created`); "Inhoud" alleen
+// als er koppen zijn.
 export default function EntryMenuSheet({
   created,
   pinned,
@@ -10,6 +11,8 @@ export default function EntryMenuSheet({
   onArchive,
   onSaveTemplate,
   onTrash,
+  onFind,
+  onOutline,
   onClose,
 }) {
   const act = (fn) => () => {
@@ -18,6 +21,14 @@ export default function EntryMenuSheet({
   };
   return (
     <Sheet title="Notitie" onClose={onClose}>
+      <Row
+        icon="magnifying-glass"
+        label="Zoeken in notitie"
+        onClick={act(onFind)}
+      />
+      {onOutline && (
+        <Row icon="text-h" label="Inhoud" onClick={act(onOutline)} />
+      )}
       {created && (
         <Row
           icon="push-pin"

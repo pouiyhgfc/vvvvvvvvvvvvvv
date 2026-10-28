@@ -19,9 +19,11 @@ import IconField from "../../ui/IconField.jsx";
 import Emoji from "../../ui/Emoji.jsx";
 import Icon from "../../ui/Icon.jsx";
 import EntryMenuSheet from "./EntryMenuSheet.jsx";
+import FindBar from "./FindBar.jsx";
+import OutlineSheet from "./OutlineSheet.jsx";
 import TagField from "./TagField.jsx";
 import { cleanTags, tagStats } from "../../lib/tags.js";
-import { isActive } from "../../lib/notes.js";
+import { headingsOf, isActive } from "../../lib/notes.js";
 import { TextInput, Select } from "../../ui/Field.jsx";
 
 const RichEditor = lazy(() => import("./RichEditor.jsx"));
@@ -60,6 +62,10 @@ export default function EntryPage({
   );
   const [confirmDel, setConfirmDel] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  // Koppen voor "Inhoud", vastgelegd bij het openen van het menu.
+  const [headings, setHeadings] = useState([]);
+  const [showOutline, setShowOutline] = useState(false);
+  const [finding, setFinding] = useState(false);
   const [contentVersion, setContentVersion] = useState(0);
   // Beschikbaarheid van undo/redo als state (niet de ref tijdens render lezen);
   // bijgewerkt vanuit de editor-onChange, die ook na undo/redo vuurt.
@@ -315,13 +321,20 @@ export default function EntryPage({
         </button>
         <button
           type="button"
-          onClick={() => setShowMenu(true)}
+          onClick={() => {
+            setHeadings(headingsOf(contentRef.current.doc));
+            setShowMenu(true);
+          }}
           aria-label="Notitie-opties"
           style={{ ...iconBtn(), color: "var(--text)" }}
         >
           <Icon name="dots-three" size={24} />
         </button>
       </div>
+
+      {finding && (
+        <FindBar version={contentVersion} onClose={() => setFinding(false)} />
+      )}
 
       {/* Scroll-zone: meta + titel + editor */}
       <div style={{ flex: 1, overflowY: "auto" }}>
@@ -458,7 +471,15 @@ export default function EntryPage({
           onArchive={archive}
           onSaveTemplate={() => setShowSaveTemplate(true)}
           onTrash={() => setConfirmDel(true)}
+          onFind={() => setFinding(true)}
+          onOutline={headings.length ? () => setShowOutline(true) : null}
           onClose={() => setShowMenu(false)}
+        />
+      )}
+      {showOutline && (
+        <OutlineSheet
+          headings={headings}
+          onClose={() => setShowOutline(false)}
         />
       )}
       {confirmDel && (

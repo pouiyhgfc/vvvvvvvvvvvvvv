@@ -256,3 +256,12 @@
   > .bn-inline-content {
   width: auto;
 }
+
+/* Zoeken in een notitie (FindBar): alle treffers zacht, de huidige vol. */
+::highlight(zoek) {
+  background-color: var(--accent-bg);
+}
+::highlight(zoek-nu) {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+}

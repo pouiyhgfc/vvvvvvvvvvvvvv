@@ -12,6 +12,8 @@ import BlockHandle from "./BlockHandle.jsx";
 import KeyboardToolbar from "./KeyboardToolbar.jsx";
 import { outdentEmptyListItem } from "./editorActions.js";
 import { filterSuggestionItems } from "@blocknote/core";
+import { fmtDate } from "../../lib/date.js";
+import Icon from "../../ui/Icon.jsx";
 import { nl } from "@blocknote/core/locales";
 import "@blocknote/mantine/style.css";
 import "./richEditor.css";
@@ -146,11 +148,25 @@ const RichEditor = forwardRef(function RichEditor(
     return () => el?.removeEventListener("keydown", onKey, true);
   }, [editor]);
 
+  // Eigen item achteraan (groep "Overig", net als Emoji): de datum van
+  // vandaag als gewone tekst, bv. "woensdag 28 oktober 2026".
+  const dateItem = {
+    key: "date",
+    title: "Datum van vandaag",
+    aliases: ["datum", "vandaag", "date"],
+    group: "Overig",
+    icon: <Icon name="calendar-blank" size={18} />,
+    onItemClick: () =>
+      editor.insertInlineContent(fmtDate(new Date()).toLowerCase() + " "),
+  };
   const getSlashItems = async (query) =>
     filterSuggestionItems(
-      getDefaultReactSlashMenuItems(editor).filter((item) =>
-        SLASH_KEYS.has(item.key),
-      ),
+      [
+        ...getDefaultReactSlashMenuItems(editor).filter((item) =>
+          SLASH_KEYS.has(item.key),
+        ),
+        dateItem,
+      ],
       query,
     );
 

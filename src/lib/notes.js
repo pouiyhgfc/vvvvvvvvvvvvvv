@@ -18,3 +18,20 @@ export function bodyPreview(body = "") {
   const text = lines.find((l) => !l.startsWith("#") && plain(l));
   return plain(text ?? lines[0] ?? "");
 }
+
+// Koppen uit een BlockNote-document (ook genest, bv. in een uitklaplijst),
+// in volgorde, voor de inhoudsopgave. Lege koppen tellen niet mee.
+export function headingsOf(blocks = []) {
+  const out = [];
+  const text = (content = []) =>
+    content.map((c) => c.text ?? text(c.content)).join("");
+  const walk = (list) => {
+    for (const b of list) {
+      const t = b.type === "heading" ? text(b.content).trim() : "";
+      if (t) out.push({ id: b.id, level: b.props?.level ?? 1, text: t });
+      walk(b.children ?? []);
+    }
+  };
+  walk(Array.isArray(blocks) ? blocks : []);
+  return out;
+}
