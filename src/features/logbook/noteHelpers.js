@@ -1,5 +1,6 @@
 import { DAYS_NL, MONTHS_NL } from "../../lib/constants.js";
 import { isToday, getMonday } from "../../lib/date.js";
+import { tagKey } from "../../lib/tags.js";
 
 export function fmtDay(str) {
   const d = new Date(str + "T12:00:00");
@@ -8,7 +9,7 @@ export function fmtDay(str) {
 
 // Vormen waarop je een entry op datum kunt vinden: ISO, "25 juni",
 // "25 juni 2026" en de weekdag.
-export function dateSearchString(str) {
+function dateSearchString(str) {
   const d = new Date(str + "T12:00:00");
   return [
     str,
@@ -51,4 +52,22 @@ export function stripBlockIds(blocks) {
     ...rest,
     ...(children ? { children: stripBlockIds(children) } : {}),
   }));
+}
+
+// Zoeken en tagfilter op de lijst: titel, tekst, tags en datum (ook "25 juni"
+// of de weekdag). `tag` is een tagKey.
+export function filterNotes(list, { tag, search }) {
+  let out = list;
+  if (tag) out = out.filter((e) => e.tags?.some((t) => tagKey(t) === tag));
+  if (search.trim()) {
+    const q = search.toLowerCase();
+    out = out.filter(
+      (e) =>
+        e.title?.toLowerCase().includes(q) ||
+        e.body?.toLowerCase().includes(q) ||
+        e.tags?.some((t) => t.toLowerCase().includes(q)) ||
+        dateSearchString(e.date).includes(q),
+    );
+  }
+  return out;
 }

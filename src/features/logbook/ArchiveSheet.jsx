@@ -1,16 +1,10 @@
 import Sheet from "../../ui/Sheet.jsx";
 import NoteRow from "./NoteRow.jsx";
+import { archiveToTrash, restoreFromArchive } from "./noteActions.js";
 
 // Gearchiveerde notities over alle notitieboeken heen, met het notitieboek
 // als label. Tikken opent de notitie.
-export default function ArchiveSheet({
-  entries,
-  notebookOf,
-  onOpen,
-  onRestore,
-  onTrash,
-  onClose,
-}) {
+export default function ArchiveSheet({ entries, notebookOf, onOpen, onClose }) {
   return (
     <Sheet title="Archief" onClose={onClose}>
       {entries.length === 0 ? (
@@ -26,12 +20,12 @@ export default function ArchiveSheet({
               {
                 icon: "arrow-u-up-left",
                 label: "Terugzetten",
-                onClick: () => onRestore(entry.id),
+                onClick: () => restoreFromArchive(entry.id),
               },
               {
                 icon: "trash",
                 label: "Naar prullenbak",
-                onClick: () => onTrash(entry.id),
+                onClick: () => archiveToTrash(entry.id),
               },
             ]}
           />
