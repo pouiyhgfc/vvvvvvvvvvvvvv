@@ -191,3 +191,21 @@ test("een uitklaplijst klapt zijn inhoud in en uit", async ({ page }) => {
   await knop.tap();
   await expect(melk).toBeVisible();
 });
+
+test("Kop 1 blijft leesbaar en de plaatshouder staat links", async ({
+  page,
+}) => {
+  await newNote(page, ["# Boodschappen voor de week", ""]);
+  const sizes = await page.evaluate(() => {
+    const [h1, empty] = document.querySelectorAll(
+      ".ProseMirror .bn-block-content",
+    );
+    return {
+      h1: getComputedStyle(h1.querySelector(".bn-inline-content")).fontSize,
+      // De plaatshouder (::after) begint direct na de lege regel.
+      emptyWidth: empty.querySelector(".bn-inline-content").offsetWidth,
+    };
+  });
+  expect(sizes.h1).toBe("24px");
+  expect(sizes.emptyWidth).toBeLessThan(10);
+});
