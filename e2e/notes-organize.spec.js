@@ -103,9 +103,11 @@ test("multi-select en bulk verplaatsen naar een ander notitieboek", async ({
   await page.getByText("BulkMove-B", { exact: true }).click();
 
   await page.click('button[aria-label="Verplaatsen naar…"]');
-  // Scopen op <span>: de notitieboek-tab is ook een element met tekst
-  // "Project" (een <button>), dus getByText zou ambigu zijn.
-  await page.locator("span").filter({ hasText: "Project" }).click();
+  // Binnen het blad zoeken: de notitieboek-tab heet ook "Project".
+  await page
+    .getByRole("dialog", { name: "Verplaatsen naar…" })
+    .getByRole("button", { name: "Project" })
+    .click();
 
   await expect(page.getByText("BulkMove-A", { exact: true })).toHaveCount(0);
   await expect(page.getByText("BulkMove-B", { exact: true })).toHaveCount(0);

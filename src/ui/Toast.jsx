@@ -32,9 +32,9 @@ export default function ToastHost() {
           style={{
             background: "var(--text)",
             color: "var(--bg)",
-            padding: "10px 16px",
-            borderRadius: 10,
-            fontSize: 13,
+            padding: "12px 18px",
+            borderRadius: "var(--r-md)",
+            fontSize: "var(--fs-sm)",
             fontWeight: 600,
             boxShadow: "0 6px 20px rgba(0,0,0,.25)",
             animation: "fadeUp .2s ease",

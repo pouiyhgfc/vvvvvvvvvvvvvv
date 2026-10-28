@@ -8,29 +8,28 @@ export default function MoveSheet({ notebooks, currentId, onPick, onClose }) {
       {notebooks
         .filter((n) => n.id !== currentId)
         .map((n) => (
-          <div
+          <button
             key={n.id}
+            type="button"
             onClick={() => onPick(n.id)}
             style={{
+              width: "100%",
+              minHeight: 52,
               display: "flex",
               alignItems: "center",
-              gap: 10,
-              padding: "10px 4px",
+              gap: 12,
+              border: "none",
               borderBottom: "1px solid var(--border-soft)",
-              cursor: "pointer",
+              background: "transparent",
+              color: "var(--text)",
+              fontSize: "var(--fs-md)",
+              textAlign: "start",
+              padding: 0,
             }}
           >
-            <Emoji char={n.icon} size={18} />
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: "var(--text)",
-              }}
-            >
-              {n.name}
-            </span>
-          </div>
+            <Emoji char={n.icon} size={22} />
+            {n.name}
+          </button>
         ))}
     </Sheet>
   );

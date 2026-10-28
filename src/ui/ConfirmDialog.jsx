@@ -46,7 +46,7 @@ export default function ConfirmDialog({
       <div
         style={{
           background: "var(--card)",
-          borderRadius: 16,
+          borderRadius: "var(--r-lg)",
           padding: 20,
           width: "100%",
           maxWidth: 360,
@@ -58,7 +58,7 @@ export default function ConfirmDialog({
           <h3
             style={{
               fontFamily: "var(--ff-head)",
-              fontSize: 16,
+              fontSize: "var(--fs-lg)",
               fontWeight: 700,
               marginBottom: 6,
             }}
@@ -69,7 +69,7 @@ export default function ConfirmDialog({
         {message && (
           <p
             style={{
-              fontSize: 13,
+              fontSize: "var(--fs-sm)",
               color: "var(--text-muted)",
               lineHeight: 1.5,
               marginBottom: 16,

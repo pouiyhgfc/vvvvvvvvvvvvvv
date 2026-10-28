@@ -21,10 +21,10 @@ export default function Banner({ tone = "accent", icon, children, actions }) {
       role={tone === "danger" ? "alert" : "status"}
       style={{
         ...TONES[tone],
-        borderRadius: 12,
+        borderRadius: "var(--r-md)",
         padding: "12px 14px",
         margin: "12px 14px 0",
-        fontSize: 13,
+        fontSize: "var(--fs-sm)",
         lineHeight: 1.45,
       }}
     >
