@@ -19,6 +19,13 @@ export default [
     rules: {
       ...reactHooks.configs.recommended.rules,
       'no-unused-vars': ['warn', { varsIgnorePattern: '^_', argsIgnorePattern: '^_' }],
+      // Een niet-bestaande naam breekt pas als die code draait (wit scherm);
+      // Vite bouwt er gewoon overheen. Zo vangt lint het al.
+      'no-undef': 'error',
     },
+  },
+  {
+    files: ['src/sw.js'],
+    languageOptions: { globals: { ...globals.browser, ...globals.serviceworker } },
   },
 ];
