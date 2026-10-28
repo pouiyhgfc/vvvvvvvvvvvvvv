@@ -1,0 +1,57 @@
+# Bouwt de Android-app (Capacitor) bij elke push naar main. Met de secrets
+# ANDROID_KEYSTORE_B64 en ANDROID_KEYSTORE_PASSWORD wordt het een
+# ondertekende APK bij de release "Android-app" (tag android): op je
+# telefoon open je github.com/pouiyhgfc/vvvvvvvvvvvvvv/releases/tag/android
+# en installeer je app-release.apk. Zonder die secrets alleen een
+# test-build (debug), die niet gepubliceerd wordt.
+name: Android-app
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      HAS_KEY: ${{ secrets.ANDROID_KEYSTORE_B64 != '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Web-app bouwen en in Android zetten
+        run: |
+          npm ci
+          npm run android
+      - name: Test-build (zonder sleutel)
+        if: env.HAS_KEY != 'true'
+        run: cd android && ./gradlew assembleDebug --no-daemon
+      - name: APK bouwen en ondertekenen
+        if: env.HAS_KEY == 'true'
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > "$ANDROID_KEYSTORE_PATH"
+          cd android && ./gradlew assembleRelease --no-daemon
+      - name: APK bij de release zetten
+        if: env.HAS_KEY == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          gh release view android >/dev/null 2>&1 || \
+            gh release create android --title "Android-app" \
+              --notes "Nieuwste APK van main. Installeren over de vorige heen houdt je data."
+          gh release upload android "$APK" --clobber
