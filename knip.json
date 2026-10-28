@@ -6,5 +6,8 @@
   "ignoreDependencies": [
     "@twemoji/svg",
     "@phosphor-icons/core"
+  ],
+  "ignore": [
+    "android/**"
   ]
 }

@@ -7,6 +7,7 @@
     "emoji": "node scripts/build-emoji.mjs",
     "dev": "node scripts/build-emoji.mjs && vite",
     "build": "node scripts/build-emoji.mjs && vite build",
+    "android": "npm run build && cap sync android",
     "preview": "vite preview",
     "lint": "eslint .",
     "deadcode": "knip",
@@ -19,6 +20,11 @@
     "@blocknote/core": "0.56.0",
     "@blocknote/mantine": "0.56.0",
     "@blocknote/react": "0.56.0",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/share": "^8.0.3",
     "@fontsource-variable/dm-sans": "^5.1.1",
     "@fontsource-variable/noto-naskh-arabic": "^5.3.0",
     "@fontsource-variable/outfit": "^5.1.1",
@@ -29,6 +35,7 @@
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@eslint/js": "^10.0.1",
     "@phosphor-icons/core": "^2.1.1",
     "@playwright/test": "1.63.0",

@@ -1,0 +1,10 @@
+{
+  "appId": "com.pouiyhgfc.routinetracker",
+  "appName": "Routine",
+  "webDir": "dist",
+  "plugins": {
+    "LocalNotifications": {
+      "iconColor": "#0e7a52"
+    }
+  }
+}
