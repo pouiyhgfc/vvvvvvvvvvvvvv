@@ -267,6 +267,8 @@ bewust anders).
       `src/ui/`.
 - [ ] `src/ui/`-primitives eerst naar de nieuwe stijl (Button, Sheet, Field, Section, Toast,
       ConfirmDialog, Ring, NavBtn) — dan erven alle schermen het automatisch.
+      _Stand 28-10: Button, Sheet, Field, Section, SortableList, Card klaar; NavBtn weg.
+      Toast, ConfirmDialog en Ring nog nalopen._
 - [ ] Eventueel nieuwe primitives uit de componentspecs (Card, ListRow, EmptyState).
 - [x] **Iconen (besluit eigenaar 27-10-2026):** emoji vervangen door één set lijniconen
       (Phosphor regular, MIT, plus eigen tasbih, gebedskleed en yaz). Data bewaart het emoji;
@@ -287,12 +289,14 @@ Volgorde: Statistieken → Planner → Tracker (+ "Vandaag" indien gekozen) → 
 
 - [ ] Statistieken (`StatsView`, 748 regels)
 - [ ] Planner (`WeekView` 784, `EventModal` 359) → wordt **opnieuw gebouwd**, zie 4e.
-- [ ] Tracker (`TrackerView` 420) + eventueel Vandaag-dashboard
-- [ ] Instellingen (`SettingsPanel` 986 → één bestand per sectie)
-- [ ] Hifd (`HifdView` 1.052 → RecallCard, LearningCard, VandaagView, VoortgangView, SurahSheet
-      als eigen bestanden)
+- [x] Tracker (`TrackerView` 420) + eventueel Vandaag-dashboard _(opgesplitst, 108 regels)_
+- [x] Instellingen (`SettingsPanel` 986 → één bestand per sectie) _(107 regels + 7 secties,
+      nieuw ontwerp; e2e-tests in `meer.spec.js`)_
+- [x] Hifd (`HifdView` 1.052 → RecallCard, LearningCard, VandaagView, VoortgangView, SurahSheet
+      als eigen bestanden) _(305 regels)_
 - [ ] Logboek (`LogbookView` 1.538 → notitieboek-tabs, lijst/kaarten, multi-select-balk,
       archief/prullenbak, sorteerlogica als hook; `EntryPage` 596)
+      _Stand 28-10: EntryPage 349, LogbookView nog 948._
 
 ### 4e — Planning opnieuw (besluit eigenaar 27-10-2026)
 
