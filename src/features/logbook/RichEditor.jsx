@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import {
   useCreateBlockNote,
   SuggestionMenuController,
@@ -10,6 +10,7 @@ import {
 import { BlockNoteView } from "@blocknote/mantine";
 import BlockHandle from "./BlockHandle.jsx";
 import KeyboardToolbar from "./KeyboardToolbar.jsx";
+import { outdentEmptyListItem } from "./editorActions.js";
 import { filterSuggestionItems } from "@blocknote/core";
 import { nl } from "@blocknote/core/locales";
 import "@blocknote/mantine/style.css";
@@ -128,6 +129,20 @@ const RichEditor = forwardRef(function RichEditor(
   );
 
   const containerRef = useRef(null);
+
+  // Vóór BlockNote's eigen Enter-afhandeling (capture), zie editorActions.
+  useEffect(() => {
+    const el = containerRef.current;
+    const onKey = (e) => {
+      if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+      if (outdentEmptyListItem(editor)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    el?.addEventListener("keydown", onKey, true);
+    return () => el?.removeEventListener("keydown", onKey, true);
+  }, [editor]);
 
   const getSlashItems = async (query) =>
     filterSuggestionItems(

@@ -138,3 +138,34 @@ test("de werkbalk boven het toetsenbord: lijsten, inspringen, vet", async ({
   await tap("Toetsenbord sluiten");
   await expect(bar).toBeHidden();
 });
+
+test("Enter op een lege ingesprongen regel gaat één niveau terug", async ({
+  page,
+}) => {
+  await newNote(page, ["- een"]);
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("sub");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter"); // lege subregel → terug naar niveau 0
+  await page.keyboard.type("twee");
+  expect(await blockTypes(page)).toEqual([
+    "bulletListItem",
+    "bulletListItem",
+    "bulletListItem",
+  ]);
+  const depthOfTwee = await page.evaluate(() => {
+    const el = [...document.querySelectorAll(".ProseMirror .bn-block")].find(
+      (b) => b.querySelector(".bn-inline-content")?.textContent === "twee",
+    );
+    let d = 0;
+    for (let p = el.parentElement; p; p = p.parentElement)
+      if (p.classList?.contains("bn-block-group")) d++;
+    return d;
+  });
+  expect(depthOfTwee).toBe(1); // alleen de buitenste groep
+  // Nog een Enter op een lege regel op niveau 0: uit de lijst (BlockNote).
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Enter");
+  expect((await blockTypes(page)).at(-1)).toBe("paragraph");
+});

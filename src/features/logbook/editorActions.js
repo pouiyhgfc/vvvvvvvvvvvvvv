@@ -50,6 +50,24 @@ export function outdent(editor) {
   if (editor.canUnnestBlock()) editor.unnestBlock();
 }
 
+const LIST_TYPES = new Set([
+  "bulletListItem",
+  "numberedListItem",
+  "checkListItem",
+]);
+
+// Enter op een lege, ingesprongen lijstregel: één niveau terug (zoals in
+// Notion) i.p.v. er een losse tekstregel van te maken. Geeft true als het
+// de toets heeft afgehandeld.
+export function outdentEmptyListItem(editor) {
+  const block = getActiveBlock(editor);
+  const empty = !block?.content?.length;
+  if (!block || !empty || !LIST_TYPES.has(block.type)) return false;
+  if (!editor.canUnnestBlock()) return false;
+  editor.unnestBlock();
+  return true;
+}
+
 export function toggleStyle(editor, key) {
   editor.toggleStyles({ [key]: true });
 }
