@@ -448,13 +448,17 @@ revisiedatum; beoordelen werkt; schaduwadvies is zichtbaar.
 
 ### 7b — Stack-upgrade (één pakket per commit)
 
-- [ ] Vite 6 → 8 (Rolldown), `@vitejs/plugin-react` 4 → 6, `vite-plugin-pwa` 0.21 → 2.0
+- [x] Vite 6 → 8 (Rolldown), `@vitejs/plugin-react` 4 → 6, `vite-plugin-pwa` 0.21 → 2.0
       (ondersteunt Vite 8; vraagt Node ≥ 20.19 → Node-versie in Vercel controleren). Behoud
       `injectManifest` en de `notificationclick`-handler.
 - [ ] React 19.3, Dexie 4.4.x, ESLint/Knip/Prettier/Playwright bijwerken.
+      _28-10: alles behalve Playwright (1.63 → 1.64 vraagt ook een nieuwe CI-image en
+      mogelijk nieuwe schermtest-baselines; apart doen)._
 - [ ] Bundel: editor-chunk en precache meten; eventueel `manualChunks`.
-- [ ] Meldingen: blijven "alleen als de app open is" (besluit: geen backend). Grens
+- [x] Meldingen: blijven "alleen als de app open is" (besluit: geen backend). Grens
       documenteren in Instellingen.
+      _Ingehaald door de Android-app (Capacitor): daar plant Android ze in, ook als de app
+      dicht is. De tekst onder Meer zegt per platform wat er geldt._
 - [ ] **Fase 7 afgerond**
 
 **Telefoontest:** delen naar de Claude-app werkt; antwoord plakken maakt een entry; app
