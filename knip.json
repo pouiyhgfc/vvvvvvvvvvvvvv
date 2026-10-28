@@ -1,12 +1,8 @@
 {
   "entry": [
-    "src/sw.js",
     ".claude/hooks/*.mjs"
   ],
   "ignoreDependencies": [
     "@phosphor-icons/core"
-  ],
-  "ignore": [
-    "android/**"
   ]
 }
