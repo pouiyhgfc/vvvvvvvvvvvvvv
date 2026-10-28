@@ -40,6 +40,7 @@ const UI_GLYPHS = [
   "caret-up",
   "text-h",
   "plus",
+  "file-text",
 ];
 
 const circle = (cx, cy, r) =>

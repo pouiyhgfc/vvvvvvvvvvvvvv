@@ -52,25 +52,3 @@ export function stripBlockIds(blocks) {
     ...(children ? { children: stripBlockIds(children) } : {}),
   }));
 }
-
-// Rijstijl voor archief-/prullenbak-items (Sheet-content).
-export const metaRow = {
-  display: "flex",
-  alignItems: "center",
-  gap: 8,
-  padding: "10px 4px",
-  borderBottom: "1px solid var(--border-soft)",
-};
-export const metaBtn = {
-  width: 30,
-  height: 30,
-  borderRadius: 99,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  border: "none",
-  background: "none",
-  color: "var(--text-muted)",
-  cursor: "pointer",
-  flexShrink: 0,
-};

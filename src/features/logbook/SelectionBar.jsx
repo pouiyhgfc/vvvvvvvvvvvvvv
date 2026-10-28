@@ -1,5 +1,4 @@
-import Emoji from "../../ui/Emoji.jsx";
-import { metaBtn } from "./noteHelpers.js";
+import Icon from "../../ui/Icon.jsx";
 
 // Actiebalk onderin zolang er notities geselecteerd zijn.
 export default function SelectionBar({ onPin, onArchive, onMove, onTrash }) {
@@ -24,34 +23,48 @@ export default function SelectionBar({ onPin, onArchive, onMove, onTrash }) {
         onClick={onPin}
         aria-label="Vastzetten"
         title="Vastzetten"
-        style={{ ...metaBtn, width: 44, height: 44 }}
+        style={metaBtn}
       >
-        <Emoji char="📌" size={18} />
+        <Icon name="push-pin" size={22} />
       </button>
       <button
         onClick={onArchive}
         aria-label="Archiveren"
         title="Archiveren"
-        style={{ ...metaBtn, width: 44, height: 44 }}
+        style={metaBtn}
       >
-        <Emoji char="🗄️" size={18} />
+        <Icon name="archive" size={22} />
       </button>
       <button
         onClick={onMove}
         aria-label="Verplaatsen naar…"
         title="Verplaatsen naar…"
-        style={{ ...metaBtn, width: 44, height: 44 }}
+        style={metaBtn}
       >
-        <Emoji char="📂" size={18} />
+        <Icon name="folder-open" size={22} />
       </button>
       <button
         onClick={onTrash}
         aria-label="Naar prullenbak"
         title="Naar prullenbak"
-        style={{ ...metaBtn, width: 44, height: 44 }}
+        style={metaBtn}
       >
-        <Emoji char="🗑️" size={18} />
+        <Icon name="trash" size={22} />
       </button>
     </div>
   );
 }
+
+const metaBtn = {
+  width: 44,
+  height: 44,
+  borderRadius: 99,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  border: "none",
+  background: "none",
+  color: "var(--text-muted)",
+  cursor: "pointer",
+  flexShrink: 0,
+};

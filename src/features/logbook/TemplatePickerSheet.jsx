@@ -1,4 +1,5 @@
 import Emoji from "../../ui/Emoji.jsx";
+import Icon from "../../ui/Icon.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 
 // Keuze bij "Nieuw": leeg document of een sjabloon. `onPick(null)` = leeg.
@@ -9,75 +10,85 @@ export default function TemplatePickerSheet({
   onClose,
 }) {
   return (
-    <Sheet title="Nieuwe entry" onClose={onClose}>
-      <div
-        onClick={() => {
-          onPick(null);
-        }}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "10px 4px",
-          borderBottom: "1px solid var(--border-soft)",
-          cursor: "pointer",
-        }}
-      >
-        <Emoji char="📄" size={18} />
-        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
-          Leeg document
-        </span>
-      </div>
+    <Sheet title="Nieuwe notitie" onClose={onClose}>
+      <Row
+        icon={<Icon name="file-text" size={22} />}
+        label="Leeg document"
+        onClick={() => onPick(null)}
+      />
       {templates.map((tpl) => (
-        <div
+        <Row
           key={tpl.id}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "10px 4px",
-            borderBottom: "1px solid var(--border-soft)",
-          }}
-        >
-          <div
-            onClick={() => {
-              onPick(tpl);
-            }}
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              cursor: "pointer",
-              minWidth: 0,
-            }}
-          >
-            <Emoji char={tpl.icon} size={18} />
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: "var(--text)",
-              }}
-            >
-              {tpl.name}
-            </span>
-          </div>
-          <button
-            onClick={() => onDelete(tpl)}
-            aria-label="Sjabloon verwijderen"
-            style={{
-              color: "var(--text-faint)",
-              border: "none",
-              background: "none",
-              cursor: "pointer",
-              padding: 4,
-            }}
-          >
-            <Emoji char="🗑️" size={14} />
-          </button>
-        </div>
+          icon={<Emoji char={tpl.icon} size={22} />}
+          label={tpl.name}
+          onClick={() => onPick(tpl)}
+          onDelete={() => onDelete(tpl)}
+        />
       ))}
     </Sheet>
+  );
+}
+
+function Row({ icon, label, onClick, onDelete }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        borderBottom: "1px solid var(--border-soft)",
+      }}
+    >
+      <button
+        type="button"
+        onClick={onClick}
+        style={{
+          flex: 1,
+          minWidth: 0,
+          minHeight: 52,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          border: "none",
+          background: "transparent",
+          color: "var(--text)",
+          fontSize: "var(--fs-md)",
+          textAlign: "start",
+          padding: 0,
+        }}
+      >
+        <span style={{ display: "flex", color: "var(--text-muted)" }}>
+          {icon}
+        </span>
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {label}
+        </span>
+      </button>
+      {onDelete && (
+        <button
+          type="button"
+          onClick={onDelete}
+          aria-label={`Sjabloon ${label} verwijderen`}
+          style={{
+            width: 44,
+            height: 44,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "none",
+            background: "transparent",
+            color: "var(--text-muted)",
+            padding: 0,
+          }}
+        >
+          <Icon name="trash" size={20} />
+        </button>
+      )}
+    </div>
   );
 }
