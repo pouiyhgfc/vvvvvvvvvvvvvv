@@ -1,6 +1,7 @@
 import { INITIAL_EASE } from "../../lib/hifd.js";
 import Sheet from "../../ui/Sheet.jsx";
 import Button from "../../ui/Button.jsx";
+import { shortDate } from "./hifdDates.js";
 
 export default function SurahSheet({
   rec,
@@ -15,7 +16,11 @@ export default function SurahSheet({
   return (
     <Sheet
       title={`${meta.tr} (${meta.id})`}
-      subtitle={`${meta.name} · ${meta.verses} verzen`}
+      subtitle={
+        <>
+          <bdi>{meta.name}</bdi> · {meta.verses} verzen
+        </>
+      }
       onClose={onClose}
     >
       {/* Voortgangsbalk */}
@@ -112,7 +117,7 @@ export default function SurahSheet({
         <span
           style={{
             display: "inline-block",
-            fontSize: 11,
+            fontSize: "var(--fs-xs)",
             fontWeight: 600,
             padding: "3px 8px",
             borderRadius: 6,
@@ -138,9 +143,13 @@ export default function SurahSheet({
         </span>
         {rec.dateMemorized && (
           <span
-            style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: 8 }}
+            style={{
+              fontSize: "var(--fs-xs)",
+              color: "var(--text-muted)",
+              marginLeft: 8,
+            }}
           >
-            Gememoriseerd op {rec.dateMemorized}
+            Gememoriseerd op {shortDate(rec.dateMemorized)}
           </span>
         )}
       </div>
@@ -186,7 +195,7 @@ export default function SurahSheet({
               </div>
               <div
                 style={{
-                  fontSize: 9,
+                  fontSize: "var(--fs-xs)",
                   color: "var(--text-muted)",
                   marginTop: 2,
                 }}
@@ -199,12 +208,12 @@ export default function SurahSheet({
             <div
               style={{
                 gridColumn: "1 / -1",
-                fontSize: 11,
+                fontSize: "var(--fs-xs)",
                 color: "var(--text-muted)",
                 textAlign: "center",
               }}
             >
-              Volgende revisie: {rec.nextDue}
+              Volgende revisie: {shortDate(rec.nextDue)}
             </div>
           )}
         </div>
@@ -215,7 +224,7 @@ export default function SurahSheet({
         <div style={{ marginBottom: 16 }}>
           <div
             style={{
-              fontSize: 11,
+              fontSize: "var(--fs-xs)",
               fontWeight: 700,
               color: "var(--text-muted)",
               textTransform: "uppercase",
@@ -237,7 +246,7 @@ export default function SurahSheet({
                 borderBottom: "1px solid var(--border-soft)",
               }}
             >
-              <span>{entry.date}</span>
+              <span>{shortDate(entry.date)}</span>
               <span>
                 {entry.versesKnown} verzen ·{" "}
                 <span
