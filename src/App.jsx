@@ -26,6 +26,7 @@ import TrackerView from "./features/tracker/TrackerView.jsx";
 import PlanningView from "./features/planner/PlanningView.jsx";
 import StatsView from "./features/stats/StatsView.jsx";
 import SettingsPanel from "./features/settings/SettingsPanel.jsx";
+import { streakDays } from "./features/stats/statsData.js";
 import LogbookView from "./features/logbook/LogbookView.jsx";
 import EntryPage from "./features/logbook/EntryPage.jsx";
 import HifdView from "./features/hifd/HifdView.jsx";
@@ -262,35 +263,13 @@ export default function App({ startupErrors = [] }) {
       ? Math.round((pDone(p) / routines[p].length) * 100)
       : 0;
 
-  const streak = (() => {
-    const threshold = Math.max(
-      1,
-      Math.ceil(total * ((settings.streakPct || 50) / 100)),
-    );
-    let s = 0;
-    const d = new Date();
-    const todayCount = Object.values(checked).filter(Boolean).length;
-    if (isToday(date) && todayCount >= threshold) s++;
-    else if (!isToday(date)) {
-      const t = allDays[dk(new Date())];
-      if (
-        t?.checked &&
-        Object.values(t.checked).filter(Boolean).length >= threshold
-      )
-        s++;
-    }
-    d.setDate(d.getDate() - 1);
-    for (let i = 0; i < 365; i++) {
-      const data = allDays[dk(d)];
-      const done = data?.checked
-        ? Object.values(data.checked).filter(Boolean).length
-        : 0;
-      if (done < threshold) break;
-      s++;
-      d.setDate(d.getDate() - 1);
-    }
-    return s;
-  })();
+  // Reeks over de opgeslagen dagen; voor vandaag telt de huidige staat
+  // (die kan een tel voorlopen op wat er al in Dexie staat).
+  const streak = streakDays(
+    isToday(date) ? { ...allDays, [dk(new Date())]: day } : allDays,
+    total,
+    settings.streakPct || 50,
+  );
 
   const toggleNotifications = async () => {
     if (typeof Notification === "undefined") {
