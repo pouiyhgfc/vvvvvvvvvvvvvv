@@ -326,7 +326,8 @@ export default function EntryPage({
           style={{
             maxWidth: 720,
             margin: "0 auto",
-            padding: "var(--sp-3) var(--sp-3) 48px",
+            // Onderin ruimte voor de werkbalk boven het toetsenbord.
+            padding: "var(--sp-3) var(--sp-3) 96px",
           }}
         >
           {/* Meta-rij: notitieboek · datum · tags · opslaan-status */}

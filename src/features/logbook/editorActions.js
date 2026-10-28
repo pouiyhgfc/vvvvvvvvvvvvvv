@@ -33,6 +33,23 @@ export function setBlockType(editor, type, props) {
   editor.updateBlock(block, props ? { type, props } : { type });
 }
 
+// Lijst-knoppen: nog eens tikken op hetzelfde type maakt er weer tekst van.
+export function toggleBlockType(editor, type) {
+  const block = getActiveBlock(editor);
+  if (!block) return;
+  editor.updateBlock(block, {
+    type: block.type === type ? "paragraph" : type,
+  });
+}
+
+export function indent(editor) {
+  if (editor.canNestBlock()) editor.nestBlock();
+}
+
+export function outdent(editor) {
+  if (editor.canUnnestBlock()) editor.unnestBlock();
+}
+
 export function toggleStyle(editor, key) {
   editor.toggleStyles({ [key]: true });
 }

@@ -101,3 +101,40 @@ test("een Arabische regel staat rechts, een Nederlandse links", async ({
   expect(ar.left).toBeGreaterThan(20);
   expect(nl.left).toBeLessThan(2);
 });
+
+test("de werkbalk boven het toetsenbord: lijsten, inspringen, vet", async ({
+  page,
+}) => {
+  await newNote(page, ["een"]);
+  const bar = page.getByRole("toolbar", { name: "Opmaak" });
+  await expect(bar).toBeVisible();
+  const tap = (label) => bar.getByRole("button", { name: label }).tap();
+
+  await tap("Opsomming");
+  await page.keyboard.press("End");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("twee");
+  await tap("Inspringen");
+  const nested = () =>
+    page.evaluate(
+      () =>
+        document.querySelectorAll(
+          ".ProseMirror .bn-block-group .bn-block-group .bn-block",
+        ).length,
+    );
+  expect(await nested()).toBe(1);
+  await tap("Uitspringen");
+  expect(await nested()).toBe(0);
+  expect(await blockTypes(page)).toEqual(["bulletListItem", "bulletListItem"]);
+
+  // Nog eens tikken op hetzelfde lijsttype maakt er weer tekst van.
+  await tap("Opsomming");
+  expect(await blockTypes(page)).toEqual(["bulletListItem", "paragraph"]);
+
+  await tap("Vet");
+  await page.keyboard.type(" vet");
+  await expect(page.locator(".ProseMirror strong")).toHaveText(" vet");
+
+  await tap("Toetsenbord sluiten");
+  await expect(bar).toBeHidden();
+});

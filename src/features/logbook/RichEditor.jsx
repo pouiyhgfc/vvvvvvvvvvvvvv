@@ -9,6 +9,7 @@ import {
 } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import BlockHandle from "./BlockHandle.jsx";
+import KeyboardToolbar from "./KeyboardToolbar.jsx";
 import { filterSuggestionItems } from "@blocknote/core";
 import { nl } from "@blocknote/core/locales";
 import "@blocknote/mantine/style.css";
@@ -169,6 +170,7 @@ const RichEditor = forwardRef(function RichEditor(
         />
       </BlockNoteView>
       <BlockHandle editor={editor} containerRef={containerRef} />
+      <KeyboardToolbar editor={editor} />
     </div>
   );
 });

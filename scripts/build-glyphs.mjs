@@ -29,6 +29,13 @@ const UI_GLYPHS = [
   "x",
   "arrow-u-up-right",
   "caret-down",
+  "list-bullets",
+  "list-numbers",
+  "text-b",
+  "text-italic",
+  "text-indent",
+  "text-outdent",
+  "caret-line-down",
 ];
 
 const circle = (cx, cy, r) =>
