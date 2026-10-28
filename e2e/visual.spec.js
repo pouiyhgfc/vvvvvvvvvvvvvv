@@ -9,6 +9,20 @@ const screens = [
   ["dag", async () => {}],
   ["week", (page) => openTab(page, "Planning")],
   ["stats", (page) => openTab(page, "Statistieken")],
+  [
+    "stats-maand",
+    async (page) => {
+      await openTab(page, "Statistieken");
+      await page.getByRole("tab", { name: "Maand" }).click();
+    },
+  ],
+  [
+    "stats-jaar",
+    async (page) => {
+      await openTab(page, "Statistieken");
+      await page.getByRole("tab", { name: "Jaar" }).click();
+    },
+  ],
   ["notities", (page) => openTab(page, "Notities")],
   [
     "notitie-open",
