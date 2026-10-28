@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { bodyPreview } from "../../lib/notes.js";
+import { bodyPreview, noteDay } from "../../lib/notes.js";
 import DragHandle from "../../ui/DragHandle.jsx";
 import Emoji from "../../ui/Emoji.jsx";
 import Icon from "../../ui/Icon.jsx";
@@ -24,7 +24,7 @@ export default function NoteCard({
   const start = useRef(null);
   const isLog = entry._type === "log";
   const preview = bodyPreview(entry.body);
-  const day = entry.updatedAt ? entry.updatedAt.slice(0, 10) : entry.date;
+  const day = noteDay(entry);
   return (
     <div
       data-srow={isLog && canSort ? "1" : undefined}

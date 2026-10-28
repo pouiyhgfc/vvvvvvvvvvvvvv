@@ -1,3 +1,5 @@
+import { dk } from "./date.js";
+
 // Centrale status-helpers voor log-entries (archief/prullenbak). Eén plek
 // i.p.v. losse `!e.archivedAt`-checks verspreid over de queries, zodat een
 // verwijderde of gearchiveerde entry nergens per ongeluk weer opduikt (bv.
@@ -35,3 +37,9 @@ export function headingsOf(blocks = []) {
   walk(Array.isArray(blocks) ? blocks : []);
   return out;
 }
+
+// De dag waarop een notitie het laatst bewerkt is, als lokale datumsleutel.
+// `updatedAt` is een UTC-tijd: de eerste tien tekens zijn in Taiwan tussen
+// 00:00 en 08:00 nog "gisteren".
+export const noteDay = (entry) =>
+  entry.updatedAt ? dk(new Date(entry.updatedAt)) : entry.date;

@@ -1,5 +1,6 @@
 import { DAYS_NL, MONTHS_NL } from "../../lib/constants.js";
 import { addDays, dk, eventsOnDate, getMonday } from "../../lib/date.js";
+import { noteDay } from "../../lib/notes.js";
 import { TOTAL_AYAT } from "../../lib/surahs.js";
 
 // Standaardopdracht voor de weekreview (muhasaba). Bewust direct: geen
@@ -84,14 +85,14 @@ function planningSection(events, keys) {
 const MAX_NOTE = 1500;
 function notesSection(notes, notebookName, from, to) {
   const inRange = notes.filter((n) => {
-    const d = (n.updatedAt || n.date || "").slice(0, 10);
+    const d = noteDay(n);
     return d >= from && d <= to;
   });
   if (!inRange.length) return "";
   const parts = inRange.map((n) => {
     const body = (n.body || "").trim();
     const cut = body.length > MAX_NOTE ? body.slice(0, MAX_NOTE) + " …" : body;
-    return `### ${n.title || "Zonder titel"} (${notebookName(n)}, ${short((n.updatedAt || n.date).slice(0, 10))})\n${cut}`;
+    return `### ${n.title || "Zonder titel"} (${notebookName(n)}, ${short(noteDay(n))})\n${cut}`;
   });
   return ["## Notities", ...parts].join("\n\n");
 }

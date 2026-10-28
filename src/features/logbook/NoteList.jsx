@@ -1,4 +1,5 @@
 import Icon from "../../ui/Icon.jsx";
+import { noteDay } from "../../lib/notes.js";
 import { groupLabel } from "./noteHelpers.js";
 
 const sectionLabel = {
@@ -57,11 +58,7 @@ export default function NoteList({
           {(() => {
             let lastLabel = null;
             return rest.map((entry) => {
-              const label = groupLabel(
-                entry._type === "log" && entry.updatedAt
-                  ? entry.updatedAt.slice(0, 10)
-                  : entry.date,
-              );
+              const label = groupLabel(noteDay(entry));
               const showHeader = label !== lastLabel;
               lastLabel = label;
               return (

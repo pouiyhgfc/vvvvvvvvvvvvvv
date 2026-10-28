@@ -49,6 +49,9 @@ test("verplaatsen via de notitieboek-select in EntryPage verhuist de entry", asy
 test("Datum-modus toont groepskoppen en geen sleephandvatten", async ({
   page,
 }) => {
+  // Na middernacht in Taiwan is het in UTC nog "gisteren": de groepskop moet
+  // de lokale dag gebruiken.
+  await page.clock.setFixedTime(new Date("2026-10-29T01:30:00+08:00"));
   await openLogbook(page);
   await createNote(page, "Datum-test");
 
