@@ -93,3 +93,23 @@ test("datum van vandaag invoegen via het plus-menu", async ({ page }) => {
     "woensdag 28 oktober 2026",
   );
 });
+
+test("een notitie als sjabloon opslaan en gebruiken", async ({ page }) => {
+  await newNote(page, ["Doelen voor deze week"]);
+  await openMenu(page);
+  await page.getByRole("button", { name: "Opslaan als sjabloon" }).tap();
+  await page.getByPlaceholder("Naam sjabloon...").fill("Weekplan");
+  await page.getByRole("button", { name: "Opslaan", exact: true }).tap();
+  await expect(page.getByText("✓ Sjabloon opgeslagen")).toBeVisible();
+
+  await page.getByRole("button", { name: "Terug" }).tap();
+  await page
+    .getByRole("navigation", { name: "Hoofdmenu" })
+    .getByRole("button", { name: "Notities" })
+    .tap();
+  await page.getByRole("button", { name: "Nieuwe notitie" }).tap();
+  await page.getByText("Weekplan", { exact: true }).tap();
+  await expect(page.locator(".ProseMirror")).toContainText(
+    "Doelen voor deze week",
+  );
+});
