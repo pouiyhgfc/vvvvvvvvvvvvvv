@@ -56,7 +56,10 @@ test("Datum-modus toont groepskoppen en geen sleephandvatten", async ({
 
   await page.click('button[aria-label="Meer opties"]');
   await page.getByRole("button", { name: "Datum" }).click();
-  await expect(page.getByText("Vandaag", { exact: true })).toBeVisible();
+  // Niet de tab "Vandaag" in het hoofdmenu, maar de groepskop in de lijst.
+  await expect(
+    page.getByText("Vandaag", { exact: true }).and(page.locator("div")),
+  ).toBeVisible();
   await expect(page.locator(".drag-handle")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Eigen" }).click();
