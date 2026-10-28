@@ -2,7 +2,6 @@ export default function Ring({
   value,
   size = 90,
   stroke = 7,
-  label,
   color = "var(--accent)",
 }) {
   const r = (size - stroke) / 2,
@@ -54,13 +53,6 @@ export default function Ring({
         >
           {value}%
         </span>
-        {label && (
-          <span
-            style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}
-          >
-            {label}
-          </span>
-        )}
       </div>
     </div>
   );
