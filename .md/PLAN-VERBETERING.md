@@ -405,13 +405,14 @@ zien, notitielink volgen, zoeken vindt tekst uit een tabel, Arabische alinea sta
 
 ### 6a — Onderzoek (geen code)
 
-- [ ] FSRS (ts-fsrs 5.x, FSRS-6) vs. de huidige SM-2-variant vs. de traditionele indeling
+- [x] FSRS (ts-fsrs 5.x, FSRS-6) vs. de huidige SM-2-variant vs. de traditionele indeling
       **sabaq** (nieuw), **sabqi** (recent, dagelijks) en **manzil** (vaste rotatie over alles).
-- [ ] **Granulariteit:** is een hele surah als één "kaart" realistisch (Al-Baqarah = 286 verzen)?
+- [x] **Granulariteit:** is een hele surah als één "kaart" realistisch (Al-Baqarah = 286 verzen)?
       Alternatieven: per pagina, per ruku', per rub' al-hizb. Wat betekent dat voor de data?
-- [ ] Het max-interval van 30 dagen: is dat juist goed (manzil-cyclus) of te strikt?
-- [ ] Wat meten we om het algoritme te kunnen beoordelen (fouten per vers, tijd, retentie)?
+- [x] Het max-interval van 30 dagen: is dat juist goed (manzil-cyclus) of te strikt?
+- [x] Wat meten we om het algoritme te kunnen beoordelen (fouten per vers, tijd, retentie)?
 - [ ] Uitkomst: een beslisdocument met advies; de eigenaar kiest.
+      _Beslisdocument: [`.md/HIFD-ONDERZOEK.md`](HIFD-ONDERZOEK.md) (28-10). Wacht op de keuze._
 
 ### 6b — Bouwen (na de keuze)
 
