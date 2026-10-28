@@ -43,7 +43,8 @@ export default function VandaagView({
         <Ring value={ringPct} size={56} stroke={6} />
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <span style={{ fontSize: "var(--fs-md)", fontWeight: 600 }}>
-            {memorizedCount} van 114 surahs
+            {versesKnownTotal.toLocaleString("nl-NL")} van{" "}
+            {TOTAL_AYAT.toLocaleString("nl-NL")} verzen
           </span>
           <span
             style={{ fontSize: "var(--fs-sm)", color: "var(--text-muted)" }}
@@ -53,8 +54,7 @@ export default function VandaagView({
           <span
             style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)" }}
           >
-            {versesKnownTotal.toLocaleString("nl-NL")} van{" "}
-            {TOTAL_AYAT.toLocaleString("nl-NL")} verzen
+            {memorizedCount} van 114 surahs gememoriseerd
           </span>
         </div>
       </Card>

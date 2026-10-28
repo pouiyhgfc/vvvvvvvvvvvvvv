@@ -3,7 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { addDays } from "../../lib/date.js";
 import { DEFAULT_SETTINGS } from "../../lib/constants.js";
-import { surahById } from "../../lib/surahs.js";
+import { surahById, TOTAL_AYAT } from "../../lib/surahs.js";
 import { nextSrs, INITIAL_EASE } from "../../lib/hifd.js";
 import { showToast } from "../../lib/toast.js";
 import { today, shortDate } from "./hifdDates.js";
@@ -94,7 +94,10 @@ export default function HifdView() {
       .slice(0, remainingReviews);
   }, [hifdRecords, remainingReviews]);
 
-  const ringPct = Math.round((memorizedCount / 114) * 100);
+  // Voortgang op verzen, niet op surahs: Al-Baqarah (286 verzen) telt zo
+  // zwaarder dan Al-Kawthar (3). Bij enige voortgang minstens 1%.
+  const versePct = (versesKnownTotal / TOTAL_AYAT) * 100;
+  const ringPct = versesKnownTotal ? Math.max(1, Math.round(versePct)) : 0;
 
   async function updateVersesKnown(surahId, delta) {
     const rec = hifdMap[surahId];

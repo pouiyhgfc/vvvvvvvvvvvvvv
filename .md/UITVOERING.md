@@ -21,7 +21,7 @@ _Daarvóór:_ _Notities beter organiseren — vastzetten, archief/prullenbak (za
 > In het Verbeterplan 2026 opgenomen: "Vandaag"-dashboard (fase 2/4), koppelingen tussen notities (5.5), backup-herinnering (1c), meldingen (7b, blijft lokaal). Sync valt erbuiten (besluit: lokaal blijven).
 
 - [ ] **Android-app (APK) met Capacitor** — besluit eigenaar 28-10-2026: Capacitor, zodat meldingen ook komen als de app dicht is. Data eenmalig overzetten via backup.
-- [ ] **Hifd-percentage op verzen** — voortgang berekenen op gememoriseerde verzen i.p.v. aantal surahs (accurater).
+- [x] **Hifd-percentage op verzen** — voortgang berekenen op gememoriseerde verzen i.p.v. aantal surahs (accurater).
 - [ ] **"Vandaag"-dashboard** — startscherm dat tracker-voortgang, planning van vandaag en snelle logboek-invoer samenbrengt.
 - [ ] **Koppelingen** — notities/logboek linken aan focusgebieden of routines.
 - [ ] **Globaal zoeken** — één zoekbalk over logboek + notities tegelijk.
