@@ -176,7 +176,7 @@ export default function HifdView() {
     setSelectedSurah(null);
   }
 
-  async function rateReview(surahId, rating) {
+  async function rateReview(surahId, rating, mistakes = null) {
     const rec = hifdMap[surahId];
     if (!rec) return;
     const t = today();
@@ -196,6 +196,7 @@ export default function HifdView() {
       date: t,
       versesKnown: meta?.verses ?? rec.versesKnown,
       rating,
+      mistakes,
       phase: "review",
       note: "",
     });

@@ -5,7 +5,7 @@
 
 import { PERIOD_LABELS } from "./constants.js";
 
-export const BACKUP_VERSION = 9;
+export const BACKUP_VERSION = 10;
 
 // De tracker rendert elk dagdeel; ontbreekt er één, dan crasht de app.
 const PERIODS = Object.keys(PERIOD_LABELS);

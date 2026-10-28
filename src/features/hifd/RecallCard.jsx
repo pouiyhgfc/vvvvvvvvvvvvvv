@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { surahById } from "../../lib/surahs.js";
 import { nextSrs } from "../../lib/hifd.js";
 import Card from "../../ui/Card.jsx";
@@ -32,9 +33,14 @@ const RECALL_BUTTONS = [
 
 const intervalLabel = (days) => (days === 1 ? "morgen" : `${days} d`);
 
+// Optioneel: hoeveel fouten je maakte. Gaat mee in de log (`mistakes`), zodat
+// later te zien is welke stukken wegzakken (zie .md/HIFD-ONDERZOEK.md).
+const MISTAKES = ["0", "1-2", "3+"];
+
 // Eén revisie tegelijk: de surah groot, daaronder vier beoordelingen met
 // wanneer hij dan terugkomt.
 export default function RecallCard({ rec, position, total, onRate }) {
+  const [mistakes, setMistakes] = useState(null);
   const meta = surahById(rec.surah);
   if (!meta) return null;
 
@@ -78,6 +84,41 @@ export default function RecallCard({ rec, position, total, onRate }) {
         </span>
       </div>
       <div
+        role="group"
+        aria-label="Fouten"
+        style={{ display: "flex", alignItems: "center", gap: 6 }}
+      >
+        <span
+          style={{
+            flex: 1,
+            fontSize: "var(--fs-sm)",
+            color: "var(--text-muted)",
+          }}
+        >
+          Fouten
+        </span>
+        {MISTAKES.map((m) => (
+          <button
+            key={m}
+            type="button"
+            aria-pressed={mistakes === m}
+            onClick={() => setMistakes(mistakes === m ? null : m)}
+            style={{
+              minWidth: 52,
+              minHeight: 40,
+              borderRadius: "var(--r-pill)",
+              border: "none",
+              fontSize: "var(--fs-sm)",
+              fontWeight: 600,
+              background: mistakes === m ? "var(--accent-bg)" : "var(--sunken)",
+              color: mistakes === m ? "var(--accent-text)" : "var(--text)",
+            }}
+          >
+            {m.replace("-", "–")}
+          </button>
+        ))}
+      </div>
+      <div
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
@@ -88,7 +129,7 @@ export default function RecallCard({ rec, position, total, onRate }) {
           <button
             key={value}
             type="button"
-            onClick={() => onRate(rec.surah, value)}
+            onClick={() => onRate(rec.surah, value, mistakes)}
             style={{
               minHeight: 56,
               borderRadius: "var(--r-md)",

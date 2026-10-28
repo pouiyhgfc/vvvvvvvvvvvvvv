@@ -74,6 +74,7 @@ async function seed() {
     date: "2026-10-27",
     phase: "review",
     rating: "goed",
+    mistakes: "1-2",
   });
 }
 
@@ -113,7 +114,7 @@ describe("volledige backup", () => {
     await seed();
     const before = await snapshot();
     const backup = await exportAll();
-    expect(backup.version).toBe(9);
+    expect(backup.version).toBe(10);
 
     await db.delete();
     await db.open();

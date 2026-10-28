@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { NOW } from "./fixtures/demo.js";
-import { loadDemo, openTab } from "./helpers.js";
+import { exportBackup, loadDemo, openTab } from "./helpers.js";
 
 // Kernflows buiten de editor: afvinken, Hifd beoordelen en een backup die
 // via de echte knoppen weer volledig te exporteren is.
@@ -38,6 +38,7 @@ test("een Hifd-revisie beoordelen haalt de surah uit de lijst en telt mee", asyn
     .filter({ hasText: "zeg uit het hoofd op" });
   await expect(card.getByText("Al-Fatihah", { exact: true })).toBeVisible();
 
+  await card.getByRole("button", { name: "1–2" }).click();
   await card.getByRole("button", { name: /^Goed/ }).click();
 
   await expect(page.getByText(/Revisie vandaag: 1 van 4/)).toBeVisible();
@@ -45,6 +46,13 @@ test("een Hifd-revisie beoordelen haalt de surah uit de lijst en telt mee", asyn
   await page.reload();
   await openTab(page, "Hifd");
   await expect(page.getByText(/Revisie vandaag: 1 van 4/)).toBeVisible();
+
+  // Het aantal fouten staat in de log (en gaat mee in de backup).
+  const backup = await exportBackup(page);
+  const review = backup.hifdLog.find(
+    (l) => l.surah === 1 && l.phase === "review" && l.mistakes,
+  );
+  expect(review).toMatchObject({ rating: "goed", mistakes: "1-2" });
 });
 
 test("'Exporteer alles' levert een volledige backup op", async ({ page }) => {
@@ -57,7 +65,7 @@ test("'Exporteer alles' levert een volledige backup op", async ({ page }) => {
   const { readFile } = await import("node:fs/promises");
   const backup = JSON.parse(await readFile(file, "utf8"));
 
-  expect(backup.version).toBe(9);
+  expect(backup.version).toBe(10);
   expect(backup.logEntries).toHaveLength(3);
   expect(backup.hifd).toHaveLength(114);
   expect(backup.hifd.filter((r) => r.status === "memorized")).toHaveLength(6);
