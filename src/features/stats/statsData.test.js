@@ -22,8 +22,12 @@ describe("statsData", () => {
 
   test("reeks: vandaag telt alleen mee als die al gehaald is", () => {
     // Drempel = helft van 4 = 2: wo (1) niet, di (2) en ma (4) wel.
-    expect(streakDays(allDays, 4, wed)).toBe(2);
-    expect(streakDays({ ...allDays, "2026-10-28": day(3) }, 4, wed)).toBe(3);
+    expect(streakDays(allDays, 4, 50, wed)).toBe(2);
+    expect(streakDays({ ...allDays, "2026-10-28": day(3) }, 4, 50, wed)).toBe(
+      3,
+    );
+    // Drempel 100%: alleen ma telt, en die sluit niet aan op vandaag.
+    expect(streakDays(allDays, 4, 100, wed)).toBe(0);
   });
 
   test("maand begint op de juiste weekdag", () => {
@@ -34,9 +38,10 @@ describe("statsData", () => {
   });
 
   test("jaar: actieve dagen, langste reeks en gemiddelde", () => {
-    const y = yearStats(wed, allDays, 4);
+    const y = yearStats(wed, allDays, 4, 50);
     expect(y).toMatchObject({ activeDays: 3, longestStreak: 2 });
     expect(y.avgPct).toBe(58); // (100 + 50 + 25) / 3
     expect(y.monthBars[9].pct).toBe(Math.round((7 / (4 * 31)) * 100));
+    expect(yearStats(wed, allDays, 4, 25).longestStreak).toBe(3);
   });
 });

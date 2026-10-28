@@ -17,6 +17,7 @@ export default function StatsView({
   routines,
   allDays,
   areaStyles,
+  streakPct,
   date,
   setDate,
   setView,
@@ -47,7 +48,7 @@ export default function StatsView({
       {statsPeriod === "week" && (
         <WeekStats
           weekData={weekStats(date, allDays, total)}
-          streak={streakDays(allDays, total)}
+          streak={streakDays(allDays, total, streakPct)}
           areaWeekStats={areaWeekStats(date, allDays, allR)}
           areaStyles={areaStyles}
         />
@@ -60,7 +61,7 @@ export default function StatsView({
         />
       )}
       {statsPeriod === "year" && (
-        <YearStats yearData={yearStats(date, allDays, total)} />
+        <YearStats yearData={yearStats(date, allDays, total, streakPct)} />
       )}
     </div>
   );

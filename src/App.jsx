@@ -571,6 +571,7 @@ export default function App({ startupErrors = [] }) {
           routines={routines}
           allDays={allDays}
           areaStyles={areaStyles}
+          streakPct={settings.streakPct}
           date={date}
           setDate={setDate}
           setView={setView}

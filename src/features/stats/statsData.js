@@ -54,10 +54,15 @@ export function areaWeekStats(date, allDays, allR) {
   }));
 }
 
+// Minimaal aantal afgevinkte routines voor een "voltooide" dag; `pct` is de
+// streak-drempel uit Meer (standaard 50%).
+const dayThreshold = (total, pct = 50) =>
+  Math.max(1, Math.ceil(total * (pct / 100)));
+
 // Dagen op rij (vandaag telt mee als die al gehaald is) met minstens de
-// helft van de routines afgevinkt.
-export function streakDays(allDays, total, now = new Date()) {
-  const threshold = Math.max(1, Math.ceil(total * 0.5));
+// drempel afgevinkt.
+export function streakDays(allDays, total, pct, now = new Date()) {
+  const threshold = dayThreshold(total, pct);
   let s = 0;
   const d = new Date(now);
   const todayData = allDays[dk(d)];
@@ -102,7 +107,7 @@ export function monthStats(date, allDays, total) {
 
 // Jaar van `date`: weken-raster, actieve dagen, langste reeks, gemiddelde en
 // per maand het percentage.
-export function yearStats(date, allDays, total) {
+export function yearStats(date, allDays, total, pct) {
   const y = date.getFullYear();
   const firstMon = getMonday(new Date(y, 0, 1));
   const weeks = [];
@@ -135,7 +140,7 @@ export function yearStats(date, allDays, total) {
     totalPct = 0,
     trackedCount = 0,
     curS = 0;
-  const threshold = Math.max(1, Math.ceil(total * 0.5));
+  const threshold = dayThreshold(total, pct);
   for (let m = 0; m < 12; m++) {
     for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {
       const k = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
