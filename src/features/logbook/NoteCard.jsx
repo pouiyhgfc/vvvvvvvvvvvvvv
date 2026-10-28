@@ -15,6 +15,7 @@ export default function NoteCard({
   selected,
   canSort,
   moodEmoji,
+  notebook,
   onClick,
   onToggleSelect,
   onLongPressStart,
@@ -105,6 +106,21 @@ export default function NoteCard({
             color: "var(--text-muted)",
           }}
         >
+          {notebook && (
+            <span
+              style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
+            >
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: 4,
+                  background: notebook.color,
+                }}
+              />
+              {notebook.name} ·
+            </span>
+          )}
           {entry.pinnedAt && (
             <span style={{ color: "var(--accent-text)" }}>Vastgezet ·</span>
           )}

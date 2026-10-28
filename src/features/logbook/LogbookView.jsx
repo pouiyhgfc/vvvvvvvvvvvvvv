@@ -59,6 +59,8 @@ const sectionLabel = {
   margin: "4px 4px 8px",
 };
 
+const ALL = "__alles";
+
 export default function LogbookView() {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState(null);
@@ -83,16 +85,20 @@ export default function LogbookView() {
   const theme = settingsRec?.theme ?? "light";
   // "eigen" = handmatige sleepvolgorde, "datum" = gegroepeerd op datum
   // (nieuwste eerst); vastgezet blijft in beide modi bovenaan.
-  const sortMode = settingsRec?.logbookSort ?? "eigen";
+  const savedSort = settingsRec?.logbookSort ?? "eigen";
   const setSortMode = (mode) =>
     db.settings.update("singleton", { logbookSort: mode });
   const entryTemplatesBlob = useLiveQuery(() => db.blobs.get("entryTemplates"));
   const entryTemplates = entryTemplatesBlob?.data ?? [];
   const notebooksBlob = useLiveQuery(() => db.blobs.get("notebooks"));
   const notebooks = notebooksBlob?.data ?? DEFAULT_NOTEBOOKS;
-  const activeNotebook =
-    notebooks.find((n) => n.id === activeNb) || notebooks[0];
-  const activeId = activeNotebook?.id ?? "logboek";
+  // "Alles" = alle notitieboeken samen, laatst bewerkt bovenaan.
+  const isAll = activeNb === ALL;
+  const activeNotebook = isAll
+    ? null
+    : notebooks.find((n) => n.id === activeNb) || notebooks[0];
+  const activeId = isAll ? ALL : (activeNotebook?.id ?? "logboek");
+  const sortMode = isAll ? "datum" : savedSort;
 
   // Selectie hoort bij één notitieboek — bij wisselen begint 'ie leeg,
   // anders blijven id's uit een ander boek "geselecteerd" maar onzichtbaar.
@@ -112,10 +118,10 @@ export default function LogbookView() {
   const allEntries = useMemo(() => {
     if (!logEntriesRaw || !dayNotesRaw) return [];
     const log = logEntriesRaw
-      .filter((e) => nbOf(e) === activeId && isActive(e))
+      .filter((e) => (isAll || nbOf(e) === activeId) && isActive(e))
       .map((e) => ({ ...e, _type: "log" }));
     const days =
-      activeId === "logboek"
+      isAll || activeId === "logboek"
         ? dayNotesRaw.map((d) => ({
             id: `day_${d.date}`,
             date: d.date,
@@ -150,17 +156,17 @@ export default function LogbookView() {
     });
     const sortedDays = days.sort((a, b) => b.date.localeCompare(a.date));
     return [...sortedLog, ...sortedDays];
-  }, [logEntriesRaw, dayNotesRaw, activeId, sortMode]);
+  }, [logEntriesRaw, dayNotesRaw, activeId, isAll, sortMode]);
 
   // Tags van dit notitieboek, hoofdletters samengevoegd, meest gebruikt eerst.
   const allTags = useMemo(
     () =>
       tagStats(
         (logEntriesRaw ?? []).filter(
-          (e) => nbOf(e) === activeId && isActive(e),
+          (e) => (isAll || nbOf(e) === activeId) && isActive(e),
         ),
       ),
-    [logEntriesRaw, activeId],
+    [logEntriesRaw, activeId, isAll],
   );
 
   // Archief/prullenbak: over alle notitieboeken heen, met het notitieboek als
@@ -199,7 +205,7 @@ export default function LogbookView() {
 
   // Slepen kan ook tijdens zoeken/filteren (zie reorderWithinFull hieronder) —
   // alleen de sorteermodus en selectiemodus sluiten het nog uit.
-  const canSort = sortMode === "eigen" && !selectMode;
+  const canSort = sortMode === "eigen" && !selectMode && !isAll;
 
   // Alleen log-entries zijn selecteerbaar (dagnotities hebben geen
   // logEntries-record, dus geen pin/archief/prullenbak/verplaatsen).
@@ -473,6 +479,7 @@ export default function LogbookView() {
         selected={isLog && selectedIds.has(entry.id)}
         canSort={canSort}
         moodEmoji={moodEmoji}
+        notebook={isAll && isLog ? notebookOf(entry) : null}
         onToggleSelect={() => toggleSelect(entry.id)}
         onLongPressStart={startLongPress}
         onLongPressEnd={cancelLongPress}
@@ -620,6 +627,18 @@ export default function LogbookView() {
           WebkitOverflowScrolling: "touch",
         }}
       >
+        <button
+          type="button"
+          aria-pressed={isAll}
+          onClick={() => switchNotebook(ALL)}
+          style={{
+            ...chip,
+            background: isAll ? "var(--text)" : "var(--card)",
+            color: isAll ? "var(--bg)" : "var(--text)",
+          }}
+        >
+          Alles
+        </button>
         {notebooks.map((n) => {
           const active = n.id === activeId;
           return (
@@ -762,10 +781,10 @@ export default function LogbookView() {
 
       {menuSheet && (
         <NotesMenuSheet
-          sortMode={sortMode}
+          sortMode={savedSort}
           onSort={setSortMode}
           onSelect={selectableIds.length > 0 ? () => setSelectMode(true) : null}
-          onEditNotebook={() => setNbSheet(activeNotebook)}
+          onEditNotebook={isAll ? null : () => setNbSheet(activeNotebook)}
           onOrderNotebooks={
             notebooks.length > 1 ? () => setSortNbSheet(true) : null
           }
@@ -779,7 +798,7 @@ export default function LogbookView() {
       {pageEntry && (
         <EntryPage
           entry={pageEntry === "new" || pageEntry._draft ? null : pageEntry}
-          notebookId={activeId}
+          notebookId={isAll ? "logboek" : activeId}
           theme={theme}
           draft={pageEntry._draft}
           onClose={() => setPageEntry(null)}

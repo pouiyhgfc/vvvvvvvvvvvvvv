@@ -60,11 +60,13 @@ export default function NotesMenuSheet({
       {onSelect && (
         <Row icon="list-checks" label="Selecteren" onClick={act(onSelect)} />
       )}
-      <Row
-        icon="pencil-simple"
-        label="Notitieboek bewerken"
-        onClick={act(onEditNotebook)}
-      />
+      {onEditNotebook && (
+        <Row
+          icon="pencil-simple"
+          label="Notitieboek bewerken"
+          onClick={act(onEditNotebook)}
+        />
+      )}
       {onOrderNotebooks && (
         <Row
           icon="arrows-down-up"

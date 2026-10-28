@@ -220,3 +220,21 @@ test("tags kies je uit je bestaande tags; hoofdletters geven geen dubbele", asyn
   await expect(page.getByRole("button", { name: "#Studie" })).toBeVisible();
   await expect(page.getByText("#STUDIE", { exact: true })).toHaveCount(0);
 });
+
+test("Alles toont notities uit alle notitieboeken, laatst bewerkt bovenaan", async ({
+  page,
+}) => {
+  await openLogbook(page);
+  await createNote(page, "In-logboek");
+  await createNotebook(page, "Studie2");
+  await createNote(page, "In-studie");
+  await page.getByRole("button", { name: "Alles", exact: true }).click();
+  await expect(page.getByText("In-logboek", { exact: true })).toBeVisible();
+  await expect(page.getByText("In-studie", { exact: true })).toBeVisible();
+  const a = await page.getByText("In-studie", { exact: true }).boundingBox();
+  const b = await page.getByText("In-logboek", { exact: true }).boundingBox();
+  expect(a.y).toBeLessThan(b.y);
+  // Op de kaart staat bij Alles het notitieboek erbij; slepen kan hier niet.
+  await expect(page.getByText("Studie2 ·")).toBeVisible();
+  await expect(page.locator(".drag-handle")).toHaveCount(0);
+});
