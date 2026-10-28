@@ -237,3 +237,12 @@
   padding-inline: 44px 4px;
   background: transparent;
 }
+
+/* Schrijfrichting per blok uit de tekst zelf: een Arabische regel loopt van
+   rechts naar links en staat rechts, een Nederlandse links — ook door elkaar
+   in één notitie. */
+.bn-container .bn-inline-content {
+  unicode-bidi: plaintext;
+  text-align: start;
+  width: 100%;
+}

@@ -81,3 +81,23 @@ test("een spookklik in het blokmenu doet niets, een echte tik wel", async ({
   await page.tap('button[aria-label="Kop 1"]');
   expect(await blockTypes(page)).toEqual(["paragraph", "heading"]);
 });
+
+test("een Arabische regel staat rechts, een Nederlandse links", async ({
+  page,
+}) => {
+  await newNote(page, ["سبحان الله وبحمده", "Gewone tekst"]);
+  const [ar, nl] = await page.evaluate(() =>
+    [...document.querySelectorAll(".ProseMirror .bn-inline-content")].map(
+      (e) => {
+        const range = document.createRange();
+        range.selectNodeContents(e);
+        const text = range.getBoundingClientRect();
+        const box = e.getBoundingClientRect();
+        return { left: text.left - box.left, right: box.right - text.right };
+      },
+    ),
+  );
+  expect(ar.right).toBeLessThan(2);
+  expect(ar.left).toBeGreaterThan(20);
+  expect(nl.left).toBeLessThan(2);
+});
