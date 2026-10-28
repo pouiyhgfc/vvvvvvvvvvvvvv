@@ -1,4 +1,6 @@
 import { test, expect } from "@playwright/test";
+import { demoBackup } from "./fixtures/demo.js";
+import { importBackup } from "./helpers.js";
 
 // Regressietests voor vastzetten, archief en prullenbak in het Logboek.
 // Elke test start met een schone IndexedDB (nieuwe browsercontext).
@@ -133,7 +135,7 @@ test("prullenbak legen verwijdert alle items definitief", async ({ page }) => {
     await page.getByText(title, { exact: true }).click();
     await page.waitForSelector(".ProseMirror");
     await page.click('button[aria-label="Notitie-opties"]');
-  await page.click('button[aria-label="Naar prullenbak"]');
+    await page.click('button[aria-label="Naar prullenbak"]');
     await confirmDialogButton(page, "Naar prullenbak").click();
   }
 
@@ -177,4 +179,19 @@ test("een verwijderde 'vandaag'-entry verdwijnt uit het widget op Dag", async ({
   await expect(
     page.getByRole("button", { name: "Nieuw logboek voor vandaag aanmaken" }),
   ).toBeVisible();
+});
+
+test("een dagnotitie uit de tracker bewerken", async ({ page }) => {
+  // Dagnotities (days.notes) komen uit oude data; geef er één mee.
+  const backup = demoBackup();
+  const [date] = Object.keys(backup.days);
+  backup.days[date].notes = "Oude dagnotitie";
+  await importBackup(page, backup);
+  await page.getByRole("button").filter({ hasText: "Notities" }).click();
+  await page.getByText("Oude dagnotitie").click();
+  const sheet = page.getByRole("dialog", { name: "Dagnotitie bewerken" });
+  await sheet.getByRole("textbox").fill("Aangepaste dagnotitie");
+  await sheet.getByRole("button", { name: /Opslaan/ }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByText("Aangepaste dagnotitie")).toBeVisible();
 });
