@@ -5,6 +5,7 @@ import { uid } from "../../lib/date.js";
 import { MOODS, DEFAULT_NOTEBOOKS } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
 import { isActive, isArchived, isTrashed } from "../../lib/notes.js";
+import { tagKey, tagStats } from "../../lib/tags.js";
 import { useSortable, arrMove } from "../../hooks/useSortable.js";
 import Emoji from "../../ui/Emoji.jsx";
 import Icon from "../../ui/Icon.jsx";
@@ -151,14 +152,16 @@ export default function LogbookView() {
     return [...sortedLog, ...sortedDays];
   }, [logEntriesRaw, dayNotesRaw, activeId, sortMode]);
 
-  const allTags = useMemo(() => {
-    if (!logEntriesRaw) return [];
-    const s = new Set();
-    logEntriesRaw
-      .filter((e) => nbOf(e) === activeId && isActive(e))
-      .forEach((e) => e.tags?.forEach((t) => s.add(t)));
-    return [...s].sort();
-  }, [logEntriesRaw, activeId]);
+  // Tags van dit notitieboek, hoofdletters samengevoegd, meest gebruikt eerst.
+  const allTags = useMemo(
+    () =>
+      tagStats(
+        (logEntriesRaw ?? []).filter(
+          (e) => nbOf(e) === activeId && isActive(e),
+        ),
+      ),
+    [logEntriesRaw, activeId],
+  );
 
   // Archief/prullenbak: over alle notitieboeken heen, met het notitieboek als
   // label op de kaart (zie renderMetaEntry hieronder).
@@ -179,7 +182,8 @@ export default function LogbookView() {
 
   const filtered = useMemo(() => {
     let list = allEntries;
-    if (activeTag) list = list.filter((e) => e.tags?.includes(activeTag));
+    if (activeTag)
+      list = list.filter((e) => e.tags?.some((t) => tagKey(t) === activeTag));
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -660,13 +664,13 @@ export default function LogbookView() {
           }}
         >
           {allTags.map((tag) => {
-            const on = activeTag === tag;
+            const on = activeTag === tag.key;
             return (
               <button
-                key={tag}
+                key={tag.key}
                 type="button"
                 aria-pressed={on}
-                onClick={() => setActiveTag(on ? null : tag)}
+                onClick={() => setActiveTag(on ? null : tag.key)}
                 style={{
                   minHeight: 32,
                   padding: "0 var(--sp-3)",
@@ -678,7 +682,7 @@ export default function LogbookView() {
                   fontWeight: on ? 600 : 500,
                 }}
               >
-                #{tag}
+                #{tag.name}
               </button>
             );
           })}
