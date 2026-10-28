@@ -139,7 +139,6 @@ function TagSheet({ tag, stats, onClose }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             aria-label="Nieuwe naam"
-            style={{ fontSize: "var(--fs-md)", minHeight: 44 }}
           />
         </Field>
       </Sheet>

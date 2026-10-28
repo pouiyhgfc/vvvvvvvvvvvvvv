@@ -155,7 +155,6 @@ export default function BlockSheet({
             }}
             placeholder="Bv. Studeren RTE"
             dir="auto"
-            style={{ fontSize: "var(--fs-md)", minHeight: 44 }}
           />
         </Field>
 
@@ -287,7 +286,6 @@ export default function BlockSheet({
             onChange={(e) => setDesc(e.target.value)}
             placeholder="Lokaal, link, details…"
             rows={2}
-            style={{ fontSize: "var(--fs-md)" }}
           />
         </Field>
       </Sheet>

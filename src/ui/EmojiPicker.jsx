@@ -37,7 +37,6 @@ export default function EmojiPicker({ value, onPick }) {
         onChange={(e) => setQ(e.target.value)}
         placeholder="Zoek, bv. sport, gebed, taal"
         aria-label="Zoek icoon"
-        style={{ fontSize: "var(--fs-md)" }}
       />
       {!query && (
         <div

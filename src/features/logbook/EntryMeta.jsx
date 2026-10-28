@@ -68,6 +68,7 @@ export default function EntryMeta({
             fontWeight: 600,
             color: "inherit",
             padding: 0,
+            minHeight: 0,
           }}
         >
           {notebooks.map((n) => (
