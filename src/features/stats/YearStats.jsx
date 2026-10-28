@@ -69,37 +69,42 @@ export default function YearStats({ yearData }) {
         style={{
           background: "var(--card)",
           borderRadius: "var(--r-lg)",
-          padding: "14px 10px",
+          padding: "14px 12px",
           marginBottom: 10,
-          overflowX: "auto",
-          WebkitOverflowScrolling: "touch",
         }}
       >
         <div
           style={{
             fontFamily: "var(--ff-head)",
-            fontSize: 13,
+            fontSize: "var(--fs-sm)",
             fontWeight: 600,
             marginBottom: 10,
             color: "var(--text)",
           }}
         >
-          Jaar overzicht
+          Jaaroverzicht
         </div>
-        <div style={{ display: "flex", gap: 2, minWidth: "max-content" }}>
+        {/* Het hele jaar in één keer zichtbaar: elke week een kolom die de
+            breedte deelt, zonder zijwaarts scrollen. */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${yearData.weeks.length}, 1fr)`,
+            gap: 2,
+          }}
+        >
           {yearData.weeks.map((week, wi) => (
             <div
               key={wi}
-              style={{ display: "flex", flexDirection: "column", gap: 2 }}
+              style={{ display: "grid", gap: 2, alignContent: "start" }}
             >
               {week.map((day, di) => (
                 <div
                   key={di}
                   title={day ? `${dk(day.date)}: ${day.pct}%` : ""}
                   style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 2,
+                    aspectRatio: "1",
+                    borderRadius: 1.5,
                     background: day ? heatColor(day.pct) : "transparent",
                   }}
                 />
@@ -119,7 +124,7 @@ export default function YearStats({ yearData }) {
         <div
           style={{
             fontFamily: "var(--ff-head)",
-            fontSize: 13,
+            fontSize: "var(--fs-sm)",
             fontWeight: 600,
             marginBottom: 12,
             color: "var(--text)",
