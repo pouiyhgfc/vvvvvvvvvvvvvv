@@ -9,230 +9,123 @@ export default function DisplaySection({
   toggleNotifications,
   total,
 }) {
+  const set = (key) => (e) =>
+    setSettings((s) => ({ ...s, [key]: +e.target.value }));
+  const cap = settings.hifdDailyCap ?? 4;
   return (
-    <>
-      {/* WEERGAVE & MELDINGEN */}
-      <Section
-        title="Weergave en meldingen"
-        icon={<Emoji char="🎨" size={20} />}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 10,
-            paddingBottom: 12,
-            borderBottom: "1px solid var(--border)",
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            <div
-              style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}
-            >
-              <Emoji char="🌙" size={13} /> Donkere modus
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: "var(--text-muted)",
-                marginTop: 2,
-                lineHeight: 1.4,
-              }}
-            >
-              Schakelt de app naar een donker thema — rustiger voor je ogen 's
-              avonds.
-            </div>
-          </div>
-          <label className="switch" style={{ marginTop: 2 }}>
-            <input
-              type="checkbox"
-              checked={settings.theme === "dark"}
-              onChange={(e) =>
-                setSettings((s) => ({
-                  ...s,
-                  theme: e.target.checked ? "dark" : "light",
-                }))
-              }
-            />
-            <span className="slider-tg" />
-          </label>
-        </div>
+    <Section title="Weergave en meldingen" icon={<Emoji char="🎨" size={20} />}>
+      <ToggleRow
+        title="Donkere modus"
+        desc="Rustiger voor je ogen 's avonds."
+        checked={settings.theme === "dark"}
+        onChange={(e) =>
+          setSettings((s) => ({
+            ...s,
+            theme: e.target.checked ? "dark" : "light",
+          }))
+        }
+      />
+      <ToggleRow
+        title="Meldingen planning"
+        desc="Herinnering vóór een gepland blok. Op Android (geïnstalleerde app) ook op de achtergrond; op iPhone alleen terwijl de app open is."
+        warning={
+          notifPerm === "denied"
+            ? "Geblokkeerd in je browserinstellingen."
+            : notifPerm === "unsupported"
+              ? "Niet ondersteund op dit apparaat."
+              : null
+        }
+        checked={settings.notifEnabled}
+        onChange={toggleNotifications}
+      />
+      {settings.notifEnabled && (
+        <SliderRow
+          label={`Melding: ${
+            settings.notifLeadMin === 0
+              ? "op de starttijd"
+              : `${settings.notifLeadMin} min vooraf`
+          }`}
+          hint="Hoeveel minuten vóór elk blok je een melding krijgt."
+          min={0}
+          max={60}
+          step={5}
+          value={settings.notifLeadMin}
+          onChange={set("notifLeadMin")}
+        />
+      )}
+      <SliderRow
+        label={`Streak-drempel: ${settings.streakPct}%`}
+        hint={`Minimaal ${Math.max(1, Math.ceil(total * (settings.streakPct / 100)))} van ${total} routines afvinken telt als een voltooide dag.`}
+        min={10}
+        max={100}
+        step={5}
+        value={settings.streakPct}
+        onChange={set("streakPct")}
+      />
+      <SliderRow
+        label={`Hifd-revisies per dag: ${cap}`}
+        hint="Maximaal aantal gememoriseerde surahs ter revisie per dag."
+        min={1}
+        max={10}
+        step={1}
+        value={cap}
+        onChange={set("hifdDailyCap")}
+        last
+      />
+    </Section>
+  );
+}
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 10,
-            paddingTop: 12,
-            paddingBottom: settings.notifEnabled ? 12 : 0,
-            borderBottom: settings.notifEnabled
-              ? "1px solid var(--border)"
-              : "none",
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            <div
-              style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}
-            >
-              Meldingen weekplanning
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: "var(--text-muted)",
-                marginTop: 2,
-                lineHeight: 1.4,
-              }}
-            >
-              Herinnering vóór een gepland event. Op Android (geïnstalleerde
-              app) ook op de achtergrond; op iPhone alleen terwijl de app open
-              is.
-              {notifPerm === "denied" && (
-                <span
-                  style={{ color: "#dc2626", display: "block", marginTop: 2 }}
-                >
-                  Geblokkeerd in browserinstellingen.
-                </span>
-              )}
-              {notifPerm === "unsupported" && (
-                <span
-                  style={{ color: "#dc2626", display: "block", marginTop: 2 }}
-                >
-                  Niet ondersteund op dit apparaat.
-                </span>
-              )}
-            </div>
-          </div>
-          <label className="switch" style={{ marginTop: 2 }}>
-            <input
-              type="checkbox"
-              checked={settings.notifEnabled}
-              onChange={toggleNotifications}
-            />
-            <span className="slider-tg" />
-          </label>
-        </div>
-        {settings.notifEnabled && (
-          <div
+const row = (last) => ({
+  padding: "var(--sp-3) 0",
+  borderBottom: last ? "none" : "1px solid var(--border-soft)",
+});
+const titleStyle = { fontSize: "var(--fs-md)", color: "var(--text)" };
+const descStyle = {
+  marginTop: 2,
+  fontSize: "var(--fs-sm)",
+  color: "var(--text-muted)",
+  lineHeight: 1.45,
+};
+
+function ToggleRow({ title, desc, warning, checked, onChange }) {
+  return (
+    <label
+      style={{ ...row(false), display: "flex", alignItems: "center", gap: 12 }}
+    >
+      <span style={{ flex: 1 }}>
+        <span style={{ ...titleStyle, display: "block" }}>{title}</span>
+        <span style={{ ...descStyle, display: "block" }}>{desc}</span>
+        {warning && (
+          <span
             style={{
-              paddingTop: 12,
-              paddingBottom: 12,
-              borderBottom: "1px solid var(--border)",
+              ...descStyle,
+              display: "block",
+              color: "var(--danger-text)",
             }}
           >
-            <label
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "var(--text)",
-                display: "block",
-                marginBottom: 6,
-              }}
-            >
-              Tijd vooraf:{" "}
-              {settings.notifLeadMin === 0
-                ? "op starttijd"
-                : `${settings.notifLeadMin} min vooraf`}
-            </label>
-            <input
-              type="range"
-              min={0}
-              max={60}
-              step={5}
-              value={settings.notifLeadMin}
-              onChange={(e) =>
-                setSettings((s) => ({ ...s, notifLeadMin: +e.target.value }))
-              }
-            />
-            <div
-              style={{
-                fontSize: 10,
-                color: "var(--text-muted)",
-                marginTop: 4,
-                lineHeight: 1.4,
-              }}
-            >
-              Hoeveel minuten vóór elk event je een melding krijgt.
-            </div>
-          </div>
+            {warning}
+          </span>
         )}
+      </span>
+      <span className="switch">
+        <input type="checkbox" checked={checked} onChange={onChange} />
+        <span className="slider-tg" />
+      </span>
+    </label>
+  );
+}
 
-        <div style={{ paddingTop: 12 }}>
-          <label
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "var(--text)",
-              display: "block",
-              marginBottom: 6,
-            }}
-          >
-            <Emoji char="🔥" size={12} /> Streak-drempel: {settings.streakPct}%
-          </label>
-          <input
-            type="range"
-            min={10}
-            max={100}
-            step={5}
-            value={settings.streakPct}
-            onChange={(e) =>
-              setSettings((s) => ({ ...s, streakPct: +e.target.value }))
-            }
-          />
-          <div
-            style={{
-              fontSize: 10,
-              color: "var(--text-muted)",
-              marginTop: 4,
-              lineHeight: 1.4,
-            }}
-          >
-            Minimaal{" "}
-            {Math.max(1, Math.ceil(total * (settings.streakPct / 100)))} van{" "}
-            {total} routines afvinken telt als een voltooide dag voor je streak.
-          </div>
-        </div>
-        <div
-          style={{
-            paddingTop: 12,
-            borderTop: "1px solid var(--border-soft)",
-            marginTop: 12,
-          }}
-        >
-          <label
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "var(--text)",
-              display: "block",
-              marginBottom: 6,
-            }}
-          >
-            <Emoji char="🌙" size={12} /> Hifd revisies per dag:{" "}
-            {settings.hifdDailyCap ?? 4}
-          </label>
-          <input
-            type="range"
-            min={1}
-            max={10}
-            step={1}
-            value={settings.hifdDailyCap ?? 4}
-            onChange={(e) =>
-              setSettings((s) => ({ ...s, hifdDailyCap: +e.target.value }))
-            }
-          />
-          <div
-            style={{
-              fontSize: 10,
-              color: "var(--text-muted)",
-              marginTop: 4,
-              lineHeight: 1.4,
-            }}
-          >
-            Maximaal aantal gememoriseerde surahs ter revisie per dag.
-          </div>
-        </div>
-      </Section>
-    </>
+function SliderRow({ label, hint, last, ...input }) {
+  return (
+    <label style={{ ...row(last), display: "block" }}>
+      <span style={{ ...titleStyle, display: "block", marginBottom: 10 }}>
+        {label}
+      </span>
+      <input type="range" {...input} />
+      <span style={{ ...descStyle, display: "block", marginTop: 8 }}>
+        {hint}
+      </span>
+    </label>
   );
 }

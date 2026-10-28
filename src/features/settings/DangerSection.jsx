@@ -2,8 +2,10 @@ import { useState } from "react";
 import { DEFAULT_ROUTINES } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
+import Button from "../../ui/Button.jsx";
 import Emoji from "../../ui/Emoji.jsx";
 import Section from "../../ui/Section.jsx";
+import { introP } from "./settingsStyles.js";
 
 // Gevarenzone: routines resetten en data wissen, altijd via een bevestiging.
 export default function DangerSection({
@@ -16,64 +18,28 @@ export default function DangerSection({
 
   return (
     <>
-      {/* DANGER ZONE */}
       <Section
         title="Gevarenzone"
         icon={<Emoji char="⚠️" size={20} />}
         tone="danger"
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <button
-            onClick={() => setConfirmReset(true)}
-            style={{
-              padding: "8px",
-              borderRadius: 7,
-              background: "var(--card)",
-              border: "1px solid var(--danger-border)",
-              color: "var(--danger-text)",
-              fontSize: 11,
-              fontWeight: 600,
-              textAlign: "left",
-            }}
-          >
-            Reset routines naar standaard{" "}
-            <span style={{ opacity: 0.7, fontWeight: 400 }}>
-              (dagdata blijft)
-            </span>
-          </button>
-          <button
-            onClick={() => setConfirmClear("days")}
-            style={{
-              padding: "8px",
-              borderRadius: 7,
-              background: "var(--card)",
-              border: "1px solid var(--danger-border)",
-              color: "var(--danger-text)",
-              fontSize: 11,
-              fontWeight: 600,
-              textAlign: "left",
-            }}
-          >
-            Wis alle dagdata{" "}
-            <span style={{ opacity: 0.7, fontWeight: 400 }}>
-              (routines blijven)
-            </span>
-          </button>
-          <button
+        <p style={introP}>
+          Exporteer eerst een backup. Wissen kan niet ongedaan worden gemaakt.
+        </p>
+        <div style={{ display: "grid", gap: "var(--sp-2)" }}>
+          <Button variant="danger" full onClick={() => setConfirmReset(true)}>
+            Routines terugzetten naar standaard
+          </Button>
+          <Button variant="danger" full onClick={() => setConfirmClear("days")}>
+            Wis alle dagdata
+          </Button>
+          <Button
+            variant="dangerSolid"
+            full
             onClick={() => setConfirmClear("all")}
-            style={{
-              padding: "8px",
-              borderRadius: 7,
-              background: "#dc2626",
-              border: "1px solid #dc2626",
-              color: "white",
-              fontSize: 11,
-              fontWeight: 700,
-              textAlign: "left",
-            }}
           >
-            Wis ALLES (reset naar fabrieksinstellingen)
-          </button>
+            Wis alles
+          </Button>
         </div>
       </Section>
       {confirmReset && (

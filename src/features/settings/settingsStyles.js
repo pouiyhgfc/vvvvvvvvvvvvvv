@@ -1,23 +1,14 @@
 // Gedeelde stijlen voor de secties onder Meer.
-export const addBtn = {
-  fontSize: 11,
-  padding: "3px 10px",
-  borderRadius: 6,
-  background: "var(--accent)",
-  color: "var(--accent-contrast)",
-  fontWeight: 600,
-};
 export const introP = {
-  fontSize: 11,
+  margin: "0 0 var(--sp-3)",
+  fontSize: "var(--fs-sm)",
   color: "var(--text-muted)",
-  marginBottom: 10,
   lineHeight: 1.5,
 };
 export const emptyList = {
-  textAlign: "center",
-  padding: "14px 0",
-  color: "var(--text-faint)",
-  fontSize: 12,
+  padding: "var(--sp-3) 0",
+  color: "var(--text-muted)",
+  fontSize: "var(--fs-sm)",
 };
 
 export const subLabel = {

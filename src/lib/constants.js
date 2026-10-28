@@ -73,11 +73,6 @@ export function buildAreaStyles(areas) {
   return m;
 }
 
-export const PERIOD_COLORS = {
-  ochtend: "#d97706",
-  middag: "#2563eb",
-  avond: "#7c3aed",
-};
 export const PERIOD_LABELS = {
   ochtend: "Ochtend",
   middag: "Middag",

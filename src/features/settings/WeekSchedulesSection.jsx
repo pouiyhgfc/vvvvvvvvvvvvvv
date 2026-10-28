@@ -9,7 +9,8 @@ import Section from "../../ui/Section.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 import { SortableWeekTplList } from "../../ui/SortableList.jsx";
 import WeekTemplateSheet from "./WeekTemplateSheet.jsx";
-import { addBtn, introP, emptyList } from "./settingsStyles.js";
+import AddButton from "./AddButton.jsx";
+import { introP, emptyList } from "./settingsStyles.js";
 
 // Weekschema's: de huidige week opslaan en later weer inladen.
 export default function WeekSchedulesSection({
@@ -23,7 +24,6 @@ export default function WeekSchedulesSection({
   const [savingWeek, setSavingWeek] = useState(false);
   const [weekName, setWeekName] = useState("");
 
-  // --- Weekschema templates ---
   const weekEventCount = calEvents.filter((e) => {
     const monStr = dk(getMonday(date));
     const sunStr = dk(new Date(getMonday(date).getTime() + 6 * 86400000));
@@ -88,20 +88,18 @@ export default function WeekSchedulesSection({
 
   return (
     <>
-      {/* WEEKSCHEMA TEMPLATES */}
       <Section
         title="Weekschema's"
         icon={<Emoji char="📅" size={20} />}
         right={
-          <button
+          <AddButton
+            label="Huidige week opslaan"
+            icon="floppy-disk"
             onClick={() => {
               setSavingWeek(true);
               setWeekName("");
             }}
-            style={addBtn}
-          >
-            <Emoji char="💾" size={11} /> Huidig opslaan
-          </button>
+          />
         }
       >
         <p style={introP}>
@@ -109,7 +107,7 @@ export default function WeekSchedulesSection({
           elke week.
         </p>
         {weekScheduleTemplates.length === 0 && (
-          <div style={emptyList}>Nog geen weekschema templates.</div>
+          <div style={emptyList}>Nog geen weekschema's.</div>
         )}
         <SortableWeekTplList
           items={weekScheduleTemplates}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PERIOD_LABELS, PERIOD_COLORS } from "../../lib/constants.js";
+import { PERIOD_LABELS } from "../../lib/constants.js";
 import { uid } from "../../lib/date.js";
 import { buzz } from "../../lib/storage.js";
 import { arrMove } from "../../hooks/useSortable.js";
@@ -7,7 +7,9 @@ import Emoji from "../../ui/Emoji.jsx";
 import Section from "../../ui/Section.jsx";
 import { SortableRoutineList } from "../../ui/SortableList.jsx";
 import RoutineSheet from "./RoutineSheet.jsx";
-import { addBtn } from "./settingsStyles.js";
+import Icon from "../../ui/Icon.jsx";
+import AddButton from "./AddButton.jsx";
+import { introP } from "./settingsStyles.js";
 
 // Routines per dagdeel: slepen om te ordenen, tikken om te bewerken.
 export default function RoutinesSection({
@@ -23,7 +25,6 @@ export default function RoutinesSection({
   });
   const [routineSheet, setRoutineSheet] = useState(null); // { period, routine }
 
-  // --- Routines ---
   const saveRoutine = (data) => {
     buzz();
     const { period } = routineSheet;
@@ -51,16 +52,8 @@ export default function RoutinesSection({
 
   return (
     <>
-      {/* ROUTINES */}
       <Section title="Routines" icon={<Emoji char="📋" size={20} />}>
-        <p
-          style={{
-            fontSize: 11,
-            color: "var(--text-muted)",
-            marginTop: 2,
-            lineHeight: 1.4,
-          }}
-        >
+        <p style={introP}>
           Sleep met ⠿ om te ordenen. Tik een routine aan om te bewerken of te
           verwijderen.
         </p>
@@ -70,67 +63,57 @@ export default function RoutinesSection({
           return (
             <div
               key={period}
-              style={{
-                marginTop: 12,
-                borderTop: "1px solid var(--border)",
-                paddingTop: 10,
-              }}
+              style={{ borderTop: "1px solid var(--border-soft)" }}
             >
-              <div
-                onClick={() =>
-                  setOpenPeriods((p) => ({ ...p, [period]: !p[period] }))
-                }
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  cursor: "pointer",
-                }}
-              >
-                <h3
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() =>
+                    setOpenPeriods((p) => ({ ...p, [period]: !p[period] }))
+                  }
                   style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: PERIOD_COLORS[period],
+                    flex: 1,
+                    minHeight: 52,
                     display: "flex",
                     alignItems: "center",
-                    gap: 6,
+                    gap: 8,
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--text)",
+                    fontSize: "var(--fs-md)",
+                    fontWeight: 600,
+                    textAlign: "start",
+                    padding: 0,
                   }}
                 >
-                  <span
+                  <Icon
+                    name="caret-down"
+                    size={16}
                     style={{
-                      fontSize: 11,
-                      color: "var(--text-faint)",
-                      display: "inline-block",
+                      color: "var(--text-muted)",
                       transition: "transform .2s",
-                      transform: isOpen ? "rotate(90deg)" : "none",
+                      transform: isOpen ? "none" : "rotate(-90deg)",
                     }}
-                  >
-                    ▸
-                  </span>
+                  />
                   {label}
                   <span
                     style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: "var(--text-faint)",
+                      fontSize: "var(--fs-sm)",
+                      fontWeight: 400,
+                      color: "var(--text-muted)",
                     }}
                   >
-                    ({routines[period].length})
+                    {routines[period].length}
                   </span>
-                </h3>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setRoutineSheet({ period, routine: null });
-                  }}
-                  style={addBtn}
-                >
-                  + Toevoegen
                 </button>
+                <AddButton
+                  label={`Routine toevoegen aan ${label.toLowerCase()}`}
+                  onClick={() => setRoutineSheet({ period, routine: null })}
+                />
               </div>
               {isOpen && (
-                <div style={{ marginTop: 8 }}>
+                <div>
                   <SortableRoutineList
                     items={routines[period]}
                     onReorder={(from, to) => reorderRoutine(period, from, to)}

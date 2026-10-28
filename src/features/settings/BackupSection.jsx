@@ -18,7 +18,6 @@ export default function BackupSection({
 }) {
   return (
     <>
-      {/* BACKUP */}
       <Section
         title="Backup en data"
         icon={<Emoji char="💾" size={20} />}
@@ -90,7 +89,7 @@ export default function BackupSection({
         >
           <div>
             <b>{dataInfo.dayCount}</b> dagen · <b>{total}</b> routines ·{" "}
-            <b>{templateCount}</b> templates · <b>{weekTemplateCount}</b>{" "}
+            <b>{templateCount}</b> snelkeuzes · <b>{weekTemplateCount}</b>{" "}
             weekschema's · <b>{dataInfo.kb} KB</b>
           </div>
           <div style={{ opacity: 0.8 }}>

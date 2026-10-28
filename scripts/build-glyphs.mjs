@@ -39,6 +39,7 @@ const UI_GLYPHS = [
   "hash",
   "caret-up",
   "text-h",
+  "plus",
 ];
 
 const circle = (cx, cy, r) =>
