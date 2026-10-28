@@ -1,6 +1,5 @@
 node_modules/
 dist/
-public/emoji/
 .DS_Store
 desktop.ini
 test-results/

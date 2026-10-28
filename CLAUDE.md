@@ -16,7 +16,7 @@ Persoonlijke life-OS (PWA): routine-tracker, weekplanner, logboek/notities (Bloc
 
 ## Commando's
 
-- `npm run dev` — dev-server (bouwt ook de emoji's)
+- `npm run dev` — dev-server
 - `npm run build` — productiebuild
 - `npm run lint` — ESLint
 - `npm run deadcode` — Knip (ongebruikte bestanden/exports/dependencies)
