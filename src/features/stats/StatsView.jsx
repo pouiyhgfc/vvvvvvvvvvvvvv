@@ -634,11 +634,11 @@ export default function StatsView({
             }}
           >
             {[
-              [HEAT[0], "0%"],
-              [HEAT[1], "<25%"],
-              [HEAT[2], "<50%"],
-              [HEAT[3], "<75%"],
-              [HEAT[4], "75%+"],
+              [heatColor(0), "0%"],
+              [heatColor(10), "<25%"],
+              [heatColor(30), "<50%"],
+              [heatColor(60), "<75%"],
+              [heatColor(80), "75%+"],
             ].map(([c, l]) => (
               <div
                 key={l}
