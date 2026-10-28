@@ -13,6 +13,12 @@ import { dk, fmtDate, isToday, getMonday, periodForHour } from "./lib/date.js";
 import { buzz } from "./lib/storage.js";
 import { showToast } from "./lib/toast.js";
 import { useNotifications } from "./lib/notify.js";
+import {
+  isNativeApp,
+  notifyNow,
+  requestNativePermission,
+  useNativeNotifications,
+} from "./lib/nativeNotify.js";
 import { db, seedHifd } from "./lib/db.js";
 import {
   exportData as doExportData,
@@ -95,9 +101,11 @@ export default function App({ startupErrors = [] }) {
 
   // --- UI state ---
   const [notifPerm, setNotifPerm] = useState(
-    typeof Notification !== "undefined"
-      ? Notification.permission
-      : "unsupported",
+    isNativeApp
+      ? "default"
+      : typeof Notification !== "undefined"
+        ? Notification.permission
+        : "unsupported",
   );
   const [date, setDate] = useState(new Date());
   const [tab, setTab] = useState(() => periodForHour(new Date().getHours()));
@@ -179,6 +187,7 @@ export default function App({ startupErrors = [] }) {
   }, [settings.theme]);
 
   useNotifications(settings, calEvents);
+  useNativeNotifications(settings, calEvents);
 
   const areaStyles = useMemo(() => buildAreaStyles(areas), [areas]);
   const areaNames = areas.map((a) => a.name);
@@ -272,6 +281,27 @@ export default function App({ startupErrors = [] }) {
   );
 
   const toggleNotifications = async () => {
+    // In de Android-app plant Android zelf de meldingen in (nativeNotify).
+    if (isNativeApp) {
+      if (settings.notifEnabled) {
+        setSettings((s) => ({ ...s, notifEnabled: false }));
+        return;
+      }
+      const perm = await requestNativePermission();
+      setNotifPerm(perm);
+      if (perm === "granted") {
+        setSettings((s) => ({ ...s, notifEnabled: true }));
+        notifyNow(
+          "Meldingen aan",
+          "Je krijgt nu herinneringen voor je planning.",
+        );
+      } else {
+        showToast(
+          "Meldingen zijn geblokkeerd. Sta ze toe in de app-instellingen.",
+        );
+      }
+      return;
+    }
     if (typeof Notification === "undefined") {
       showToast("Meldingen worden niet ondersteund door deze browser.");
       return;

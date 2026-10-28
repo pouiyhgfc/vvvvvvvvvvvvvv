@@ -1,3 +1,4 @@
+import { isNativeApp } from "../../lib/nativeNotify.js";
 import Emoji from "../../ui/Emoji.jsx";
 import Section from "../../ui/Section.jsx";
 
@@ -27,7 +28,11 @@ export default function DisplaySection({
       />
       <ToggleRow
         title="Meldingen planning"
-        desc="Herinnering vóór een gepland blok. Op Android (geïnstalleerde app) ook op de achtergrond; op iPhone alleen terwijl de app open is."
+        desc={
+          isNativeApp
+            ? "Herinnering vóór een gepland blok, ook als de app dicht is."
+            : "Herinnering vóór een gepland blok, zolang de app open is."
+        }
         warning={
           notifPerm === "denied"
             ? "Geblokkeerd in je browserinstellingen."

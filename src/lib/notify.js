@@ -8,8 +8,8 @@ import { loadJSON, saveJSON } from "./storage.js";
 // we could provide consistent and reliable experiences across platforms"
 // (developer.chrome.com/docs/web-platform/notification-triggers, "No longer
 // pursuing"). Een 30s-interval terwijl de app open is, is dus de enige
-// betrouwbare route; robuustere meldingen (bv. via een native wrapper)
-// staan als backlog-idee in UITVOERING.md.
+// betrouwbare route. De Android-app (Capacitor) plant meldingen wel vooraf
+// in: zie nativeNotify.js.
 export function useNotifications(settings, calEvents) {
   useEffect(() => {
     if (
