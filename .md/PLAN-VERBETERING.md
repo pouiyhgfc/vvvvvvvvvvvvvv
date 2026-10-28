@@ -275,8 +275,10 @@ bewust anders).
       `<Emoji>` toont het als icoon, een vlag als lettertegel (ع, 中). Icoonkiezer met negen
       groepen. Emoji-voorvoegsels uit knoppen, labels en meldingen gehaald.
 - [x] **App-icoon:** "Ring" (voortgangsring met vinkje), randloze PNG's voor Android.
-- [ ] Twemoji opruimen: `build-emoji`, `public/emoji/`, `emoji-custom/` en `@twemoji/svg`
+- [x] Twemoji opruimen: `build-emoji`, `public/emoji/`, `emoji-custom/` en `@twemoji/svg`
       zijn alleen nog terugval voor onbekende emoji; nagaan of dat ooit voorkomt en dan weg.
+      _Gedaan 28-10: elk teken uit de lijsten heeft een icoon (test); onbekende tekens kregen
+      toch al het rauwe teken (de SVG bestond niet). Eén build-stap en één dependency minder._
 
 ### 4c — Schermen (klein → groot)
 

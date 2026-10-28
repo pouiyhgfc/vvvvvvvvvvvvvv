@@ -164,20 +164,13 @@ Verwijderen hoort als `danger`-knop in de `footer` van dezelfde sheet en opent e
 `ConfirmDialog`. Zie `features/planner/EventModal.jsx` of `features/settings/RoutineSheet.jsx`
 als referentie.
 
-## Emoji-pipeline (Twemoji, lokaal)
+## Emoji in data → lijnicoon
 
-Doel: emoji's renderen op élk toestel identiek (vlaggen renderen anders per Android-toestel).
-
-1. In de data blijft het **unicode-teken** staan (bv. `"🤲"`) — geen migratie, backups blijven werken.
-2. `<Emoji char>` berekent de codepoint-bestandsnaam via `lib/emojiCodepoint.js` en toont
-   `/emoji/<codepoint>.svg`; faalt dat, dan valt hij terug op het rauwe teken.
-3. `scripts/build-emoji.mjs` kopieert alleen de **gebruikte** SVG's uit `@twemoji/svg`
-   (devDependency) naar `public/emoji/` (gitignored). Draait automatisch bij `dev`/`build`,
-   of los met `npm run emoji`.
-4. **Nieuwe emoji toevoegen:** zet hem in `EMOJI_CATEGORIES` (`constants.js`) of in de
-   `UI_EMOJIS`-lijst in het script, en draai `npm run emoji`.
-5. **Niet-emoji glyph** (zoals `ⵣ`): maak een SVG in `src/emoji-custom/` met de codepoint als
-   bestandsnaam (bv. `2d63.svg`); het script neemt die mee.
+In de data blijft het **unicode-teken** staan (bv. `"🤲"`) — geen migratie, backups blijven
+werken. `<Emoji char>` zoekt via `lib/emojiGlyph.js` het lijnicoon (vlag → lettertegel); een
+onbekend teken toont het systeem zelf. Nieuw icoon: koppel het in `EMOJI_GLYPH` en draai
+`npm run glyphs`. (Twemoji is weg sinds 28-10-2026: elk teken dat de app kan tonen heeft een
+icoon, zie de test in `emojiGlyph.test.js`.)
 
 ## Patronen
 

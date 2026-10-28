@@ -4,7 +4,6 @@
     ".claude/hooks/*.mjs"
   ],
   "ignoreDependencies": [
-    "@twemoji/svg",
     "@phosphor-icons/core"
   ]
 }
