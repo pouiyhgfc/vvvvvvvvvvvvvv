@@ -439,7 +439,7 @@ revisiedatum; beoordelen werkt; schaduwadvies is zichtbaar.
       **Kopiëren**.
 - [x] **Antwoord terugzetten:** "Plak antwoord" maakt een entry in een notitieboek "Muhasaba"
       met datum.
-- [ ] **Per notitie:** "Vraag Claude" met vaste opdrachten (samenvatten, structureren,
+- [x] **Per notitie:** "Vraag Claude" met vaste opdrachten (samenvatten, structureren,
       actiepunten).
 - [x] Privacy: data verlaat de app alleen bij een expliciete tik op Delen/Kopiëren; standaard
       zo weinig mogelijk aangevinkt.

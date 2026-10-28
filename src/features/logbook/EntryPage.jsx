@@ -17,6 +17,7 @@ import EntryMenuSheet from "./EntryMenuSheet.jsx";
 import EntryMeta from "./EntryMeta.jsx";
 import EntryTopBar from "./EntryTopBar.jsx";
 import FindBar from "./FindBar.jsx";
+import AskClaudeSheet from "./AskClaudeSheet.jsx";
 import OutlineSheet from "./OutlineSheet.jsx";
 import SaveTemplateSheet from "./SaveTemplateSheet.jsx";
 import { cleanTags, tagStats } from "../../lib/tags.js";
@@ -57,6 +58,7 @@ export default function EntryPage({
   const [headings, setHeadings] = useState([]);
   const [showOutline, setShowOutline] = useState(false);
   const [finding, setFinding] = useState(false);
+  const [asking, setAsking] = useState(false);
   const [contentVersion, setContentVersion] = useState(0);
   // Beschikbaarheid van undo/redo als state (niet de ref tijdens render lezen);
   // bijgewerkt vanuit de editor-onChange, die ook na undo/redo vuurt.
@@ -318,8 +320,19 @@ export default function EntryPage({
           onSaveTemplate={() => setShowSaveTemplate(true)}
           onTrash={() => setConfirmDel(true)}
           onFind={() => setFinding(true)}
+          onAsk={() => setAsking(true)}
           onOutline={headings.length ? () => setShowOutline(true) : null}
           onClose={() => setShowMenu(false)}
+        />
+      )}
+      {asking && (
+        <AskClaudeSheet
+          getText={async () =>
+            [title.trim(), await editorRef.current?.getMarkdown()]
+              .filter(Boolean)
+              .join("\n\n")
+          }
+          onClose={() => setAsking(false)}
         />
       )}
       {showOutline && (

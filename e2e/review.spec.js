@@ -30,3 +30,17 @@ test("weekreview kopiëren en het antwoord bewaren", async ({ page }) => {
   await page.getByRole("button").filter({ hasText: "Muhasaba" }).click();
   await expect(page.getByText(/^Weekreview /)).toBeVisible();
 });
+
+test("vraag Claude om een notitie samen te vatten", async ({ page }) => {
+  await page.goto("/?action=new-note");
+  await page.waitForSelector(".ProseMirror");
+  await page.getByPlaceholder("Titel…").fill("Plan");
+  await page.click(".ProseMirror");
+  await page.keyboard.type("Morgen vroeg op en RTE leren.");
+  await page.getByRole("button", { name: "Notitie-opties" }).click();
+  await page.getByRole("button", { name: "Vraag Claude" }).click();
+  await page.getByRole("button", { name: "Samenvatten: kopiëren" }).click();
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copied).toContain("Vat deze notitie kort samen");
+  expect(copied).toContain("Plan\n\nMorgen vroeg op en RTE leren.");
+});

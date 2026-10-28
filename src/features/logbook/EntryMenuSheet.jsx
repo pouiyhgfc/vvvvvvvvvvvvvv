@@ -13,6 +13,7 @@ export default function EntryMenuSheet({
   onTrash,
   onFind,
   onOutline,
+  onAsk,
   onClose,
 }) {
   const act = (fn) => () => {
@@ -26,6 +27,7 @@ export default function EntryMenuSheet({
         label="Zoeken in notitie"
         onClick={act(onFind)}
       />
+      <Row icon="chat-circle-text" label="Vraag Claude" onClick={act(onAsk)} />
       {onOutline && (
         <Row icon="text-h" label="Inhoud" onClick={act(onOutline)} />
       )}
