@@ -32,9 +32,9 @@ jobs:
       - run: npm run build
       - name: E2E (desktop)
         run: npm run test:e2e
-      - name: Duplicatie-rapport (nog niet blokkerend)
-        if: always()
-        run: npx --yes jscpd@5.4.2 src --min-tokens 50 --reporters console --silent
+      # Faalt boven 1% gedupliceerde regels (29-10: 0,24%).
+      - name: Duplicatie (jscpd)
+        run: npx --yes jscpd@5.4.2 src --min-tokens 50 --threshold 1 --reporters console --silent
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

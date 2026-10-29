@@ -8,7 +8,7 @@
     "build": "vite build",
     "android": "npm run build && cap sync android",
     "preview": "vite preview",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "deadcode": "knip",
     "test:e2e": "playwright test --project=chromium",
     "test": "vitest run",
