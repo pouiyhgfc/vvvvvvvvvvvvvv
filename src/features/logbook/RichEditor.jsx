@@ -18,6 +18,7 @@ import {
   insertOrUpdateBlockForSlashMenu,
 } from "@blocknote/core";
 import { createCallout } from "./CalloutBlock.jsx";
+import { createVideo } from "./VideoBlock.jsx";
 import { resolveFileUrl, saveImage } from "../../lib/files.js";
 import { sanitizeDoc } from "./docSchema.js";
 import { fmtDate } from "../../lib/date.js";
@@ -26,9 +27,13 @@ import { nl } from "@blocknote/core/locales";
 import "@blocknote/mantine/style.css";
 import "./richEditor.css";
 
-// Standaardblokken plus onze eigen (callout).
+// Standaardblokken plus onze eigen (callout, video).
 const schema = BlockNoteSchema.create({
-  blockSpecs: { ...defaultBlockSpecs, callout: createCallout() },
+  blockSpecs: {
+    ...defaultBlockSpecs,
+    callout: createCallout(),
+    video: createVideo(),
+  },
 });
 const KNOWN_TYPES = new Set(Object.keys(schema.blockSpecs));
 
@@ -65,8 +70,9 @@ const EVERGREEN_TOKENS = {
   "--bn-font-family": "var(--ff-body)",
 };
 
-// Strak & relevant: afbeelding wel (lokaal, zie files.js), video/audio/
-// bestanden niet; dubbele uitklapkoppen weggelaten. Keys zijn stabiel los
+// Strak & relevant: afbeelding wel (lokaal, zie files.js), BlockNote's
+// video-upload/audio/bestanden niet (video gaat via ons eigen blok met een
+// link); dubbele uitklapkoppen weggelaten. Keys zijn stabiel los
 // van de NL-vertaling.
 const SLASH_KEYS = new Set([
   "paragraph",
@@ -193,12 +199,24 @@ const RichEditor = forwardRef(function RichEditor(
     onItemClick: () =>
       insertOrUpdateBlockForSlashMenu(editor, { type: "callout" }),
   };
+  const videoItem = {
+    key: "video_link",
+    title: "Video",
+    subtext: "YouTube, Instagram, Vimeo of TikTok als speler",
+    aliases: ["video", "youtube", "instagram", "reel", "speler", "film"],
+    group: "Media",
+    icon: <Icon name="play-circle" size={18} />,
+    onItemClick: () =>
+      insertOrUpdateBlockForSlashMenu(editor, { type: "video" }),
+  };
+  // Video direct na Afbeelding: het menu toont een groepskop per aaneengesloten
+  // reeks, dus elders zou "Media" twee keer verschijnen.
   const getSlashItems = async (query) =>
     filterSuggestionItems(
       [
-        ...getDefaultReactSlashMenuItems(editor).filter((item) =>
-          SLASH_KEYS.has(item.key),
-        ),
+        ...getDefaultReactSlashMenuItems(editor)
+          .filter((item) => SLASH_KEYS.has(item.key))
+          .flatMap((item) => (item.key === "image" ? [item, videoItem] : item)),
         calloutItem,
         dateItem,
       ],

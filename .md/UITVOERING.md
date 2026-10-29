@@ -30,6 +30,11 @@ _Daarvóór:_ _Notities beter organiseren — vastzetten, archief/prullenbak (za
 - [ ] **Sync telefoon ↔ laptop** — pas als je het echt nodig hebt (Dexie Cloud of export/import-flow).
 - [ ] **Betrouwbaardere meldingen** — Android-installatie of later Capacitor-wrapper.
 - [x] **Automatische backup-herinnering** — gebouwd in Verbeterplan fase 1c (melding op Dag na 30 dagen).
+- [x] **Mini-speler in notities** (idee eigenaar 29-10) — video van YouTube, Instagram, Vimeo of
+      TikTok in een notitie afspelen. Gebouwd als eigen blok "video" (+ of "/" → Video, link
+      plakken); alleen de link wordt opgeslagen.
+- [ ] **App delen met familie en vrienden** (idee eigenaar 29-10) — een lege app zonder
+      persoonlijke gegevens.
 - [x] **Mobiele editor-werkbalk** — opgelost via het touch blok-handvat (⠿) i.p.v. een vaste balk:
       tik = blok-menu (sheet), ingedrukt houden = verslepen. De oude `MobileToolbar`-balk crashte
       (VisualViewport + vaste positionering); de nieuwe aanpak vermijdt dat. Zie de fase onderaan.
