@@ -421,8 +421,9 @@ zien, notitielink volgen, zoeken vindt tekst uit een tabel, Arabische alinea sta
 
 - [ ] Datamodel uitbreiden met een migratie die het **huidige schema meeneemt** (geen reset naar
       "nieuw"); nieuwe velden naast de oude.
-- [ ] **Schaduwmodus 2–4 weken:** _(gestart 29-10 met optie B: kaart "Proef: sabqi + manzil" op
-      Hifd → Vandaag; fouten-aantal per revisie wordt gelogd)_ het nieuwe algoritme rekent mee en toont zijn advies naast het
+- [x] **Schaduwmodus 2–4 weken:** _(gestart 29-10 met optie B; dezelfde dag op verzoek van de
+      eigenaar omgeschakeld: sabqi + manzil is nu leidend. De SRS-velden worden nog bijgewerkt,
+      dus terugschakelen kan.)_ het nieuwe algoritme rekent mee en toont zijn advies naast het
       huidige; het oude blijft leidend. Pas na akkoord omschakelen. Terug kan altijd.
 - [ ] Unit-tests met fixtures van echte voortgang (gememoriseerd, lerend, veel lapses).
 - [ ] Ervaring: revisiesessie-flow, voorspelde intervallen op de knoppen (bestaat al),

@@ -17,17 +17,14 @@ export default function VandaagView({
   versesKnownTotal,
   learningList,
   reviewList,
-  dailyCap,
   reviewsDoneToday,
-  dueCount,
+  cycleDays,
   onDelta,
   onLog,
   onMarkMemorized,
   onRate,
 }) {
-  const capReached = reviewsDoneToday >= dailyCap;
-  const empty =
-    learningList.length === 0 && reviewList.length === 0 && dueCount === 0;
+  const empty = learningList.length === 0 && reviewList.length === 0;
   const next = reviewList[0];
 
   return (
@@ -49,12 +46,16 @@ export default function VandaagView({
           <span
             style={{ fontSize: "var(--fs-sm)", color: "var(--text-muted)" }}
           >
-            Revisie vandaag: {reviewsDoneToday} van {dailyCap}
+            Revisie vandaag: {reviewsDoneToday} van{" "}
+            {reviewsDoneToday + reviewList.length}
           </span>
           <span
             style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)" }}
           >
-            {memorizedCount} van 114 surahs gememoriseerd
+            {memorizedCount} {memorizedCount === 1 ? "surah" : "surahs"}{" "}
+            gememoriseerd
+            {cycleDays > 0 &&
+              ` · manzil elke ${cycleDays} ${cycleDays === 1 ? "dag" : "dagen"}`}
           </span>
         </div>
       </Card>
@@ -67,18 +68,6 @@ export default function VandaagView({
           total={reviewsDoneToday + reviewList.length}
           onRate={onRate}
         />
-      )}
-      {!next && capReached && dueCount > 0 && (
-        <Card
-          style={{
-            background: "var(--accent-bg)",
-            color: "var(--accent-text)",
-            fontSize: "var(--fs-sm)",
-          }}
-        >
-          Daglimiet bereikt ({dailyCap}/{dailyCap}). Nog {dueCount}{" "}
-          {dueCount === 1 ? "surah wacht" : "surahs wachten"} tot morgen.
-        </Card>
       )}
 
       {learningList.length > 0 && (

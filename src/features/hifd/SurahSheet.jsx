@@ -1,4 +1,3 @@
-import { INITIAL_EASE } from "../../lib/hifd.js";
 import Sheet from "../../ui/Sheet.jsx";
 import Button from "../../ui/Button.jsx";
 import { shortDate } from "./hifdDates.js";
@@ -154,22 +153,17 @@ export default function SurahSheet({
         )}
       </div>
 
-      {/* SRS-statistieken (alleen gememoriseerd) */}
+      {/* Revisie-statistieken (alleen gememoriseerd) */}
       {rec.status === "memorized" && (
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: "repeat(2, 1fr)",
             gap: 8,
             marginBottom: 16,
           }}
         >
           {[
-            {
-              label: "Sterkte",
-              value: (rec.easeFactor ?? INITIAL_EASE).toFixed(2),
-            },
-            { label: "Interval", value: `${rec.interval ?? 0}d` },
             { label: "Herhaald", value: rec.reps ?? 0 },
             { label: "Terugval", value: rec.lapses ?? 0 },
           ].map((s) => (
@@ -204,7 +198,7 @@ export default function SurahSheet({
               </div>
             </div>
           ))}
-          {rec.nextDue && (
+          {rec.lastReviewed && (
             <div
               style={{
                 gridColumn: "1 / -1",
@@ -213,7 +207,7 @@ export default function SurahSheet({
                 textAlign: "center",
               }}
             >
-              Volgende revisie: {shortDate(rec.nextDue)}
+              Laatst herhaald: {shortDate(rec.lastReviewed)}
             </div>
           )}
         </div>

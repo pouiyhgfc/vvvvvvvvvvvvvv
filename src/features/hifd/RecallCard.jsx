@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { surahById } from "../../lib/surahs.js";
-import { nextSrs } from "../../lib/hifd.js";
 import Card from "../../ui/Card.jsx";
 
 // Knop-volgorde zwakst → sterkst; kleur per knop uit de ontwerptokens.
@@ -31,8 +30,6 @@ const RECALL_BUTTONS = [
   },
 ];
 
-const intervalLabel = (days) => (days === 1 ? "morgen" : `${days} d`);
-
 // Optioneel: hoeveel fouten je maakte. Gaat mee in de log (`mistakes`), zodat
 // later te zien is welke stukken wegzakken (zie .md/HIFD-ONDERZOEK.md).
 const MISTAKES = ["0", "1-2", "3+"];
@@ -56,7 +53,8 @@ export default function RecallCard({ rec, position, total, onRate }) {
         }}
       >
         <span style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)" }}>
-          {position} van {total} · zeg uit het hoofd op
+          {position} van {total} · {rec.kind === "sabqi" ? "sabqi" : "manzil"} ·
+          zeg uit het hoofd op
         </span>
         <span
           dir="rtl"
@@ -138,15 +136,12 @@ export default function RecallCard({ rec, position, total, onRate }) {
               color,
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
+              justifyContent: "center",
               padding: "0 var(--sp-4)",
             }}
           >
             <span style={{ fontSize: "var(--fs-md)", fontWeight: 600 }}>
               {label}
-            </span>
-            <span style={{ fontSize: "var(--fs-xs)", opacity: 0.85 }}>
-              {intervalLabel(nextSrs(rec, value).interval)}
             </span>
           </button>
         ))}

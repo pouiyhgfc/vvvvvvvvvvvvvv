@@ -5,12 +5,12 @@ import { addDays } from "../../lib/date.js";
 import { DEFAULT_SETTINGS } from "../../lib/constants.js";
 import { surahById, TOTAL_AYAT } from "../../lib/surahs.js";
 import { nextSrs, INITIAL_EASE } from "../../lib/hifd.js";
+import { manzilPlan } from "../../lib/manzil.js";
 import { showToast } from "../../lib/toast.js";
-import { today, shortDate } from "./hifdDates.js";
+import { today } from "./hifdDates.js";
 import VandaagView from "./VandaagView.jsx";
 import VoortgangView from "./VoortgangView.jsx";
 import SurahSheet from "./SurahSheet.jsx";
-import ShadowPlanCard from "./ShadowPlanCard.jsx";
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
@@ -69,31 +69,27 @@ export default function HifdView() {
     return logs.reduce((n, l) => (l.phase === "review" ? n + 1 : n), 0);
   }, []);
 
-  // Pas tonen zodra de telling geladen is (null → 0 plekken) zodat er nooit
-  // kort te veel kaarten verschijnen waarop je per ongeluk kunt tikken.
-  const remainingReviews =
-    reviewsDoneToday == null ? 0 : Math.max(0, dailyCap - reviewsDoneToday);
-
-  // Alle surahs die vandaag toe zijn (nog niet beoordeeld vandaag → nextDue
-  // ligt nog in het verleden/vandaag), los van de daglimiet.
-  const dueCount = useMemo(() => {
-    const t = today();
-    return (hifdRecords || []).filter(
-      (r) => r.status === "memorized" && r.nextDue != null && r.nextDue <= t,
-    ).length;
-  }, [hifdRecords]);
-
-  const reviewList = useMemo(() => {
-    const t = today();
-    return (hifdRecords || [])
-      .filter(
-        (r) => r.status === "memorized" && r.nextDue != null && r.nextDue <= t,
-      )
-      .sort((a, b) =>
-        a.nextDue < b.nextDue ? -1 : a.nextDue > b.nextDue ? 1 : 0,
-      )
-      .slice(0, remainingReviews);
-  }, [hifdRecords, remainingReviews]);
+  // Revisie volgens sabqi + manzil (gekozen 29-10, zie .md/HIFD-ONDERZOEK.md):
+  // eerst sabqi (recent of zwak), dan manzil in rotatie binnen het dagbudget.
+  // De SRS-velden worden nog wel bijgewerkt, zodat terugschakelen kan.
+  const recentLogs = useLiveQuery(
+    () => db.hifdLogV2.where("date").above(addDays(today(), -8)).toArray(),
+    [],
+  );
+  const plan = useMemo(
+    () => manzilPlan(hifdRecords || [], recentLogs || [], today(), dailyCap),
+    [hifdRecords, recentLogs, dailyCap],
+  );
+  const reviewList = useMemo(
+    () =>
+      recentLogs
+        ? [
+            ...plan.sabqiToday.map((r) => ({ ...r, kind: "sabqi" })),
+            ...plan.manzilToday.map((r) => ({ ...r, kind: "manzil" })),
+          ]
+        : [],
+    [plan, recentLogs],
+  );
 
   // Voortgang op verzen, niet op surahs: Al-Baqarah (286 verzen) telt zo
   // zwaarder dan Al-Kawthar (3). Bij enige voortgang minstens 1%.
@@ -201,8 +197,7 @@ export default function HifdView() {
       phase: "review",
       note: "",
     });
-    const dagen = srs.interval === 1 ? "1 dag" : `${srs.interval} dagen`;
-    showToast(`✓ Volgende revisie over ${dagen} (${shortDate(newNextDue)})`);
+    showToast("✓ Herhaald");
   }
 
   const selectedRec = selectedSurah ? hifdMap[selectedSurah] : null;
@@ -275,19 +270,13 @@ export default function HifdView() {
           versesKnownTotal={versesKnownTotal}
           learningList={learningList}
           reviewList={reviewList}
-          dailyCap={dailyCap}
           reviewsDoneToday={reviewsDoneToday ?? 0}
-          dueCount={dueCount}
+          cycleDays={plan.cycleDays}
           onDelta={updateVersesKnown}
           onLog={logLearnSession}
           onMarkMemorized={markMemorized}
           onRate={rateReview}
         />
-      )}
-      {tab === "vandaag" && (
-        <div style={{ padding: "var(--sp-3) var(--sp-4) 0" }}>
-          <ShadowPlanCard records={hifdRecords} budget={dailyCap} />
-        </div>
       )}
 
       {tab === "voortgang" && (
