@@ -1,4 +1,4 @@
-import { db, seedHifd } from "./db.js";
+import { db, fillSearchText, seedHifd } from "./db.js";
 import { dk } from "./date.js";
 import { DEFAULT_NOTEBOOKS, DEFAULT_SETTINGS } from "./constants.js";
 import { showToast } from "./toast.js";
@@ -255,6 +255,7 @@ export async function performFullImport(data, merge) {
     },
   );
   await seedHifd();
+  await fillSearchText();
   // Een teruggezette backup telt als ingericht (geen welkomstscherm meer).
   await db.meta.put({ key: "onboarded", value: true });
   showToast(

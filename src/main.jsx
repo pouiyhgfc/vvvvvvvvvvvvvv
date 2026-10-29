@@ -13,6 +13,7 @@ import {
   seedHifd,
   migrateHifdSrsV2,
   purgeTrash,
+  fillSearchText,
 } from "./lib/db.js";
 import { runStartup } from "./lib/startup.js";
 
@@ -25,6 +26,7 @@ const STARTUP_STEPS = [
   ["Hifd-lijst aanmaken", seedHifd],
   ["Hifd-revisieschema bijwerken", migrateHifdSrsV2],
   ["prullenbak opschonen", purgeTrash],
+  ["zoektekst van notities", fillSearchText],
 ];
 
 (async () => {

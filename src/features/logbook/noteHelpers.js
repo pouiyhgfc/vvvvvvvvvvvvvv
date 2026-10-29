@@ -1,6 +1,7 @@
 import { DAYS_NL, MONTHS_NL } from "../../lib/constants.js";
 import { isToday, getMonday } from "../../lib/date.js";
 import { tagKey } from "../../lib/tags.js";
+import { searchableText } from "../../lib/docText.js";
 
 export function fmtDay(str) {
   const d = new Date(str + "T12:00:00");
@@ -64,7 +65,7 @@ export function filterNotes(list, { tag, search }) {
     out = out.filter(
       (e) =>
         e.title?.toLowerCase().includes(q) ||
-        e.body?.toLowerCase().includes(q) ||
+        searchableText(e).toLowerCase().includes(q) ||
         e.tags?.some((t) => t.toLowerCase().includes(q)) ||
         dateSearchString(e.date).includes(q),
     );

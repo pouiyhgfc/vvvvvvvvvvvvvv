@@ -65,7 +65,7 @@ test("'Exporteer alles' levert een volledige backup op", async ({ page }) => {
   const { readFile } = await import("node:fs/promises");
   const backup = JSON.parse(await readFile(file, "utf8"));
 
-  expect(backup.version).toBe(11);
+  expect(backup.version).toBe(12);
   expect(backup.logEntries).toHaveLength(3);
   expect(backup.hifd).toHaveLength(114);
   expect(backup.hifd.filter((r) => r.status === "memorized")).toHaveLength(6);

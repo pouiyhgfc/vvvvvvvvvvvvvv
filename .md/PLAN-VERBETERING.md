@@ -369,10 +369,14 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
       vóór er custom blokken komen (migratie + test).
       _29-10: `docSchema.js`. Opslaan zet `docSchemaVersion: 1`; ontbreekt hij, dan is het 1 (geen
       bulkmigratie nodig). Bij laden worden onbekende bloktypes een alinea met dezelfde tekst._
-- [ ] **5.1 Zoekindex:** eigen plain-text-extractor over het hele document (incl. geneste
+- [x] **5.1 Zoekindex:** eigen plain-text-extractor over het hele document (incl. geneste
       blokken en tabelcellen), berekend bij opslaan in plaats van bij elke toetsaanslag; nieuw
       afgeleid veld `searchText` (migratie vult het voor bestaande entries). `body` (markdown)
       blijft voor preview en export.
+      _30-10: `lib/docText.js`. Opslaan zet `searchText`; bij het opstarten en na een import vult
+      `fillSearchText` hem aan waar hij ontbreekt (raakt verder niets). Zoeken valt terug op
+      `body`. Backupversie 12. Vindt nu ook half-vette woorden, tabelcellen, notitielinks en
+      videolinks (`e2e/search.spec.js`)._
 - [x] **5.2 Toggles:** toggle-lijst en inklapbare koppen zitten al in BlockNote, maar staan uit
       in `SLASH_KEYS` → aanzetten in slashmenu en blok-sheet. Snelle winst.
       _Gedaan: "Uitklapbare lijst" en "Uitklapbare kop 2" in het +-menu, "Uitklaplijst" in het

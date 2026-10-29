@@ -1,4 +1,5 @@
 import Dexie from "dexie";
+import { docText } from "./docText.js";
 import {
   DEFAULT_ROUTINES,
   DEFAULT_AREAS,
@@ -235,6 +236,19 @@ export async function purgeTrash() {
     .filter((e) => !!e.deletedAt && new Date(e.deletedAt).getTime() < cutoff)
     .primaryKeys();
   if (toPurge.length) await db.logEntries.bulkDelete(toPurge);
+}
+
+// Vult `searchText` (platte tekst voor zoeken, zie docText.js) voor notities
+// die hem nog niet hebben: bestaande notities en na een import van een oudere
+// backup. Raakt alleen ontbrekende velden; `body` blijft zoals hij is.
+export async function fillSearchText() {
+  const missing = await db.logEntries
+    .filter((e) => Array.isArray(e.doc) && e.searchText === undefined)
+    .toArray();
+  if (missing.length)
+    await db.logEntries.bulkPut(
+      missing.map((e) => ({ ...e, searchText: docText(e.doc) })),
+    );
 }
 
 export async function seedHifd() {

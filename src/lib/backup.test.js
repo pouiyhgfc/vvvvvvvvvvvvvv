@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { DEFAULT_SETTINGS } from "./constants.js";
-import { db, seedHifd } from "./db.js";
+import { db, fillSearchText, seedHifd } from "./db.js";
 import { exportData, performFullImport } from "./backup.js";
 
 // exportData downloadt via een <a>-klik; vang de Blob op in plaats daarvan.
@@ -112,15 +112,27 @@ async function exportAll() {
 describe("volledige backup", () => {
   test("export → alles wissen → import (vervangen) geeft dezelfde data terug", async () => {
     await seed();
+    await fillSearchText(); // zoals bij het opstarten van de app
     const before = await snapshot();
     const backup = await exportAll();
-    expect(backup.version).toBe(11);
+    expect(backup.version).toBe(12);
 
     await db.delete();
     await db.open();
     await performFullImport(backup, false);
 
     expect(await snapshot()).toEqual(before);
+  });
+
+  test("een notitie uit een oudere backup krijgt bij import zijn zoektekst", async () => {
+    await seed();
+    const backup = await exportAll();
+    const note = backup.logEntries.find((e) => Array.isArray(e.doc));
+    delete note.searchText;
+    await db.delete();
+    await db.open();
+    await performFullImport(backup, false);
+    expect((await db.logEntries.get(note.id)).searchText).toBeTruthy();
   });
 
   test("samenvoegen houdt bestaande entries die niet in de backup staan", async () => {

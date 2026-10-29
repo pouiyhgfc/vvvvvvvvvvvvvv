@@ -5,7 +5,9 @@
 
 import { PERIOD_LABELS } from "./constants.js";
 
-export const BACKUP_VERSION = 11;
+// 12: notities hebben `searchText` (afgeleid; oudere backups krijgen hem bij
+// het importeren).
+export const BACKUP_VERSION = 12;
 
 // De tracker rendert elk dagdeel; ontbreekt er één, dan crasht de app.
 const PERIODS = Object.keys(PERIOD_LABELS);

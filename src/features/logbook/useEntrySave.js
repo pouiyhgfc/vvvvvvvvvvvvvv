@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "../../lib/db.js";
 import { uid, dk } from "../../lib/date.js";
 import { cleanTags } from "../../lib/tags.js";
+import { docText } from "../../lib/docText.js";
 import { DOC_SCHEMA_VERSION } from "./docSchema.js";
 
 // Automatisch opslaan van een notitie (debounced + bij Terug). Maakt een
@@ -59,6 +60,7 @@ export function useEntrySave({
         body: text || "",
         doc: doc || undefined,
         docSchemaVersion: doc ? DOC_SCHEMA_VERSION : undefined,
+        searchText: doc ? docText(doc) : undefined,
         tags: cleanTags(tags, knownTags),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -69,6 +71,7 @@ export function useEntrySave({
         body: text || "",
         doc: doc || undefined,
         docSchemaVersion: doc ? DOC_SCHEMA_VERSION : undefined,
+        searchText: doc ? docText(doc) : undefined,
         tags: cleanTags(tags, knownTags),
         updatedAt: new Date().toISOString(),
       });
