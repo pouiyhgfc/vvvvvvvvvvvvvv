@@ -114,3 +114,26 @@ test("een notitie als sjabloon opslaan en gebruiken", async ({ page }) => {
   await page.getByRole("button", { name: "Verwijderen", exact: true }).tap();
   await expect(page.getByText("Weekplan", { exact: true })).toBeHidden();
 });
+
+test("callout invoegen, variant wisselen en bewaren", async ({ page }) => {
+  await newNote(page, [""]);
+  await page.tap('button[aria-label="Nieuw blok invoegen"]');
+  await page.keyboard.type("callout");
+  await page.locator(".bn-suggestion-menu-item", { hasText: "Callout" }).tap();
+  await page.keyboard.type("Niet vergeten: huiswerk RTE");
+  const callout = page.locator(".ProseMirror .callout");
+  await expect(callout).toContainText("Niet vergeten: huiswerk RTE");
+  await callout.getByRole("button", { name: /Info/ }).tap();
+  await expect(callout.getByRole("button", { name: /Tip/ })).toBeVisible();
+
+  // Terug en opnieuw openen: blok en variant zijn bewaard.
+  await page.getByRole("button", { name: "Terug" }).tap();
+  await page
+    .getByRole("navigation", { name: "Hoofdmenu" })
+    .getByRole("button", { name: "Notities" })
+    .tap();
+  await page.getByText("Niet vergeten: huiswerk RTE").first().tap();
+  await expect(
+    page.locator(".ProseMirror .callout").getByRole("button", { name: /Tip/ }),
+  ).toBeVisible();
+});

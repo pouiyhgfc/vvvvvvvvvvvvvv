@@ -28,6 +28,7 @@ const TYPES = [
   { label: "Genummerd", type: "numberedListItem" },
   { label: "Checklist", type: "checkListItem" },
   { label: "Uitklaplijst", type: "toggleListItem" },
+  { label: "Callout", type: "callout" },
   { label: "Citaat", type: "quote" },
   { label: "Code", type: "codeBlock" },
 ];

@@ -11,7 +11,13 @@ import { BlockNoteView } from "@blocknote/mantine";
 import BlockHandle from "./BlockHandle.jsx";
 import KeyboardToolbar from "./KeyboardToolbar.jsx";
 import { outdentEmptyListItem } from "./editorActions.js";
-import { defaultBlockSpecs, filterSuggestionItems } from "@blocknote/core";
+import {
+  BlockNoteSchema,
+  defaultBlockSpecs,
+  filterSuggestionItems,
+  insertOrUpdateBlockForSlashMenu,
+} from "@blocknote/core";
+import { createCallout } from "./CalloutBlock.jsx";
 import { sanitizeDoc } from "./docSchema.js";
 import { fmtDate } from "../../lib/date.js";
 import Icon from "../../ui/Icon.jsx";
@@ -19,7 +25,11 @@ import { nl } from "@blocknote/core/locales";
 import "@blocknote/mantine/style.css";
 import "./richEditor.css";
 
-const KNOWN_TYPES = new Set(Object.keys(defaultBlockSpecs));
+// Standaardblokken plus onze eigen (callout).
+const schema = BlockNoteSchema.create({
+  blockSpecs: { ...defaultBlockSpecs, callout: createCallout() },
+});
+const KNOWN_TYPES = new Set(Object.keys(schema.blockSpecs));
 
 // Normaliseert initialContent naar BlockNote-blocks (of undefined voor leeg).
 // Valt terug op string-conversie zodat oude platte-tekst entries niet crashen;
@@ -105,6 +115,7 @@ const RichEditor = forwardRef(function RichEditor(
   ref,
 ) {
   const editor = useCreateBlockNote({
+    schema,
     initialContent: toBlocks(initialContent),
     // Eigen plaatshouder: de NL-default zegt alleen "typ '/'", maar getypte "/"
     // werkt niet op Android (IME-compositie) — daar is de +-knop de ingang.
@@ -166,12 +177,23 @@ const RichEditor = forwardRef(function RichEditor(
     onItemClick: () =>
       editor.insertInlineContent(fmtDate(new Date()).toLowerCase() + " "),
   };
+  const calloutItem = {
+    key: "callout",
+    title: "Callout",
+    subtext: "Opvallend blok: info, tip of let op",
+    aliases: ["callout", "info", "tip", "let op", "opvallend"],
+    group: "Overig",
+    icon: <Icon name="info" size={18} />,
+    onItemClick: () =>
+      insertOrUpdateBlockForSlashMenu(editor, { type: "callout" }),
+  };
   const getSlashItems = async (query) =>
     filterSuggestionItems(
       [
         ...getDefaultReactSlashMenuItems(editor).filter((item) =>
           SLASH_KEYS.has(item.key),
         ),
+        calloutItem,
         dateItem,
       ],
       query,
