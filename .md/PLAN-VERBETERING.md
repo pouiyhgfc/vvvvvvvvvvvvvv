@@ -407,7 +407,7 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
       lijstregel gaat één niveau terug. _Nog op Android te testen._
 - [x] **5.7c Overzicht "Alles":** alle notities over de notitieboeken heen, op datum.
 - [ ] **5.8 Onderzoek:** multi-block-selectie op touch (groot; pas na 0.56 beoordelen).
-- [ ] **5.9 Tags met structuur** (besluit eigenaar 27-10-2026: tags blijven, maar beter). Nu: los
+- [x] **5.9 Tags met structuur** (besluit eigenaar 27-10-2026: tags blijven, maar beter). Nu: los
       intypen, komma-gescheiden, eindeloze lijst zonder samenhang (#hifd naast gebied
       "Quran/Hifd").
   - **Kiezen i.p.v. typen:** tag-kiezer met je bestaande tags als chips + zoeken; "nieuwe tag"
@@ -422,7 +422,11 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
     Hernoemen/samenvoegen past `tags` in de entries aan in één transactie, na bevestiging.
   - Tests: normaliseren, samenvoegen, hernoemen (unit); tag kiezen + filteren (e2e).
   - _Stand 28-10-2026: kiezen, normaliseren en tagbeheer (hernoemen/samenvoegen/verwijderen)
-    werken en zijn getest. Koppelen aan een focusgebied (`tagMeta`) is nog niet gebouwd._
+    werken en zijn getest. 30-10: koppelen aan een focusgebied gebouwd — Meer → Tags → tag →
+    "Focusgebied". De tag krijgt een stip in de kleur van het gebied (lijst, kaarten, filter) en
+    boven de tags staat een gebied-chip die alle gekoppelde tags samen filtert. Blob `tagMeta`,
+    backupversie 13; hernoemen/samenvoegen neemt de koppeling mee. Tests: `tags.test.js`,
+    `backup.test.js`, `e2e/tags.spec.js`._
 - [ ] **Fase 5 afgerond**
 
 **Bewust niet:** kolommen (`@blocknote/xl-multi-column` is GPL), AI- en exportpakketten uit de

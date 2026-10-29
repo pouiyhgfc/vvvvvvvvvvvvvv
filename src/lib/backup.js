@@ -43,6 +43,7 @@ export async function exportData({
   const logEntries = await db.logEntries.toArray();
   const notebooksBlob = await db.blobs.get("notebooks");
   const entryTemplatesBlob = await db.blobs.get("entryTemplates");
+  const tagMetaBlob = await db.blobs.get("tagMeta");
   const hifdData = await db.hifd.toArray();
   const hifdLogData = await db.hifdLogV2.toArray();
   downloadJSON(`routine-backup-${dk(new Date())}.json`, {
@@ -58,6 +59,7 @@ export async function exportData({
     logEntries,
     notebooks: notebooksBlob?.data ?? DEFAULT_NOTEBOOKS,
     entryTemplates: entryTemplatesBlob?.data ?? [],
+    tagMeta: tagMetaBlob?.data ?? {},
     hifd: hifdData,
     hifdLog: hifdLogData,
     files: await filesForBackup(),
@@ -191,7 +193,12 @@ async function putNotes(data) {
     await db.blobs.put({ key: "notebooks", data: data.notebooks });
   if (Array.isArray(data.entryTemplates) && data.entryTemplates.length)
     await db.blobs.put({ key: "entryTemplates", data: data.entryTemplates });
+  if (isPlainObject(data.tagMeta) && Object.keys(data.tagMeta).length)
+    await db.blobs.put({ key: "tagMeta", data: data.tagMeta });
 }
+
+const isPlainObject = (v) =>
+  v !== null && typeof v === "object" && !Array.isArray(v);
 
 // Voert de volledige-backup-import uit (samenvoegen of vervangen). Werpt
 // door bij een fout — de aanroeper toont de foutmelding en ruimt eigen
@@ -220,6 +227,7 @@ export async function performFullImport(data, merge) {
         // Zonder deze reset zou seedHifd hieronder denken dat de 114 surahs er
         // al staan, en blijft Hifd leeg bij een backup zonder Hifd-gegevens.
         await db.meta.delete("hifd_seeded");
+        await db.blobs.delete("tagMeta");
       }
       await db.blobs.put({ key: "routines", data: data.routines });
       if (data.calTemplates)

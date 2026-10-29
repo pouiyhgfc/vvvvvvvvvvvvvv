@@ -44,12 +44,42 @@ export function cleanTags(tags, known = []) {
   return [...out.values()];
 }
 
+// Optionele koppeling tag → focusgebied, in de blob `tagMeta`:
+// { [tagKey]: { area: "Ibadah" } }. Een gekoppelde tag krijgt de kleur van het
+// gebied, en filteren op het gebied toont ook die notities.
+export async function setTagArea(key, area) {
+  const meta = (await db.blobs.get("tagMeta"))?.data ?? {};
+  const { [key]: _old, ...rest } = meta;
+  await db.blobs.put({
+    key: "tagMeta",
+    data: area ? { ...rest, [key]: { ...meta[key], area } } : rest,
+  });
+}
+
+// Tag-sleutels per gebied, bv. { Ibadah: Set(["duah", "islam"]) }.
+export function tagsByArea(meta = {}) {
+  const out = {};
+  for (const [key, m] of Object.entries(meta))
+    if (m?.area) (out[m.area] ??= new Set()).add(key);
+  return out;
+}
+
 // Hernoemt een tag in alle notities (ook gearchiveerde en in de prullenbak).
 // Bestaat de nieuwe naam al, dan worden ze samengevoegd. Leeg = verwijderen.
-// Geeft het aantal aangepaste notities terug.
+// De koppeling met een gebied verhuist mee (bij samenvoegen wint die van de
+// bestaande tag). Geeft het aantal aangepaste notities terug.
 export async function renameTag(fromKey, toName) {
   const to = tidy(toName);
-  return db.transaction("rw", db.logEntries, async () => {
+  return db.transaction("rw", db.logEntries, db.blobs, async () => {
+    const meta = (await db.blobs.get("tagMeta"))?.data ?? {};
+    if (meta[fromKey]) {
+      const { [fromKey]: moved, ...rest } = meta;
+      const toKey = tagKey(to);
+      await db.blobs.put({
+        key: "tagMeta",
+        data: to && !rest[toKey] ? { ...rest, [toKey]: moved } : rest,
+      });
+    }
     const hits = await db.logEntries
       .filter((e) => (e.tags || []).some((t) => tagKey(t) === fromKey))
       .toArray();

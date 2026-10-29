@@ -38,6 +38,7 @@ export async function clearEverything() {
       });
       await db.blobs.put({ key: "weekTemplates", data: [] });
       await db.blobs.put({ key: "notebooks", data: DEFAULT_NOTEBOOKS });
+      await db.blobs.delete("tagMeta");
       await db.days.clear();
       await db.calEvents.clear();
       await db.logEntries.clear();

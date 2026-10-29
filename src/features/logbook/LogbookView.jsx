@@ -20,6 +20,7 @@ import { useLongPress } from "./useLongPress.js";
 import { useNoteReorder } from "./useNoteReorder.js";
 import { useNotesData } from "./useNotesData.js";
 import { useSelection } from "./useSelection.js";
+import { useTagAreas } from "../../hooks/useTagAreas.js";
 import NotebookTabs from "./NotebookTabs.jsx";
 import NotesHeader from "./NotesHeader.jsx";
 import NoteSearch from "./NoteSearch.jsx";
@@ -96,9 +97,10 @@ export default function LogbookView() {
   const notebookOf = (e) =>
     notebooks.find((n) => n.id === nbOf(e)) || notebooks[0];
 
+  const { areaOf, byArea } = useTagAreas();
   const filtered = useMemo(
-    () => filterNotes(allEntries, { tag: activeTag, search }),
-    [allEntries, search, activeTag],
+    () => filterNotes(allEntries, { tag: activeTag, search, byArea }),
+    [allEntries, search, activeTag, byArea],
   );
 
   // Slepen kan ook tijdens zoeken/filteren; alleen de sorteermodus,
@@ -174,6 +176,7 @@ export default function LogbookView() {
     const isLog = entry._type === "log";
     return (
       <NoteCard
+        areaOf={areaOf}
         key={entry.id}
         entry={entry}
         idx={idx}
@@ -228,7 +231,13 @@ export default function LogbookView() {
         onNew={() => setNbSheet("new")}
       />
 
-      <TagFilter tags={allTags} active={activeTag} onChange={setActiveTag} />
+      <TagFilter
+        tags={allTags}
+        active={activeTag}
+        onChange={setActiveTag}
+        areaOf={areaOf}
+        byArea={byArea}
+      />
 
       <NoteList
         {...reorder}

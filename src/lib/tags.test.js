@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { db } from "./db.js";
-import { cleanTags, renameTag, tagKey, tagStats } from "./tags.js";
+import {
+  cleanTags,
+  renameTag,
+  setTagArea,
+  tagKey,
+  tagsByArea,
+  tagStats,
+} from "./tags.js";
 
 const note = (id, tags, extra = {}) => ({
   id,
@@ -57,5 +64,46 @@ describe("tags", () => {
     expect(await renameTag("islam", "")).toBe(2);
     expect((await db.logEntries.get("a")).tags).toEqual(["gedachten"]);
     expect((await db.logEntries.get("c")).tags).toEqual([]);
+  });
+});
+
+describe("tags koppelen aan een focusgebied", () => {
+  const meta = async () => (await db.blobs.get("tagMeta"))?.data ?? {};
+  beforeEach(async () => {
+    await db.logEntries.clear();
+    await db.blobs.delete("tagMeta");
+  });
+
+  test("koppelen, groeperen per gebied en ontkoppelen", async () => {
+    await setTagArea("duah", "Ibadah");
+    await setTagArea("islam", "Ibadah");
+    await setTagArea("sport", "Lichaam");
+    expect(tagsByArea(await meta())).toEqual({
+      Ibadah: new Set(["duah", "islam"]),
+      Lichaam: new Set(["sport"]),
+    });
+    await setTagArea("sport", null);
+    expect(await meta()).not.toHaveProperty("sport");
+  });
+
+  test("hernoemen neemt de koppeling mee, verwijderen haalt hem weg", async () => {
+    await db.logEntries.bulkPut([note("a", ["workout"]), note("b", ["duah"])]);
+    await setTagArea("workout", "Lichaam");
+    await setTagArea("duah", "Ibadah");
+
+    await renameTag("workout", "Sport");
+    expect(await meta()).toMatchObject({ sport: { area: "Lichaam" } });
+    expect(await meta()).not.toHaveProperty("workout");
+
+    await renameTag("duah", "");
+    expect(await meta()).not.toHaveProperty("duah");
+  });
+
+  test("bij samenvoegen wint de koppeling van de bestaande tag", async () => {
+    await db.logEntries.bulkPut([note("a", ["hifz"]), note("b", ["hifd"])]);
+    await setTagArea("hifz", "Studie");
+    await setTagArea("hifd", "Hifd & Quran");
+    await renameTag("hifz", "hifd");
+    expect(await meta()).toEqual({ hifd: { area: "Hifd & Quran" } });
   });
 });

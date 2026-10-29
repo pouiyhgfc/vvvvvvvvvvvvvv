@@ -56,10 +56,15 @@ export function stripBlockIds(blocks) {
 }
 
 // Zoeken en tagfilter op de lijst: titel, tekst, tags en datum (ook "25 juni"
-// of de weekdag). `tag` is een tagKey.
-export function filterNotes(list, { tag, search }) {
+// of de weekdag). `tag` is een tag-sleutel, of "area:<naam>" voor alle tags
+// die aan dat focusgebied gekoppeld zijn (`byArea` uit tagsByArea).
+export function filterNotes(list, { tag, search, byArea = {} }) {
   let out = list;
-  if (tag) out = out.filter((e) => e.tags?.some((t) => tagKey(t) === tag));
+  if (tag?.startsWith("area:")) {
+    const keys = byArea[tag.slice(5)] ?? new Set();
+    out = out.filter((e) => e.tags?.some((t) => keys.has(tagKey(t))));
+  } else if (tag)
+    out = out.filter((e) => e.tags?.some((t) => tagKey(t) === tag));
   if (search.trim()) {
     const q = search.toLowerCase();
     out = out.filter(

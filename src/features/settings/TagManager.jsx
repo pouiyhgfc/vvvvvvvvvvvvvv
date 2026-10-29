@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { isActive } from "../../lib/notes.js";
-import { renameTag, tagKey, tagStats } from "../../lib/tags.js";
+import { renameTag, setTagArea, tagKey, tagStats } from "../../lib/tags.js";
+import { useTagAreas } from "../../hooks/useTagAreas.js";
+import AreaDot from "../../ui/AreaDot.jsx";
 import { showToast } from "../../lib/toast.js";
 import Button from "../../ui/Button.jsx";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
-import { Field, TextInput } from "../../ui/Field.jsx";
+import { Field, Select, TextInput } from "../../ui/Field.jsx";
 import Icon from "../../ui/Icon.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 
@@ -17,6 +19,7 @@ export default function TagManager() {
     tagStats((await db.logEntries.toArray()).filter(isActive)),
   );
   const [editing, setEditing] = useState(null);
+  const { areas, areaOf } = useTagAreas();
 
   if (!stats) return null;
   if (stats.length === 0)
@@ -54,6 +57,7 @@ export default function TagManager() {
             padding: 0,
           }}
         >
+          {areaOf(t.name) && <AreaDot color={areaOf(t.name).color} />}
           <span style={{ flex: 1 }}>#{t.name}</span>
           <span
             style={{ fontSize: "var(--fs-sm)", color: "var(--text-muted)" }}
@@ -71,6 +75,8 @@ export default function TagManager() {
         <TagSheet
           tag={editing}
           stats={stats}
+          areas={areas}
+          area={areaOf(editing.name)?.name ?? ""}
           onClose={() => setEditing(null)}
         />
       )}
@@ -78,7 +84,7 @@ export default function TagManager() {
   );
 }
 
-function TagSheet({ tag, stats, onClose }) {
+function TagSheet({ tag, stats, areas, area, onClose }) {
   const [name, setName] = useState(tag.name);
   const [confirmDel, setConfirmDel] = useState(false);
   const target = stats.find((s) => s.key === tagKey(name) && s.key !== tag.key);
@@ -140,6 +146,23 @@ function TagSheet({ tag, stats, onClose }) {
             onChange={(e) => setName(e.target.value)}
             aria-label="Nieuwe naam"
           />
+        </Field>
+        <Field
+          label="Focusgebied (optioneel)"
+          hint="De tag krijgt de kleur van het gebied; filteren op het gebied toont ook deze notities."
+        >
+          <Select
+            value={area}
+            aria-label="Focusgebied"
+            onChange={(e) => setTagArea(tag.key, e.target.value || null)}
+          >
+            <option value="">Geen</option>
+            {areas.map((a) => (
+              <option key={a.name} value={a.name}>
+                {a.name}
+              </option>
+            ))}
+          </Select>
         </Field>
       </Sheet>
       {confirmDel && (

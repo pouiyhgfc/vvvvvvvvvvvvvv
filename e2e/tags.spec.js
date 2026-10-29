@@ -41,3 +41,24 @@ test("een tag verwijderen haalt hem uit de notities, niet de notities zelf", asy
   expect(zondag.tags).toEqual([]);
   expect(backup.logEntries).toHaveLength(3);
 });
+
+test("een tag aan een focusgebied koppelen en daarop filteren", async ({
+  page,
+}) => {
+  await loadDemo(page);
+  await openTab(page, "Meer");
+  await page.getByRole("button", { name: "Tags" }).click();
+  await page.getByRole("button", { name: /#hifd/ }).click();
+  await page
+    .getByRole("combobox", { name: "Focusgebied" })
+    .selectOption("Geloof");
+  await page.getByRole("button", { name: "Sluiten" }).click();
+
+  await openTab(page, "Notities");
+  await page.getByRole("button", { name: "Geloof", exact: true }).click();
+  await expect(page.getByText("Dinsdag", { exact: true })).toBeVisible();
+  await expect(page.getByText("Zondag", { exact: true })).toBeHidden();
+
+  const backup = await exportBackup(page);
+  expect(backup.tagMeta).toEqual({ hifd: { area: "Geloof" } });
+});

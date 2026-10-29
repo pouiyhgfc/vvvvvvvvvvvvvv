@@ -115,13 +115,26 @@ describe("volledige backup", () => {
     await fillSearchText(); // zoals bij het opstarten van de app
     const before = await snapshot();
     const backup = await exportAll();
-    expect(backup.version).toBe(12);
+    expect(backup.version).toBe(13);
 
     await db.delete();
     await db.open();
     await performFullImport(backup, false);
 
     expect(await snapshot()).toEqual(before);
+  });
+
+  test("koppelingen tag → focusgebied gaan mee in de backup", async () => {
+    await seed();
+    await db.blobs.put({ key: "tagMeta", data: { hifd: { area: "Quran" } } });
+    const backup = await exportAll();
+    expect(backup.tagMeta).toEqual({ hifd: { area: "Quran" } });
+    await db.delete();
+    await db.open();
+    await performFullImport(backup, false);
+    expect((await db.blobs.get("tagMeta")).data).toEqual({
+      hifd: { area: "Quran" },
+    });
   });
 
   test("een notitie uit een oudere backup krijgt bij import zijn zoektekst", async () => {

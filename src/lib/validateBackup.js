@@ -6,8 +6,8 @@
 import { PERIOD_LABELS } from "./constants.js";
 
 // 12: notities hebben `searchText` (afgeleid; oudere backups krijgen hem bij
-// het importeren).
-export const BACKUP_VERSION = 12;
+// het importeren). 13: `tagMeta` (tag → focusgebied).
+export const BACKUP_VERSION = 13;
 
 // De tracker rendert elk dagdeel; ontbreekt er één, dan crasht de app.
 const PERIODS = Object.keys(PERIOD_LABELS);
@@ -53,6 +53,8 @@ export function validateBackup(data) {
 
   if ("settings" in data && !isObject(data.settings))
     problems.push("Instellingen hebben een onbekend formaat.");
+  if ("tagMeta" in data && !isObject(data.tagMeta))
+    problems.push("Tag-koppelingen hebben een onbekend formaat.");
 
   if ("days" in data) {
     const ok =

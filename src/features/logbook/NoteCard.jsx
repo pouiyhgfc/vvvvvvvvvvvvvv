@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import AreaDot from "../../ui/AreaDot.jsx";
 import { bodyPreview, noteDay } from "../../lib/notes.js";
 import DragHandle from "../../ui/DragHandle.jsx";
 import Emoji from "../../ui/Emoji.jsx";
@@ -8,6 +9,7 @@ import { fmtDay } from "./noteHelpers.js";
 // Eén notitiekaart, voor zowel de vastgezet-sectie als de rest. Long-press
 // en klikken regelt LogbookView (selectiemodus, openen).
 export default function NoteCard({
+  areaOf,
   entry,
   idx,
   handleDown,
@@ -167,6 +169,9 @@ export default function NoteCard({
               <span
                 key={tag}
                 style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
                   fontSize: "var(--fs-xs)",
                   padding: "2px 8px",
                   borderRadius: "var(--r-pill)",
@@ -175,6 +180,7 @@ export default function NoteCard({
                   fontWeight: 500,
                 }}
               >
+                {areaOf?.(tag) && <AreaDot color={areaOf(tag).color} />}
                 {tag}
               </span>
             ))}
