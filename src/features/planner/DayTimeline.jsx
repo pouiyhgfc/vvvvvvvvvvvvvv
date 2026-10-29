@@ -139,6 +139,9 @@ export default function DayTimeline({
   return (
     <div
       ref={scrollRef}
+      // Scrollbaar met het toetsenbord (pijltjes) als je erop focust.
+      tabIndex={0}
+      aria-label="Tijdlijn van de dag"
       style={{
         background: "var(--card)",
         borderRadius: "var(--r-lg)",
@@ -293,6 +296,7 @@ export default function DayTimeline({
               )}
               {dur >= 30 && (
                 <span
+                  role="button"
                   aria-label="Langer of korter maken"
                   onPointerDown={(e) => {
                     e.stopPropagation();

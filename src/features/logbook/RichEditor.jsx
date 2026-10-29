@@ -141,6 +141,8 @@ const RichEditor = forwardRef(function RichEditor(
     // Afbeeldingen lokaal in Dexie (verkleind), geen server nodig.
     uploadFile: saveImage,
     resolveFileUrl,
+    // Naam voor schermlezers (anders een naamloos tekstvak).
+    domAttributes: { editor: { "aria-label": "Notitie" } },
     initialContent: toBlocks(initialContent),
     // Eigen plaatshouder: de NL-default zegt alleen "typ '/'", maar getypte "/"
     // werkt niet op Android (IME-compositie) — daar is de +-knop de ingang.

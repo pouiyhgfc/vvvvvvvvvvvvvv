@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useGhostClickShield } from "../hooks/useGhostClickShield.js";
+import { useDialogFocus } from "../hooks/useDialogFocus.js";
 import Button from "./Button.jsx";
 
 // Gecentreerd bevestig-dialoog. Vervangt native confirm().
@@ -16,6 +17,7 @@ export default function ConfirmDialog({
   onCancel,
 }) {
   const shield = useGhostClickShield();
+  const panel = useDialogFocus();
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onCancel();
@@ -28,6 +30,8 @@ export default function ConfirmDialog({
     <div
       role="alertdialog"
       aria-modal="true"
+      aria-labelledby={title ? "confirm-title" : undefined}
+      aria-describedby={message ? "confirm-message" : undefined}
       style={{
         position: "fixed",
         inset: 0,
@@ -44,7 +48,10 @@ export default function ConfirmDialog({
       }}
     >
       <div
+        ref={panel}
+        tabIndex={-1}
         style={{
+          outline: "none",
           background: "var(--card)",
           borderRadius: "var(--r-lg)",
           padding: 20,
@@ -56,6 +63,7 @@ export default function ConfirmDialog({
       >
         {title && (
           <h3
+            id="confirm-title"
             style={{
               fontFamily: "var(--ff-head)",
               fontSize: "var(--fs-lg)",
@@ -68,6 +76,7 @@ export default function ConfirmDialog({
         )}
         {message && (
           <p
+            id="confirm-message"
             style={{
               fontSize: "var(--fs-sm)",
               color: "var(--text-muted)",

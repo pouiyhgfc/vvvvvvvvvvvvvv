@@ -8,11 +8,9 @@ export default function TodayLogCard({ entry, onOpen }) {
   return (
     <Card
       onClick={onOpen}
-      aria-label={
-        entry
-          ? "Logboek voor vandaag openen"
-          : "Nieuw logboek voor vandaag aanmaken"
-      }
+      // Met een logboek is de zichtbare tekst de naam; zonder staat er
+      // alleen een uitnodiging, dan zegt het label wat de tik doet.
+      aria-label={entry ? undefined : "Nieuw logboek voor vandaag aanmaken"}
       style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
     >
       <span

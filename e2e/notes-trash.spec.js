@@ -16,7 +16,7 @@ async function createNote(page, title) {
   await page.getByPlaceholder("Titel…").fill(title);
   await page.click(".ProseMirror");
   await page.keyboard.type("inhoud van de test-entry");
-  await page.click('button[aria-label="Terug"]');
+  await page.click('button[aria-label^="Terug"]');
   await page.waitForTimeout(700); // debounced auto-save afwachten
 }
 
@@ -37,7 +37,7 @@ test("vastzetten toont de entry in de Vastgezet-sectie en overleeft herladen", a
   await page.waitForSelector(".ProseMirror");
   await page.click('button[aria-label="Notitie-opties"]');
   await page.click('button[aria-label="Vastzetten"]');
-  await page.click('button[aria-label="Terug"]');
+  await page.click('button[aria-label^="Terug"]');
 
   await expect(page.getByText("Vastgezet", { exact: true })).toBeVisible();
   const posA = await page
@@ -161,16 +161,14 @@ test("een verwijderde 'vandaag'-entry verdwijnt uit het widget op Dag", async ({
   await page.waitForSelector(".ProseMirror");
   await page.click(".ProseMirror");
   await page.keyboard.type("Test-inhoud voor vandaag");
-  await page.click('button[aria-label="Terug"]');
+  await page.click('button[aria-label^="Terug"]');
   await page.waitForTimeout(700);
 
   await expect(
-    page.getByRole("button", { name: "Logboek voor vandaag openen" }),
+    page.getByRole("button", { name: /Logboek van vandaag/ }),
   ).toBeVisible();
 
-  await page
-    .getByRole("button", { name: "Logboek voor vandaag openen" })
-    .click();
+  await page.getByRole("button", { name: /Logboek van vandaag/ }).click();
   await page.waitForSelector(".ProseMirror");
   await page.click('button[aria-label="Notitie-opties"]');
   await page.click('button[aria-label="Naar prullenbak"]');

@@ -15,7 +15,7 @@ async function createNote(page, title) {
   await page.getByPlaceholder("Titel…").fill(title);
   await page.click(".ProseMirror");
   await page.keyboard.type("inhoud van de test-entry");
-  await page.click('button[aria-label="Terug"]');
+  await page.click('button[aria-label^="Terug"]');
   await page.waitForTimeout(700); // debounced auto-save afwachten
 }
 
@@ -39,7 +39,7 @@ test("verplaatsen via de notitieboek-select in EntryPage verhuist de entry", asy
     .getByLabel("Notitieboek", { exact: true })
     .selectOption({ label: "Werk" });
   await page.waitForTimeout(300);
-  await page.click('button[aria-label="Terug"]');
+  await page.click('button[aria-label^="Terug"]');
 
   await expect(page.getByText("Move-test", { exact: true })).toHaveCount(0);
 
@@ -209,7 +209,7 @@ test("tags kies je uit je bestaande tags; hoofdletters geven geen dubbele", asyn
   const input = page.getByRole("textbox", { name: "Tag toevoegen" });
   await input.fill("Studie");
   await input.press("Enter");
-  await page.click('button[aria-label="Terug"]');
+  await page.click('button[aria-label^="Terug"]');
   await page.waitForTimeout(700);
 
   await createNote(page, "Tag-B");
@@ -223,7 +223,7 @@ test("tags kies je uit je bestaande tags; hoofdletters geven geen dubbele", asyn
   await expect(
     page.getByRole("button", { name: /^Tag .* weghalen$/ }),
   ).toHaveCount(1);
-  await page.click('button[aria-label="Terug"]');
+  await page.click('button[aria-label^="Terug"]');
   await page.waitForTimeout(700);
 
   await expect(page.getByRole("button", { name: "#Studie" })).toBeVisible();

@@ -16,7 +16,7 @@ export default function EntryTopBar({ hist, onBack, onUndo, onRedo, onMenu }) {
       <button
         type="button"
         onClick={onBack}
-        aria-label="Terug"
+        aria-label="Terug naar Notities"
         style={{
           display: "flex",
           alignItems: "center",

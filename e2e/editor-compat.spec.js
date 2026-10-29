@@ -47,7 +47,7 @@ test("een opgeslagen document met alle bloktypen overleeft laden en opnieuw opsl
   await page.keyboard.type("x");
   await page.keyboard.press("Backspace");
   await page.waitForTimeout(800);
-  await page.click('button[aria-label="Terug"]');
+  await page.click('button[aria-label^="Terug"]');
   await page.waitForTimeout(700);
 
   const saved = (await exportBackup(page)).logEntries.find(

@@ -92,9 +92,7 @@ export default function BackupSection({
             <b>{templateCount}</b> snelkeuzes · <b>{weekTemplateCount}</b>{" "}
             weekschema's · <b>{dataInfo.kb} KB</b>
           </div>
-          <div style={{ opacity: 0.8 }}>
-            Alles staat lokaal op dit apparaat. Niemand kan meekijken.
-          </div>
+          <div>Alles staat lokaal op dit apparaat. Niemand kan meekijken.</div>
         </div>
       </Section>
     </>

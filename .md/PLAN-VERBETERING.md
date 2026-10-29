@@ -348,7 +348,12 @@ blocking). Ontwerp: canvas-rij "B — Weekplanning, opnieuw".
       (`--max-warnings 0`). De React 19-regels zaten al in de `recommended`-set van v7._
 - [x] jscpd blokkerend maken in CI zodra de duplicatie is opgeruimd.
       _30-10: CI faalt boven 1% (nu 0,24%)._
-- [ ] Toegankelijkheid: contrast in beide thema's, tikvlakken, focusvolgorde in sheets.
+- [x] Toegankelijkheid: contrast in beide thema's, tikvlakken, focusvolgorde in sheets.
+      _30-10: `e2e/a11y.spec.js` draait axe (WCAG 2.2 AA) op zeven schermen in licht en donker;
+      alles groen. Opgelost: contrast backup-tekst, labels die niet bij de zichtbare tekst pasten
+      (Terug, weekstrip, Vandaag-kaarten), naam voor de editor, tijdlijn met toetsenbord te
+      scrollen, inzoomen weer toegestaan, en focus gaat een sheet/dialoog in en bij sluiten
+      terug. Bewuste uitzondering: + en ⠿ in de editorgoot (22×40 px, goot blijft 44 px)._
 - [ ] **Fase 4 afgerond** (alle schermen in nieuw ontwerp; geen inline styles buiten datakleuren)
 
 **Telefoontest per scherm:** alles tikbaar, niets valt weg onder de notch of het toetsenbord,

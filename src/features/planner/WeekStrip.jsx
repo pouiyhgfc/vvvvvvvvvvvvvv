@@ -72,7 +72,6 @@ export default function WeekStrip({ date, onSelect, onShift, calEvents }) {
               key={key}
               type="button"
               aria-pressed={on}
-              aria-label={`${DAY_LETTERS[i]} ${d.getDate()}`}
               onClick={() => onSelect(d)}
               style={{
                 border: "none",
@@ -93,7 +92,7 @@ export default function WeekStrip({ date, onSelect, onShift, calEvents }) {
                 }}
               >
                 {DAY_LETTERS[i]}
-              </span>
+              </span>{" "}
               <span
                 style={{
                   width: 36,

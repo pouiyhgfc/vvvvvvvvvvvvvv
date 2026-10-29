@@ -38,7 +38,7 @@ test("rijk document overleeft opslaan → herladen → heropenen", async ({
   await page.waitForTimeout(200);
   const before = await snapshot(page);
 
-  await page.click('button[aria-label="Terug"]');
+  await page.click('button[aria-label^="Terug"]');
   await page.waitForTimeout(800); // opslaan afwachten
 
   await startApp(page);

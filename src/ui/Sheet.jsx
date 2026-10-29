@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useGhostClickShield } from "../hooks/useGhostClickShield.js";
+import { useDialogFocus } from "../hooks/useDialogFocus.js";
 import Icon from "./Icon.jsx";
 
 // Gedeelde bottom-sheet. Sluit op een tik naast het paneel en op Escape;
@@ -15,6 +16,7 @@ export default function Sheet({
   backdrop = "dark",
 }) {
   const shield = useGhostClickShield();
+  const panel = useDialogFocus();
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onClose();
@@ -46,10 +48,13 @@ export default function Sheet({
       }}
     >
       <div
+        ref={panel}
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        tabIndex={-1}
         style={{
+          outline: "none",
           background: "var(--card)",
           borderRadius: "var(--r-xl) var(--r-xl) 0 0",
           boxShadow: "var(--shadow-float)",

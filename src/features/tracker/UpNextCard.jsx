@@ -21,7 +21,7 @@ export default function UpNextCard({ date, calEvents, onOpen }) {
   if (events.length === 0) return null;
 
   return (
-    <Card onClick={onOpen} aria-label="Open de planning">
+    <Card onClick={onOpen}>
       <h2
         style={{
           margin: 0,
