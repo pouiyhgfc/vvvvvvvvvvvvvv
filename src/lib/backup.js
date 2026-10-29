@@ -136,15 +136,7 @@ export function importData(file, onFullBackup) {
           return;
         }
         await db.transaction("rw", db.blobs, db.logEntries, async () => {
-          if (data.logEntries.length)
-            await db.logEntries.bulkPut(data.logEntries);
-          if (Array.isArray(data.notebooks) && data.notebooks.length)
-            await db.blobs.put({ key: "notebooks", data: data.notebooks });
-          if (Array.isArray(data.entryTemplates) && data.entryTemplates.length)
-            await db.blobs.put({
-              key: "entryTemplates",
-              data: data.entryTemplates,
-            });
+          await putNotes(data);
         });
         showToast("✓ Notities geïmporteerd.");
         return;
@@ -188,6 +180,17 @@ export function importData(file, onFullBackup) {
     }
   };
   reader.readAsText(file);
+}
+
+// Notities, notitieboeken en sjablonen uit een backup (binnen een transactie
+// met db.logEntries en db.blobs).
+async function putNotes(data) {
+  if (Array.isArray(data.logEntries) && data.logEntries.length)
+    await db.logEntries.bulkPut(data.logEntries);
+  if (Array.isArray(data.notebooks) && data.notebooks.length)
+    await db.blobs.put({ key: "notebooks", data: data.notebooks });
+  if (Array.isArray(data.entryTemplates) && data.entryTemplates.length)
+    await db.blobs.put({ key: "entryTemplates", data: data.entryTemplates });
 }
 
 // Voert de volledige-backup-import uit (samenvoegen of vervangen). Werpt
@@ -241,15 +244,7 @@ export async function performFullImport(data, merge) {
         ...dayData,
       }));
       if (dayEntries.length) await db.days.bulkPut(dayEntries);
-      if (Array.isArray(data.logEntries) && data.logEntries.length)
-        await db.logEntries.bulkPut(data.logEntries);
-      if (Array.isArray(data.notebooks) && data.notebooks.length)
-        await db.blobs.put({ key: "notebooks", data: data.notebooks });
-      if (Array.isArray(data.entryTemplates) && data.entryTemplates.length)
-        await db.blobs.put({
-          key: "entryTemplates",
-          data: data.entryTemplates,
-        });
+      await putNotes(data);
       if (Array.isArray(data.hifd) && data.hifd.length)
         await db.hifd.bulkPut(data.hifd);
       if (Array.isArray(data.hifdLog) && data.hifdLog.length)

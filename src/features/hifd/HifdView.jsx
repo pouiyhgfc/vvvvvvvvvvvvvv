@@ -12,6 +12,18 @@ import VandaagView from "./VandaagView.jsx";
 import VoortgangView from "./VoortgangView.jsx";
 import SurahSheet from "./SurahSheet.jsx";
 
+// Velden voor een surah die (helemaal) gememoriseerd is: morgen eerste revisie.
+const memorizedFields = (meta, t) => ({
+  status: "memorized",
+  versesKnown: meta?.verses ?? 0,
+  easeFactor: INITIAL_EASE,
+  interval: 1,
+  reps: 1,
+  dateMemorized: t,
+  nextDue: addDays(t, 1),
+  lastReviewed: t,
+});
+
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function HifdView() {
@@ -123,16 +135,7 @@ export default function HifdView() {
   async function markMemorized(surahId) {
     const t = today();
     const meta = surahById(surahId);
-    await db.hifd.update(surahId, {
-      status: "memorized",
-      versesKnown: meta?.verses ?? 0,
-      easeFactor: INITIAL_EASE,
-      interval: 1,
-      reps: 1,
-      dateMemorized: t,
-      nextDue: addDays(t, 1),
-      lastReviewed: t,
-    });
+    await db.hifd.update(surahId, memorizedFields(meta, t));
     await db.hifdLogV2.put({
       surah: surahId,
       date: t,
@@ -151,16 +154,7 @@ export default function HifdView() {
   async function markFullyMemorized(surahId) {
     const t = today();
     const meta = surahById(surahId);
-    await db.hifd.update(surahId, {
-      status: "memorized",
-      versesKnown: meta?.verses ?? 0,
-      easeFactor: INITIAL_EASE,
-      interval: 1,
-      reps: 1,
-      dateMemorized: t,
-      nextDue: addDays(t, 1),
-      lastReviewed: t,
-    });
+    await db.hifd.update(surahId, memorizedFields(meta, t));
     setSelectedSurah(null);
   }
 

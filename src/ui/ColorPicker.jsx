@@ -1,4 +1,4 @@
-import { EVENT_COLORS } from "../lib/constants.js";
+import { EVENT_COLORS, ON_DATA_COLOR } from "../lib/constants.js";
 import Icon from "./Icon.jsx";
 
 // Swatch-rij + custom kleur (conic-gradient met palet-icoon). Eén bron voor alle kleurkiezers.
@@ -62,7 +62,7 @@ export default function ColorPicker({
             name="palette"
             size={Math.round(size * 0.55)}
             style={{
-              color: "#fff",
+              color: ON_DATA_COLOR,
               filter: "drop-shadow(0 0 1px rgba(0,0,0,.5))",
             }}
           />

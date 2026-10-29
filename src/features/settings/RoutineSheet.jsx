@@ -1,10 +1,9 @@
 import { useState } from "react";
 import Sheet from "../../ui/Sheet.jsx";
-import Button from "../../ui/Button.jsx";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
-import IconField from "../../ui/IconField.jsx";
-import Emoji from "../../ui/Emoji.jsx";
 import { Field, TextInput, Select } from "../../ui/Field.jsx";
+import EditFooter from "../../ui/EditFooter.jsx";
+import IconNameField from "../../ui/IconNameField.jsx";
 
 // Toevoegen, bewerken én verwijderen van een routine. `routine` null = nieuw.
 export default function RoutineSheet({
@@ -39,50 +38,22 @@ export default function RoutineSheet({
         subtitle={periodLabel}
         onClose={onClose}
         footer={
-          <>
-            {routine && onDelete && (
-              <Button variant="danger" onClick={() => setConfirmDel(true)}>
-                <Emoji char="🗑️" size={16} />
-              </Button>
-            )}
-            <Button onClick={save} disabled={!name.trim()} style={{ flex: 1 }}>
-              {routine ? (
-                <>
-                  <Emoji char="💾" size={14} /> Opslaan
-                </>
-              ) : (
-                <>
-                  <Emoji char="✅" size={14} /> Toevoegen
-                </>
-              )}
-            </Button>
-          </>
+          <EditFooter
+            isEdit={!!routine}
+            canSave={!!name.trim()}
+            onSave={save}
+            onDelete={onDelete && (() => setConfirmDel(true))}
+          />
         }
       >
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 10,
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <IconField value={icon} onChange={setIcon} />
-          <TextInput
-            value={name}
-            autoFocus
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Routine naam..."
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                save();
-              }
-            }}
-            style={{ flex: 1, minWidth: 140 }}
-          />
-        </div>
+        <IconNameField
+          icon={icon}
+          onIcon={setIcon}
+          value={name}
+          onChange={setName}
+          placeholder="Routine naam..."
+          onEnter={save}
+        />
         <Field label="Focusgebied">
           <Select value={area} onChange={(e) => setArea(e.target.value)}>
             {areaNames.map((a) => (

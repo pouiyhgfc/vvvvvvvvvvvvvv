@@ -15,9 +15,9 @@ const VARIANTS = {
     border: "1px solid var(--danger-border)",
   },
   dangerSolid: {
-    background: "#b91c1c",
-    color: "#ffffff",
-    border: "1px solid #b91c1c",
+    background: "var(--danger-solid)",
+    color: "var(--danger-solid-text)",
+    border: "1px solid var(--danger-solid)",
   },
   ghost: {
     background: "transparent",

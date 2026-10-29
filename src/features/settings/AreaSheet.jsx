@@ -1,11 +1,10 @@
 import { useState } from "react";
 import Sheet from "../../ui/Sheet.jsx";
-import Button from "../../ui/Button.jsx";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import ColorPicker from "../../ui/ColorPicker.jsx";
-import Emoji from "../../ui/Emoji.jsx";
 import { Field, TextInput } from "../../ui/Field.jsx";
 import { EVENT_COLORS } from "../../lib/constants.js";
+import EditFooter from "../../ui/EditFooter.jsx";
 
 // Toevoegen, bewerken én verwijderen van een focusgebied. `area` null = nieuw.
 export default function AreaSheet({ area, onSave, onDelete, onClose }) {
@@ -24,24 +23,12 @@ export default function AreaSheet({ area, onSave, onDelete, onClose }) {
         title={area ? "Focusgebied bewerken" : "Nieuw focusgebied"}
         onClose={onClose}
         footer={
-          <>
-            {area && onDelete && (
-              <Button variant="danger" onClick={() => setConfirmDel(true)}>
-                <Emoji char="🗑️" size={16} />
-              </Button>
-            )}
-            <Button onClick={save} disabled={!name.trim()} style={{ flex: 1 }}>
-              {area ? (
-                <>
-                  <Emoji char="💾" size={14} /> Opslaan
-                </>
-              ) : (
-                <>
-                  <Emoji char="✅" size={14} /> Toevoegen
-                </>
-              )}
-            </Button>
-          </>
+          <EditFooter
+            isEdit={!!area}
+            canSave={!!name.trim()}
+            onSave={save}
+            onDelete={onDelete && (() => setConfirmDel(true))}
+          />
         }
       >
         <Field label="Naam">

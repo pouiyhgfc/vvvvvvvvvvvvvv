@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CAL_START_H, CAL_END_H } from "../../lib/constants.js";
+import { CAL_START_H, CAL_END_H, EVENT_COLORS } from "../../lib/constants.js";
 import { dk, isToday, tMin } from "../../lib/date.js";
 import { buzz } from "../../lib/storage.js";
 import Icon from "../../ui/Icon.jsx";
@@ -215,7 +215,7 @@ export default function DayTimeline({
             26,
             (durationMin(shown.startTime, shown.endTime) / 60) * HOUR_H - 2,
           );
-          const c = occ.color || "#0e7a52";
+          const c = occ.color || EVENT_COLORS[0];
           return (
             <div
               key={occ.id}

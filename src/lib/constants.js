@@ -252,6 +252,8 @@ export const ICON_CATEGORIES = [
     ],
   },
 ];
+// Tekst of icoon óp een datakleur (die zijn verzadigd genoeg voor wit).
+export const ON_DATA_COLOR = "#ffffff";
 export const EVENT_COLORS = [
   "#0e7a52",
   "#2563eb",

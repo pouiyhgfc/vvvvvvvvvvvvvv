@@ -1,17 +1,17 @@
 import { useState } from "react";
+import { EVENT_COLORS } from "../../lib/constants.js";
 import Sheet from "../../ui/Sheet.jsx";
-import Button from "../../ui/Button.jsx";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
-import IconField from "../../ui/IconField.jsx";
 import ColorPicker from "../../ui/ColorPicker.jsx";
-import Emoji from "../../ui/Emoji.jsx";
 import { Field, TextInput } from "../../ui/Field.jsx";
+import EditFooter from "../../ui/EditFooter.jsx";
+import IconNameField from "../../ui/IconNameField.jsx";
 
 // Toevoegen, bewerken én verwijderen van een weekplanner-template.
 export default function TemplateSheet({ template, onSave, onDelete, onClose }) {
   const [title, setTitle] = useState(template?.title || "");
   const [icon, setIcon] = useState(template?.icon || "✅");
-  const [color, setColor] = useState(template?.color || "#0e7a52");
+  const [color, setColor] = useState(template?.color || EVENT_COLORS[0]);
   const [desc, setDesc] = useState(template?.desc || "");
   const [confirmDel, setConfirmDel] = useState(false);
 
@@ -33,50 +33,22 @@ export default function TemplateSheet({ template, onSave, onDelete, onClose }) {
         subtitle="Tijd stel je later op de kalender in"
         onClose={onClose}
         footer={
-          <>
-            {template && onDelete && (
-              <Button variant="danger" onClick={() => setConfirmDel(true)}>
-                <Emoji char="🗑️" size={16} />
-              </Button>
-            )}
-            <Button onClick={save} disabled={!title.trim()} style={{ flex: 1 }}>
-              {template ? (
-                <>
-                  <Emoji char="💾" size={14} /> Opslaan
-                </>
-              ) : (
-                <>
-                  <Emoji char="✅" size={14} /> Toevoegen
-                </>
-              )}
-            </Button>
-          </>
+          <EditFooter
+            isEdit={!!template}
+            canSave={!!title.trim()}
+            onSave={save}
+            onDelete={onDelete && (() => setConfirmDel(true))}
+          />
         }
       >
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 10,
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <IconField value={icon} onChange={setIcon} />
-          <TextInput
-            value={title}
-            autoFocus
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Template naam..."
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                save();
-              }
-            }}
-            style={{ flex: 1, minWidth: 140 }}
-          />
-        </div>
+        <IconNameField
+          icon={icon}
+          onIcon={setIcon}
+          value={title}
+          onChange={setTitle}
+          placeholder="Template naam..."
+          onEnter={save}
+        />
         <Field label="Beschrijving (optioneel)">
           <TextInput
             value={desc}

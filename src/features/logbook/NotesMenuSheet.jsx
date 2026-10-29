@@ -1,4 +1,5 @@
 import Icon from "../../ui/Icon.jsx";
+import ListRow from "../../ui/ListRow.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 
 // Alles wat niet dagelijks nodig is, achter de ⋯-knop: sorteren, selecteren,
@@ -99,25 +100,7 @@ const label = {
 
 function Row({ icon, label, count, onClick }) {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      style={{
-        width: "100%",
-        minHeight: 52,
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        border: "none",
-        borderBottom: "1px solid var(--border-soft)",
-        background: "transparent",
-        color: "var(--text)",
-        fontSize: "var(--fs-md)",
-        textAlign: "left",
-        padding: 0,
-      }}
-    >
+    <ListRow aria-label={label} onClick={onClick}>
       <Icon name={icon} size={22} style={{ color: "var(--text-muted)" }} />
       <span style={{ flex: 1 }}>{label}</span>
       {count > 0 && (
@@ -125,6 +108,6 @@ function Row({ icon, label, count, onClick }) {
           {count}
         </span>
       )}
-    </button>
+    </ListRow>
   );
 }

@@ -1,6 +1,10 @@
 import { dk, getMonday } from "../../lib/date.js";
 import { DAYS_NL } from "../../lib/constants.js";
 
+// Aantal afgevinkte routines op een dag (0 als er niets is).
+const doneCount = (day) =>
+  day?.checked ? Object.values(day.checked).filter(Boolean).length : 0;
+
 // Pure berekeningen voor Statistieken. `allDays`: datumsleutel → dag met
 // `checked` (routine-id → true); `total`: aantal routines.
 
@@ -13,9 +17,7 @@ export function weekStats(date, allDays, total) {
     const d = new Date(mon);
     d.setDate(mon.getDate() + i);
     const data = allDays[dk(d)];
-    const done = data?.checked
-      ? Object.values(data.checked).filter(Boolean).length
-      : 0;
+    const done = doneCount(data);
     days.push({
       d: DAYS_NL[d.getDay()].substring(0, 2),
       pct: total > 0 ? Math.round((done / total) * 100) : 0,
@@ -66,16 +68,12 @@ export function streakDays(allDays, total, pct, now = new Date()) {
   let s = 0;
   const d = new Date(now);
   const todayData = allDays[dk(d)];
-  const todayDone = todayData?.checked
-    ? Object.values(todayData.checked).filter(Boolean).length
-    : 0;
+  const todayDone = doneCount(todayData);
   if (todayDone >= threshold) s++;
   d.setDate(d.getDate() - 1);
   for (let i = 0; i < 365; i++) {
     const data = allDays[dk(d)];
-    const done = data?.checked
-      ? Object.values(data.checked).filter(Boolean).length
-      : 0;
+    const done = doneCount(data);
     if (done < threshold) break;
     s++;
     d.setDate(d.getDate() - 1);
@@ -92,11 +90,9 @@ export function monthStats(date, allDays, total) {
   const fDow = first.getDay() === 0 ? 6 : first.getDay() - 1;
   const days = [];
   for (let d = 1; d <= last.getDate(); d++) {
-    const k = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const k = dk(new Date(y, m, d));
     const data = allDays[k];
-    const done = data?.checked
-      ? Object.values(data.checked).filter(Boolean).length
-      : 0;
+    const done = doneCount(data);
     days.push({
       day: d,
       pct: total > 0 ? Math.round((done / total) * 100) : 0,
@@ -121,9 +117,7 @@ export function yearStats(date, allDays, total, pct) {
         week.push(null);
       } else {
         const data = allDays[dk(d)];
-        const done = data?.checked
-          ? Object.values(data.checked).filter(Boolean).length
-          : 0;
+        const done = doneCount(data);
         week.push({
           date: d,
           pct: total > 0 ? Math.round((done / total) * 100) : 0,
@@ -143,11 +137,9 @@ export function yearStats(date, allDays, total, pct) {
   const threshold = dayThreshold(total, pct);
   for (let m = 0; m < 12; m++) {
     for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {
-      const k = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const k = dk(new Date(y, m, d));
       const data = allDays[k];
-      const done = data?.checked
-        ? Object.values(data.checked).filter(Boolean).length
-        : 0;
+      const done = doneCount(data);
       if (done > 0) {
         activeDays++;
         totalPct += total > 0 ? Math.round((done / total) * 100) : 0;
@@ -168,11 +160,9 @@ export function yearStats(date, allDays, total, pct) {
     let mDone = 0;
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     for (let d = 1; d <= daysInMonth; d++) {
-      const k = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const k = dk(new Date(y, m, d));
       const data = allDays[k];
-      mDone += data?.checked
-        ? Object.values(data.checked).filter(Boolean).length
-        : 0;
+      mDone += doneCount(data);
     }
     const mTotal = total * daysInMonth;
     monthBars.push({

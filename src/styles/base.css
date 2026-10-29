@@ -40,6 +40,8 @@ body,
   --danger-text: #b42318;
   --danger-bg: #fdf0ee;
   --danger-border: #f3d2cf;
+  --danger-solid: #b91c1c;
+  --danger-solid-text: #ffffff;
   --purple-bg: #f5f3ff;
   --purple-border: #ddd6fe;
   --purple-text: #6d28d9;
@@ -96,6 +98,8 @@ html[data-theme="dark"] {
   --danger-text: #f0867c;
   --danger-bg: #2a1614;
   --danger-border: #4a2521;
+  --danger-solid: #b91c1c;
+  --danger-solid-text: #ffffff;
   --purple-bg: #1c1830;
   --purple-border: #352c54;
   --purple-text: #c4b5fd;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DAYS_NL, MONTHS_NL } from "../../lib/constants.js";
+import { DAYS_NL, EVENT_COLORS, MONTHS_NL } from "../../lib/constants.js";
 import { dk, tMin, minT } from "../../lib/date.js";
 import { buzz } from "../../lib/storage.js";
 import Sheet from "../../ui/Sheet.jsx";
@@ -71,7 +71,7 @@ export default function BlockSheet({
     occ?.endTime ?? minT(Math.min(1439, startDefault + 60)),
   );
   const [repeat, setRepeat] = useState(occ?.repeat ?? "none");
-  const [color, setColor] = useState(occ?.color ?? "#0e7a52");
+  const [color, setColor] = useState(occ?.color ?? EVENT_COLORS[0]);
   const [desc, setDesc] = useState(occ?.desc ?? "");
   const [error, setError] = useState("");
   const [confirmDel, setConfirmDel] = useState(false);

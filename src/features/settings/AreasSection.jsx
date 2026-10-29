@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ListRow from "../../ui/ListRow.jsx";
 import { buzz } from "../../lib/storage.js";
 import Emoji from "../../ui/Emoji.jsx";
 import Section from "../../ui/Section.jsx";
@@ -54,25 +55,7 @@ export default function AreasSection({ areas, setAreas, setRoutines }) {
           de routines in dat gebied.
         </p>
         {areas.map((ar, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => setAreaSheet({ area: ar, index: i })}
-            style={{
-              width: "100%",
-              minHeight: 52,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              border: "none",
-              borderBottom: "1px solid var(--border-soft)",
-              background: "transparent",
-              color: "var(--text)",
-              fontSize: "var(--fs-md)",
-              textAlign: "start",
-              padding: 0,
-            }}
-          >
+          <ListRow key={i} onClick={() => setAreaSheet({ area: ar, index: i })}>
             <span
               aria-hidden="true"
               style={{
@@ -89,7 +72,7 @@ export default function AreasSection({ areas, setAreas, setRoutines }) {
               size={18}
               style={{ color: "var(--text-faint)" }}
             />
-          </button>
+          </ListRow>
         ))}
       </Section>
       {areaSheet && (

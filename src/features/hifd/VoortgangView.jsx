@@ -1,5 +1,5 @@
 import { SURAHS } from "../../lib/surahs.js";
-import { heatColor } from "../../lib/heat.js";
+import { heatColor, heatTextColor } from "../../lib/heat.js";
 
 export default function VoortgangView({ hifdMap, onSelect }) {
   const sorted = [...SURAHS].sort((a, b) => b.id - a.id);
@@ -17,8 +17,7 @@ export default function VoortgangView({ hifdMap, onSelect }) {
           const rec = hifdMap[meta.id];
           const pct = rec ? (rec.versesKnown / meta.verses) * 100 : 0;
           const bg = pct === 0 ? "var(--card)" : heatColor(pct);
-          // Heatmap-kleuren zijn vast (licht → donkergroen): tekst erop ook.
-          const fg = pct === 0 ? "var(--text)" : pct >= 75 ? "#fff" : "#17201b";
+          const fg = pct === 0 ? "var(--text)" : heatTextColor(pct);
           const isMemorized = rec?.status === "memorized";
           return (
             <button

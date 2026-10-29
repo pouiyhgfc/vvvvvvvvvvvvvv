@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { EVENT_COLORS } from "../../lib/constants.js";
 import Sheet from "../../ui/Sheet.jsx";
-import Button from "../../ui/Button.jsx";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
-import IconField from "../../ui/IconField.jsx";
 import ColorPicker from "../../ui/ColorPicker.jsx";
-import Emoji from "../../ui/Emoji.jsx";
-import { Field, TextInput } from "../../ui/Field.jsx";
+import { Field } from "../../ui/Field.jsx";
+import EditFooter from "../../ui/EditFooter.jsx";
+import IconNameField from "../../ui/IconNameField.jsx";
 
 // Toevoegen, bewerken én verwijderen van een notitieboek. `notebook` null = nieuw.
 export default function NotebookSheet({ notebook, onSave, onDelete, onClose }) {
@@ -26,50 +25,22 @@ export default function NotebookSheet({ notebook, onSave, onDelete, onClose }) {
         title={notebook ? "Notitieboek bewerken" : "Nieuw notitieboek"}
         onClose={onClose}
         footer={
-          <>
-            {notebook && onDelete && (
-              <Button variant="danger" onClick={() => setConfirmDel(true)}>
-                <Emoji char="🗑️" size={16} />
-              </Button>
-            )}
-            <Button onClick={save} disabled={!name.trim()} style={{ flex: 1 }}>
-              {notebook ? (
-                <>
-                  <Emoji char="💾" size={14} /> Opslaan
-                </>
-              ) : (
-                <>
-                  <Emoji char="✅" size={14} /> Toevoegen
-                </>
-              )}
-            </Button>
-          </>
+          <EditFooter
+            isEdit={!!notebook}
+            canSave={!!name.trim()}
+            onSave={save}
+            onDelete={onDelete && (() => setConfirmDel(true))}
+          />
         }
       >
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 10,
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <IconField value={icon} onChange={setIcon} />
-          <TextInput
-            value={name}
-            autoFocus
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Naam notitieboek..."
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                save();
-              }
-            }}
-            style={{ flex: 1, minWidth: 140 }}
-          />
-        </div>
+        <IconNameField
+          icon={icon}
+          onIcon={setIcon}
+          value={name}
+          onChange={setName}
+          placeholder="Naam notitieboek..."
+          onEnter={save}
+        />
         <Field label="Kleur">
           <ColorPicker value={color} onChange={setColor} />
         </Field>

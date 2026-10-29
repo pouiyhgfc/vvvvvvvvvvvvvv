@@ -1,4 +1,5 @@
 import Icon from "../../ui/Icon.jsx";
+import ListRow from "../../ui/ListRow.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 
 // Acties voor één notitie achter de ⋯-knop. Vastzetten, archiveren en
@@ -60,31 +61,13 @@ export default function EntryMenuSheet({
 
 function Row({ icon, label, danger, onClick }) {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      style={{
-        width: "100%",
-        minHeight: 52,
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        border: "none",
-        borderBottom: "1px solid var(--border-soft)",
-        background: "transparent",
-        color: danger ? "var(--danger-text)" : "var(--text)",
-        fontSize: "var(--fs-md)",
-        textAlign: "left",
-        padding: 0,
-      }}
-    >
+    <ListRow aria-label={label} onClick={onClick} danger={danger}>
       <Icon
         name={icon}
         size={22}
         style={{ color: danger ? "var(--danger-text)" : "var(--text-muted)" }}
       />
       {label}
-    </button>
+    </ListRow>
   );
 }
