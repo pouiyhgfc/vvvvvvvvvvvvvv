@@ -1,25 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import {
-  DEFAULT_ROUTINES,
-  DEFAULT_CAL_TEMPLATES,
-  DEFAULT_AREAS,
-  DEFAULT_SETTINGS,
-  DEFAULT_NOTEBOOKS,
-  buildAreaStyles,
-  MONTHS_NL,
-} from "./lib/constants.js";
-import { dk, fmtDate, isToday, getMonday, periodForHour } from "./lib/date.js";
+import { buildAreaStyles } from "./lib/constants.js";
+import { dk, isToday, periodForHour } from "./lib/date.js";
 import { buzz } from "./lib/storage.js";
 import { showToast } from "./lib/toast.js";
 import { useNotifications } from "./lib/notify.js";
-import {
-  notifyNow,
-  requestNativePermission,
-  useNativeNotifications,
-} from "./lib/nativeNotify.js";
-import { isNativeApp } from "./lib/platform.js";
-import { db, seedHifd } from "./lib/db.js";
+import { useNativeNotifications } from "./lib/nativeNotify.js";
+import { db } from "./lib/db.js";
 import {
   exportData as doExportData,
   exportRoutines as doExportRoutines,
@@ -43,6 +30,10 @@ import Button from "./ui/Button.jsx";
 import BackupReminder from "./features/settings/BackupReminder.jsx";
 import MoreView from "./features/settings/MoreView.jsx";
 import TabBar from "./ui/TabBar.jsx";
+import { useAppData } from "./hooks/useAppData.js";
+import { useNotificationToggle } from "./hooks/useNotificationToggle.js";
+import { periodLabel } from "./lib/periodLabel.js";
+import { clearAllDays, clearEverything } from "./lib/resetData.js";
 import BackButton from "./ui/BackButton.jsx";
 
 // Leest de PWA-shortcut-/share-target-parameters uit de URL (?action=…,
@@ -69,44 +60,24 @@ const TABS = [
 ];
 
 export default function App({ startupErrors = [] }) {
-  // --- Dexie reactive queries ---
-  const settingsRecord = useLiveQuery(() => db.settings.get("singleton"));
-  const settings = settingsRecord ?? DEFAULT_SETTINGS;
-
-  const areasBlob = useLiveQuery(() => db.blobs.get("areas"));
-  const areas = areasBlob?.data ?? DEFAULT_AREAS;
-
-  const routinesBlob = useLiveQuery(() => db.blobs.get("routines"));
-  const routines = routinesBlob?.data ?? DEFAULT_ROUTINES;
-
-  const calTemplatesBlob = useLiveQuery(() => db.blobs.get("calTemplates"));
-  const calTemplates = calTemplatesBlob?.data ?? DEFAULT_CAL_TEMPLATES;
-
-  const weekScheduleTemplatesBlob = useLiveQuery(() =>
-    db.blobs.get("weekTemplates"),
-  );
-  const weekScheduleTemplates = weekScheduleTemplatesBlob?.data ?? [];
-
-  const calEvents = useLiveQuery(() => db.calEvents.toArray()) ?? [];
-
-  const allDaysRaw = useLiveQuery(() => db.days.toArray());
-  const allDays = useMemo(() => {
-    if (!allDaysRaw) return {};
-    const m = {};
-    allDaysRaw.forEach((e) => {
-      m[e.date] = e;
-    });
-    return m;
-  }, [allDaysRaw]);
+  const {
+    settings,
+    setSettings,
+    areas,
+    setAreas,
+    routines,
+    setRoutines,
+    calTemplates,
+    setCalTemplates,
+    weekScheduleTemplates,
+    setWeekScheduleTemplates,
+    calEvents,
+    setCalEvents,
+    allDaysRaw,
+    allDays,
+  } = useAppData();
 
   // --- UI state ---
-  const [notifPerm, setNotifPerm] = useState(
-    isNativeApp
-      ? "default"
-      : typeof Notification !== "undefined"
-        ? Notification.permission
-        : "unsupported",
-  );
   const [date, setDate] = useState(new Date());
   const [tab, setTab] = useState(() => periodForHour(new Date().getHours()));
   // Het dagdeel dat we het laatst automatisch kozen. Pas als de klok een
@@ -187,47 +158,14 @@ export default function App({ startupErrors = [] }) {
   }, [settings.theme]);
 
   useNotifications(settings, calEvents);
+  const { notifPerm, toggleNotifications } = useNotificationToggle(
+    settings,
+    setSettings,
+  );
   useNativeNotifications(settings, calEvents);
 
   const areaStyles = useMemo(() => buildAreaStyles(areas), [areas]);
   const areaNames = areas.map((a) => a.name);
-
-  // --- Dexie-backed setters (same API as the old React setters) ---
-  const setSettings = (updater) => {
-    const current = settingsRecord ?? DEFAULT_SETTINGS;
-    const next = typeof updater === "function" ? updater(current) : updater;
-    db.settings.put({ id: "singleton", ...next });
-  };
-
-  const setAreas = (updater) => {
-    const next = typeof updater === "function" ? updater(areas) : updater;
-    db.blobs.put({ key: "areas", data: next });
-  };
-
-  const setRoutines = (updater) => {
-    const next = typeof updater === "function" ? updater(routines) : updater;
-    db.blobs.put({ key: "routines", data: next });
-  };
-
-  const setCalTemplates = (updater) => {
-    const next =
-      typeof updater === "function" ? updater(calTemplates) : updater;
-    db.blobs.put({ key: "calTemplates", data: next });
-  };
-
-  const setWeekScheduleTemplates = (updater) => {
-    const next =
-      typeof updater === "function" ? updater(weekScheduleTemplates) : updater;
-    db.blobs.put({ key: "weekTemplates", data: next });
-  };
-
-  const setCalEvents = (updater) => {
-    const next = typeof updater === "function" ? updater(calEvents) : updater;
-    db.transaction("rw", db.calEvents, async () => {
-      await db.calEvents.clear();
-      if (next.length) await db.calEvents.bulkPut(next);
-    });
-  };
 
   const saveDay = (data) => {
     db.days.put({ date: key, ...data });
@@ -280,71 +218,6 @@ export default function App({ startupErrors = [] }) {
     settings.streakPct || 50,
   );
 
-  const toggleNotifications = async () => {
-    // In de Android-app plant Android zelf de meldingen in (nativeNotify).
-    if (isNativeApp) {
-      if (settings.notifEnabled) {
-        setSettings((s) => ({ ...s, notifEnabled: false }));
-        return;
-      }
-      const perm = await requestNativePermission();
-      setNotifPerm(perm);
-      if (perm === "granted") {
-        setSettings((s) => ({ ...s, notifEnabled: true }));
-        notifyNow(
-          "Meldingen aan",
-          "Je krijgt nu herinneringen voor je planning.",
-        );
-      } else {
-        showToast(
-          "Meldingen zijn geblokkeerd. Sta ze toe in de app-instellingen.",
-        );
-      }
-      return;
-    }
-    if (typeof Notification === "undefined") {
-      showToast("Meldingen worden niet ondersteund door deze browser.");
-      return;
-    }
-    if (settings.notifEnabled) {
-      setSettings((s) => ({ ...s, notifEnabled: false }));
-      return;
-    }
-    let perm = Notification.permission;
-    if (perm !== "granted") perm = await Notification.requestPermission();
-    setNotifPerm(perm);
-    if (perm === "granted") {
-      setSettings((s) => ({ ...s, notifEnabled: true }));
-      // Android-PWA's tonen meldingen alleen via de service worker;
-      // de `new Notification()`-constructor faalt daar stil.
-      const title = "Meldingen aan";
-      const body = "Je krijgt nu herinneringen voor je weekplanning.";
-      if (navigator.serviceWorker) {
-        navigator.serviceWorker.ready
-          .then((reg) =>
-            reg.showNotification(title, {
-              body,
-              icon: "/icon-192.png",
-              badge: "/icon-192.png",
-            }),
-          )
-          .catch(() => {
-            try {
-              new Notification(title, { body });
-            } catch {}
-          });
-      } else {
-        try {
-          new Notification(title, { body });
-        } catch {}
-      }
-    } else {
-      showToast(
-        "Meldingen zijn geblokkeerd. Sta ze toe in de browser-/app-instellingen om herinneringen te krijgen.",
-      );
-    }
-  };
-
   // Dunne wrappers: de daadwerkelijke export/import-logica staat in
   // src/lib/backup.js; hier alleen de React-state doorgeven/opvangen.
   const exportData = () =>
@@ -375,51 +248,6 @@ export default function App({ startupErrors = [] }) {
     }
   };
 
-  const clearAllDays = async () => {
-    const count = await db.days.count();
-    await db.days.clear();
-    showToast(`✓ ${count} dagen gewist`);
-  };
-
-  const clearEverything = async () => {
-    await db.transaction(
-      "rw",
-      db.settings,
-      db.blobs,
-      db.days,
-      db.calEvents,
-      db.logEntries,
-      db.hifd,
-      db.hifdLogV2,
-      db.meta,
-      async () => {
-        await db.settings.put({ id: "singleton", ...DEFAULT_SETTINGS });
-        await db.blobs.put({ key: "areas", data: DEFAULT_AREAS });
-        await db.blobs.put({ key: "routines", data: DEFAULT_ROUTINES });
-        await db.blobs.put({
-          key: "calTemplates",
-          data: DEFAULT_CAL_TEMPLATES,
-        });
-        await db.blobs.put({ key: "weekTemplates", data: [] });
-        await db.blobs.put({ key: "notebooks", data: DEFAULT_NOTEBOOKS });
-        await db.days.clear();
-        await db.calEvents.clear();
-        await db.logEntries.clear();
-        await db.hifd.clear();
-        await db.hifdLogV2.clear();
-        await db.meta.delete("hifd_seeded");
-      },
-    );
-    await seedHifd();
-    const keysToDelete = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && k.startsWith("rt_notified_")) keysToDelete.push(k);
-    }
-    keysToDelete.forEach((k) => localStorage.removeItem(k));
-    showToast("✓ Alles gewist. App is gereset.");
-  };
-
   const dataInfo = (() => {
     const dayCount = allDaysRaw?.length ?? 0;
     const kb = (
@@ -437,40 +265,7 @@ export default function App({ startupErrors = [] }) {
     return { dayCount, kb };
   })();
 
-  // Datum-kaart: label + subtitel op basis van actieve view en statsPeriod
-  const getDateCard = () => {
-    if (view === "week" || (view === "stats" && statsPeriod === "week")) {
-      const mon = getMonday(date);
-      const sun = new Date(mon);
-      sun.setDate(mon.getDate() + 6);
-      const endMonth = MONTHS_NL[sun.getMonth()].toLowerCase();
-      const main =
-        mon.getMonth() === sun.getMonth()
-          ? `${mon.getDate()} – ${sun.getDate()} ${endMonth}`
-          : `${mon.getDate()} ${MONTHS_NL[mon.getMonth()].toLowerCase()} – ${sun.getDate()} ${endMonth}`;
-      const isThisWeek = dk(getMonday(date)) === dk(getMonday(new Date()));
-      return { main, sub: isThisWeek ? "Deze week" : "" };
-    }
-    if (view === "stats" && statsPeriod === "month") {
-      const now = new Date();
-      const isThisMonth =
-        date.getMonth() === now.getMonth() &&
-        date.getFullYear() === now.getFullYear();
-      return {
-        main: `${MONTHS_NL[date.getMonth()]} ${date.getFullYear()}`,
-        sub: isThisMonth ? "Deze maand" : "",
-      };
-    }
-    if (view === "stats" && statsPeriod === "year") {
-      const isThisYear = date.getFullYear() === new Date().getFullYear();
-      return {
-        main: `${date.getFullYear()}`,
-        sub: isThisYear ? "Dit jaar" : "",
-      };
-    }
-    return { main: fmtDate(date), sub: "" };
-  };
-  const { main: dateMain, sub: dateSub } = getDateCard();
+  const { main: dateMain, sub: dateSub } = periodLabel(view, statsPeriod, date);
 
   return (
     <div
