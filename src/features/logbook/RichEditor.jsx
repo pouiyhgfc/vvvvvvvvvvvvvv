@@ -11,17 +11,24 @@ import { BlockNoteView } from "@blocknote/mantine";
 import BlockHandle from "./BlockHandle.jsx";
 import KeyboardToolbar from "./KeyboardToolbar.jsx";
 import { outdentEmptyListItem } from "./editorActions.js";
-import { filterSuggestionItems } from "@blocknote/core";
+import { defaultBlockSpecs, filterSuggestionItems } from "@blocknote/core";
+import { sanitizeDoc } from "./docSchema.js";
 import { fmtDate } from "../../lib/date.js";
 import Icon from "../../ui/Icon.jsx";
 import { nl } from "@blocknote/core/locales";
 import "@blocknote/mantine/style.css";
 import "./richEditor.css";
 
+const KNOWN_TYPES = new Set(Object.keys(defaultBlockSpecs));
+
 // Normaliseert initialContent naar BlockNote-blocks (of undefined voor leeg).
-// Valt terug op string-conversie zodat oude platte-tekst entries niet crashen.
+// Valt terug op string-conversie zodat oude platte-tekst entries niet crashen;
+// onbekende bloktypes worden opgeschoond (zie docSchema.js).
 function toBlocks(raw) {
-  if (Array.isArray(raw) && raw.length > 0) return raw;
+  if (Array.isArray(raw)) {
+    const blocks = sanitizeDoc(raw, KNOWN_TYPES);
+    return blocks.length ? blocks : undefined;
+  }
   if (typeof raw === "string" && raw.trim()) {
     return raw.split("\n").map((line) => ({
       type: "paragraph",

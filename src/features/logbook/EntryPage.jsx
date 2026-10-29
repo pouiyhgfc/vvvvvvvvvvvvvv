@@ -18,6 +18,7 @@ import EntryMeta from "./EntryMeta.jsx";
 import EntryTopBar from "./EntryTopBar.jsx";
 import FindBar from "./FindBar.jsx";
 import AskClaudeSheet from "./AskClaudeSheet.jsx";
+import { DOC_SCHEMA_VERSION } from "./docSchema.js";
 import OutlineSheet from "./OutlineSheet.jsx";
 import SaveTemplateSheet from "./SaveTemplateSheet.jsx";
 import { cleanTags, tagStats } from "../../lib/tags.js";
@@ -109,6 +110,7 @@ export default function EntryPage({
         title: title.trim(),
         body: text || "",
         doc: doc || undefined,
+        docSchemaVersion: doc ? DOC_SCHEMA_VERSION : undefined,
         tags: cleanTags(tags, knownTags),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -118,6 +120,7 @@ export default function EntryPage({
         title: title.trim(),
         body: text || "",
         doc: doc || undefined,
+        docSchemaVersion: doc ? DOC_SCHEMA_VERSION : undefined,
         tags: cleanTags(tags, knownTags),
         updatedAt: new Date().toISOString(),
       });
