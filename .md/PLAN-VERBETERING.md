@@ -457,9 +457,12 @@ revisiedatum; beoordelen werkt; schaduwadvies is zichtbaar.
       (ondersteunt Vite 8; vraagt Node ≥ 20.19 → Node-versie in Vercel controleren). Behoud
       `injectManifest` en de `notificationclick`-handler.
 - [ ] React 19.3, Dexie 4.4.x, ESLint/Knip/Prettier/Playwright bijwerken.
-      _28-10: alles behalve Playwright (1.63 → 1.64 vraagt ook een nieuwe CI-image en
-      mogelijk nieuwe schermtest-baselines; apart doen)._
-- [ ] Bundel: editor-chunk en precache meten; eventueel `manualChunks`.
+      _28-10: alles behalve Playwright. 1.63 blijft: de cloud-sessie heeft alleen de Chromium
+      voor 1.63, en daar draaien de schermtests. Bijwerken samen met die omgeving._
+- [x] Bundel: editor-chunk en precache meten; eventueel `manualChunks`.
+      _29-10 (Vite 8): hoofdbundel 620 kB (193 kB gzip), editor 980 kB (295 kB gzip, lazy),
+      emoji-data van BlockNote 429 kB (lazy, alleen bij het emoji-item), precache 2,3 MB.
+      Geen `manualChunks` nodig: de zware delen laden al pas als je ze gebruikt._
 - [x] Meldingen: blijven "alleen als de app open is" (besluit: geen backend). Grens
       documenteren in Instellingen.
       _Ingehaald door de Android-app (Capacitor): daar plant Android ze in, ook als de app
