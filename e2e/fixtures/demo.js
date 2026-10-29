@@ -189,8 +189,10 @@ const hifdLog = [
   { surah: 112, date: day(-8), phase: "review", rating: "goed" },
 ];
 
+// Elke aanroep een eigen kopie: een test die de backup aanpast (bv. een
+// notitie toevoegt) mag andere tests in dezelfde worker niet beïnvloeden.
 export function demoBackup({ theme = "light" } = {}) {
-  return {
+  return structuredClone({
     version: 9,
     exportedAt: NOW.toISOString(),
     routines: DEFAULT_ROUTINES,
@@ -214,5 +216,5 @@ export function demoBackup({ theme = "light" } = {}) {
     entryTemplates: [],
     hifd,
     hifdLog,
-  };
+  });
 }

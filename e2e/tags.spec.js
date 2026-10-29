@@ -33,6 +33,8 @@ test("een tag verwijderen haalt hem uit de notities, niet de notities zelf", asy
     .getByRole("alertdialog")
     .getByRole("button", { name: "Verwijderen" })
     .click();
+  // Pas exporteren als het weghalen klaar is (anders soms een race).
+  await expect(page.getByText(/Tag weggehaald uit/)).toBeVisible();
 
   const backup = await exportBackup(page);
   const zondag = backup.logEntries.find((e) => e.title === "Zondag");
