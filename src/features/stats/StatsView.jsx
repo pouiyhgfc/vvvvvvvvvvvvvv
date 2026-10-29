@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import HifdStatsCard from "./HifdStatsCard.jsx";
 import MonthStats from "./MonthStats.jsx";
 import StatsHeader from "./StatsHeader.jsx";
 import WeekStats from "./WeekStats.jsx";
@@ -63,6 +64,7 @@ export default function StatsView({
       {statsPeriod === "year" && (
         <YearStats yearData={yearStats(date, allDays, total, streakPct)} />
       )}
+      <HifdStatsCard />
     </div>
   );
 }

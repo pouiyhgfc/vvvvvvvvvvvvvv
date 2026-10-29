@@ -5,7 +5,8 @@ import { addDays } from "./date.js";
 //   als "zwak" beoordeeld → elke dag;
 // - manzil: al het andere gememoriseerde in vaste rotatie, langst niet
 //   herhaald eerst, binnen het dagbudget.
-// Draait voorlopig in schaduwmodus: het SRS-schema blijft leidend.
+// Leidend sinds 29-10 (eigenaar); de SRS-velden worden nog bijgewerkt, zodat
+// terugschakelen kan.
 const SABQI_DAYS = 30;
 const WEAK_DAYS = 7;
 
