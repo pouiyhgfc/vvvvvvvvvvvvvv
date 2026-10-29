@@ -150,7 +150,9 @@ function RoutineRow({ routine, done, popping, onToggle, area }) {
             display: "block",
             fontSize: "var(--fs-md)",
             color: done ? "var(--text-muted)" : "var(--text)",
-            textDecoration: done ? "line-through" : "none",
+            // Losse eigenschappen: shorthand + textDecorationColor samen geeft
+            // bij afvinken een React-waarschuwing en kan de kleur kwijtraken.
+            textDecorationLine: done ? "line-through" : "none",
             textDecorationColor: "var(--control-border)",
           }}
         >
