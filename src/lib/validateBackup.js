@@ -5,7 +5,7 @@
 
 import { PERIOD_LABELS } from "./constants.js";
 
-export const BACKUP_VERSION = 10;
+export const BACKUP_VERSION = 11;
 
 // De tracker rendert elk dagdeel; ontbreekt er één, dan crasht de app.
 const PERIODS = Object.keys(PERIOD_LABELS);
@@ -27,6 +27,7 @@ const LISTS = {
   notebooks: (n) => typeof n.id === "string",
   hifd: (r) => Number.isInteger(r.surah) && r.surah >= 1 && r.surah <= 114,
   hifdLog: (r) => Number.isInteger(r.surah) && typeof r.date === "string",
+  files: (f) => typeof f.id === "string" && typeof f.data === "string",
 };
 
 export function validateBackup(data) {

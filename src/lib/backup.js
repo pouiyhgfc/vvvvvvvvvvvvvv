@@ -3,6 +3,7 @@ import { dk } from "./date.js";
 import { DEFAULT_NOTEBOOKS, DEFAULT_SETTINGS } from "./constants.js";
 import { showToast } from "./toast.js";
 import { BACKUP_VERSION, validateBackup } from "./validateBackup.js";
+import { filesForBackup, filesFromBackup } from "./files.js";
 import { shareJSON } from "./nativeFiles.js";
 import { isNativeApp } from "./platform.js";
 
@@ -59,6 +60,7 @@ export async function exportData({
     entryTemplates: entryTemplatesBlob?.data ?? [],
     hifd: hifdData,
     hifdLog: hifdLogData,
+    files: await filesForBackup(),
   });
   // Voor de backup-herinnering. In meta (niet in settings), zodat het bij dit
   // toestel hoort en niet met een import wordt overschreven.
@@ -192,6 +194,7 @@ export function importData(file, onFullBackup) {
 // door bij een fout — de aanroeper toont de foutmelding en ruimt eigen
 // UI-state op (bv. het sluiten van de keuze-dialoog).
 export async function performFullImport(data, merge) {
+  const files = await filesFromBackup(data.files);
   await db.transaction(
     "rw",
     db.blobs,
@@ -202,8 +205,10 @@ export async function performFullImport(data, merge) {
     db.hifd,
     db.hifdLogV2,
     db.meta,
+    db.files,
     async () => {
       if (!merge) {
+        await db.files.clear();
         await db.days.clear();
         await db.calEvents.clear();
         await db.logEntries.clear();
@@ -251,6 +256,7 @@ export async function performFullImport(data, merge) {
         await db.hifdLogV2.bulkPut(
           data.hifdLog.map((r) => ({ ...r, phase: r.phase || "learn" })),
         );
+      if (files.length) await db.files.bulkPut(files);
     },
   );
   await seedHifd();

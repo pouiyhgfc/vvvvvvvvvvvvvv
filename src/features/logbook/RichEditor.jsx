@@ -18,6 +18,7 @@ import {
   insertOrUpdateBlockForSlashMenu,
 } from "@blocknote/core";
 import { createCallout } from "./CalloutBlock.jsx";
+import { resolveFileUrl, saveImage } from "../../lib/files.js";
 import { sanitizeDoc } from "./docSchema.js";
 import { fmtDate } from "../../lib/date.js";
 import Icon from "../../ui/Icon.jsx";
@@ -64,8 +65,9 @@ const EVERGREEN_TOKENS = {
   "--bn-font-family": "var(--ff-body)",
 };
 
-// Strak & relevant: media-uploads (werken niet zonder backend) en de dubbele
-// toggle-/subkoppen weggelaten. Keys zijn stabiel los van de NL-vertaling.
+// Strak & relevant: afbeelding wel (lokaal, zie files.js), video/audio/
+// bestanden niet; dubbele uitklapkoppen weggelaten. Keys zijn stabiel los
+// van de NL-vertaling.
 const SLASH_KEYS = new Set([
   "paragraph",
   "heading",
@@ -79,6 +81,7 @@ const SLASH_KEYS = new Set([
   "quote",
   "code_block",
   "divider",
+  "image",
   "table",
   "emoji",
 ]);
@@ -116,6 +119,9 @@ const RichEditor = forwardRef(function RichEditor(
 ) {
   const editor = useCreateBlockNote({
     schema,
+    // Afbeeldingen lokaal in Dexie (verkleind), geen server nodig.
+    uploadFile: saveImage,
+    resolveFileUrl,
     initialContent: toBlocks(initialContent),
     // Eigen plaatshouder: de NL-default zegt alleen "typ '/'", maar getypte "/"
     // werkt niet op Android (IME-compositie) — daar is de +-knop de ingang.

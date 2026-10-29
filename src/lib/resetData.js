@@ -27,6 +27,7 @@ export async function clearEverything() {
     db.hifd,
     db.hifdLogV2,
     db.meta,
+    db.files,
     async () => {
       await db.settings.put({ id: "singleton", ...DEFAULT_SETTINGS });
       await db.blobs.put({ key: "areas", data: DEFAULT_AREAS });
@@ -42,6 +43,7 @@ export async function clearEverything() {
       await db.logEntries.clear();
       await db.hifd.clear();
       await db.hifdLogV2.clear();
+      await db.files.clear();
       await db.meta.delete("hifd_seeded");
     },
   );

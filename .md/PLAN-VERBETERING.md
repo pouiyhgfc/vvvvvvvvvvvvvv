@@ -360,9 +360,13 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
       blokmenu. Open/dicht onthoudt BlockNote zelf in localStorage (`toggle-<blok-id>`)._
 - [x] **5.3 Callout-blok** (eigen blok via `createReactBlockSpec`), met emoji en kleur.
       _29-10: drie varianten (info, tip, let op) met lijnicoon i.p.v. emoji; tik op het icoon._
-- [ ] **5.4 Afbeeldingen lokaal:** `uploadFile` slaat een verkleinde afbeelding (max ~1600 px)
+- [x] **5.4 Afbeeldingen lokaal:** `uploadFile` slaat een verkleinde afbeelding (max ~1600 px)
       op in een nieuwe Dexie-tabel `files`; `resolveFileUrl` maakt er een object-URL van. Backup
       neemt bestanden mee (formaatversie omhoog) — met waarschuwing over de bestandsgrootte.
+      _29-10: `lib/files.js`, Dexie v6 (`files`), backupversie 11 (oude backups importeren nog).
+      Op jouw verzoek gaan afbeeldingen standaard mee, zonder aparte waarschuwing (JPEG ±200–500
+      KB per stuk). Definitief verwijderen ruimt ongebruikte afbeeldingen op. Via + of "/" →
+      Afbeelding._
 - [ ] **5.5 Links tussen notities + backlinks:** eigen inline-element "notitielink" met een
       zoek-pop-up (bijv. via "@"), en onderaan een notitie "Gelinkt vanuit…".
 - [x] **5.6 Kleine Notion-dingen:** inhoudsopgave uit koppen, zoeken binnen een notitie,
@@ -484,7 +488,7 @@ installeert/update na de Vite-upgrade zonder witte pagina.
 1. Designrichting, fonts en iconen → in fase 2.
 2. Preview-eerst ja/nee voor stap 3.3 en fase 6b → per keer.
 3. Hifd-granulariteit en algoritme → na het onderzoek in 6a.
-4. Afbeeldingen in de backup meenemen (groter bestand) of apart → in 5.4.
+4. Afbeeldingen in de backup meenemen (groter bestand) of apart → **standaard mee** (29-10).
 
 ## Waar het werk gebeurt
 

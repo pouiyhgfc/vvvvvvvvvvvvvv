@@ -1,4 +1,5 @@
 import { db } from "../../lib/db.js";
+import { deleteUnusedFiles, fileIdsInDoc } from "../../lib/files.js";
 import { isActive } from "../../lib/notes.js";
 import { showToast } from "../../lib/toast.js";
 import { nbOf } from "./noteHelpers.js";
@@ -28,11 +29,14 @@ export async function restoreFromTrash(id) {
   showToast("✓ Hersteld");
 }
 export async function purgeEntry(id) {
+  const entry = await db.logEntries.get(id);
   await db.logEntries.delete(id);
+  await deleteUnusedFiles(fileIdsInDoc(entry?.doc));
   showToast("✓ Definitief verwijderd");
 }
 export async function purgeEntries(entries) {
   await db.logEntries.bulkDelete(entries.map((e) => e.id));
+  await deleteUnusedFiles(entries.flatMap((e) => fileIdsInDoc(e.doc)));
   showToast("✓ Prullenbak geleegd");
 }
 

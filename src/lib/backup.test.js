@@ -114,7 +114,7 @@ describe("volledige backup", () => {
     await seed();
     const before = await snapshot();
     const backup = await exportAll();
-    expect(backup.version).toBe(10);
+    expect(backup.version).toBe(11);
 
     await db.delete();
     await db.open();

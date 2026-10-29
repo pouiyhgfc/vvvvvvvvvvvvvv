@@ -43,6 +43,10 @@ db.version(4)
   });
 db.version(5).stores({ hifdLog: null });
 
+// Afbeeldingen in notities (verkleind), los van de notitie zelf: een
+// notitie verwijst ernaar met "rtfile:<id>" (zie files.js).
+db.version(6).stores({ files: "&id" });
+
 // Parseert een localStorage-item veilig: één corrupt item mag de rest van de
 // migratie niet meeslepen (valt terug op `fallback` i.p.v. te throwen).
 function safeParse(raw, fallback) {
