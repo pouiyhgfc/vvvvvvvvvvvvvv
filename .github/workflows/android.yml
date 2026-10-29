@@ -49,9 +49,13 @@ jobs:
           printf '%s' "${{ secrets.ANDROID_KEYSTORE_B64 }}" | tr -d ' \r\n' \
             | base64 -d > "$ANDROID_KEYSTORE_PATH" \
             || { echo "::error::ANDROID_KEYSTORE_B64 is geen geldige base64-tekst (niet volledig geplakt?)"; exit 1; }
+          echo "::notice::Sleutelbestand na decoderen: $(wc -c < "$ANDROID_KEYSTORE_PATH") bytes"
+          # Ook in het wachtwoord kan bij plakken een spatie of regeleinde komen.
+          ANDROID_KEYSTORE_PASSWORD=$(printf '%s' "$ANDROID_KEYSTORE_PASSWORD" | tr -d ' \r\n')
+          export ANDROID_KEYSTORE_PASSWORD
           keytool -list -keystore "$ANDROID_KEYSTORE_PATH" -alias routine \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" > /dev/null 2>&1 \
-            || { echo "::error::Sleutel en wachtwoord passen niet bij elkaar (controleer ANDROID_KEYSTORE_PASSWORD en ANDROID_KEYSTORE_B64)"; exit 1; }
+            || { echo "::error::Sleutel en wachtwoord passen niet bij elkaar (wachtwoord: ${#ANDROID_KEYSTORE_PASSWORD} tekens)"; exit 1; }
           cd android
           ./gradlew assembleRelease --no-daemon 2>&1 | tee gradle.log \
             || { grep -A6 "What went wrong" gradle.log | tr '\n' ' ' | sed 's/^/::error::Gradle: /'; echo; exit 1; }
