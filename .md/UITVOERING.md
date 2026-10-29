@@ -32,7 +32,7 @@ _Daarvóór:_ _Notities beter organiseren — vastzetten, archief/prullenbak (za
 - [x] **Automatische backup-herinnering** — gebouwd in Verbeterplan fase 1c (melding op Dag na 30 dagen).
 - [x] **Mini-speler in notities** (idee eigenaar 29-10) — video van YouTube, Instagram, Vimeo of
       TikTok in een notitie afspelen. Gebouwd als eigen blok "video" (+ of "/" → Video, link
-      plakken); alleen de link wordt opgeslagen.
+      plakken); alleen de link wordt opgeslagen. Werkt op de telefoon (eigenaar, 29-10).
 - [x] **App delen met familie en vrienden** (idee eigenaar 29-10) — een lege app zonder
       persoonlijke gegevens. Gebouwd: welkomstscherm op een nieuw toestel (kies basisroutines,
       gebed en Quran, en/of Hifd, of zet een backup terug); algemene standaarden i.p.v. de eigen

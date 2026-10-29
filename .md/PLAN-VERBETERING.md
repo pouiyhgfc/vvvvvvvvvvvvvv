@@ -372,7 +372,7 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
       _29-10: + of "/" → "Link naar notitie" (zoek-sheet, werkt op touch) of "@" + titel met een
       toetsenbord. De link toont de actuele titel (doorgestreept als de notitie weg is); tikken
       opent die notitie (de huidige wordt eerst opgeslagen). Geen nieuw veld in de data: de link
-      staat in het document zelf. Nog op een Android-toestel te testen._
+      staat in het document zelf. Getest op de telefoon door de eigenaar (29-10)._
 - [x] **5.6 Kleine Notion-dingen:** inhoudsopgave uit koppen, zoeken binnen een notitie,
       datum invoegen.
       _Gedaan: ⋯ → "Zoeken in notitie" (treffers gemarkeerd via CSS Highlight API, raakt de
