@@ -42,9 +42,19 @@ jobs:
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+        # Spaties/regeleinden uit een geplakte secret halen. Fouten komen als
+        # ::error:: in de samenvatting van de run, zodat je ze zonder log ziet.
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > "$ANDROID_KEYSTORE_PATH"
-          cd android && ./gradlew assembleRelease --no-daemon
+          set -o pipefail
+          printf '%s' "${{ secrets.ANDROID_KEYSTORE_B64 }}" | tr -d ' \r\n' \
+            | base64 -d > "$ANDROID_KEYSTORE_PATH" \
+            || { echo "::error::ANDROID_KEYSTORE_B64 is geen geldige base64-tekst (niet volledig geplakt?)"; exit 1; }
+          keytool -list -keystore "$ANDROID_KEYSTORE_PATH" -alias routine \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" > /dev/null 2>&1 \
+            || { echo "::error::Sleutel en wachtwoord passen niet bij elkaar (controleer ANDROID_KEYSTORE_PASSWORD en ANDROID_KEYSTORE_B64)"; exit 1; }
+          cd android
+          ./gradlew assembleRelease --no-daemon 2>&1 | tee gradle.log \
+            || { grep -A6 "What went wrong" gradle.log | tr '\n' ' ' | sed 's/^/::error::Gradle: /'; echo; exit 1; }
       - name: APK bij de release zetten
         if: env.HAS_KEY == 'true'
         env:
