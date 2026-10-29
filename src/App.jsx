@@ -1,9 +1,7 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { buildAreaStyles } from "./lib/constants.js";
-import { dk, isToday, periodForHour } from "./lib/date.js";
-import { buzz } from "./lib/storage.js";
-import { showToast } from "./lib/toast.js";
+import { dk, periodForHour } from "./lib/date.js";
 import { useNotifications } from "./lib/notify.js";
 import { useNativeNotifications } from "./lib/nativeNotify.js";
 import { db } from "./lib/db.js";
@@ -13,17 +11,14 @@ import {
   exportWeekplanning as doExportWeekplanning,
   exportNotities,
   importData as readImportFile,
-  performFullImport,
 } from "./lib/backup.js";
 import TrackerView from "./features/tracker/TrackerView.jsx";
 import PlanningView from "./features/planner/PlanningView.jsx";
 import StatsView from "./features/stats/StatsView.jsx";
 import SettingsPanel from "./features/settings/SettingsPanel.jsx";
-import { streakDays } from "./features/stats/statsData.js";
 import LogbookView from "./features/logbook/LogbookView.jsx";
 import EntryPage from "./features/logbook/EntryPage.jsx";
 import HifdView from "./features/hifd/HifdView.jsx";
-import ConfirmDialog from "./ui/ConfirmDialog.jsx";
 import Banner from "./ui/Banner.jsx";
 import Button from "./ui/Button.jsx";
 import BackupReminder from "./features/settings/BackupReminder.jsx";
@@ -35,20 +30,11 @@ import { periodLabel } from "./lib/periodLabel.js";
 import { clearAllDays, clearEverything } from "./lib/resetData.js";
 import BackButton from "./ui/BackButton.jsx";
 import Welcome from "./features/welcome/Welcome.jsx";
-
-// Leest de PWA-shortcut-/share-target-parameters uit de URL (?action=…,
-// /share met title/text/url). Puur lezen — geen state, geen side effects.
-function parseLaunchAction() {
-  if (typeof window === "undefined") return null;
-  const params = new URLSearchParams(window.location.search);
-  const action = params.get("action");
-  const isShareTarget =
-    window.location.pathname === "/share" ||
-    params.has("title") ||
-    params.has("text") ||
-    params.has("url");
-  return { action, isShareTarget, params };
-}
+import ImportDialog from "./features/settings/ImportDialog.jsx";
+import { useLaunchDraft } from "./hooks/useLaunchDraft.js";
+import { useTrackerDay } from "./hooks/useTrackerDay.js";
+import { useDayRollover } from "./hooks/useDayRollover.js";
+import { useTheme } from "./hooks/useTheme.js";
 
 // Vaste plekken in de tabbalk. "stats" is een subpagina van Meer.
 const TABS = [
@@ -80,85 +66,23 @@ export default function App({ startupErrors = [] }) {
   // --- UI state ---
   const [date, setDate] = useState(new Date());
   const [tab, setTab] = useState(() => periodForHour(new Date().getHours()));
-  // Het dagdeel dat we het laatst automatisch kozen. Pas als de klok een
-  // nieuw dagdeel ingaat, springt de tab mee; zelf wisselen blijft staan.
-  const autoPeriod = useRef(tab);
   const [view, setView] = useState("tracker");
-  const [pop, setPop] = useState(null);
   const [statsPeriod, setStatsPeriod] = useState("week");
   const [pendingImport, setPendingImport] = useState(null);
-  // App-shortcuts ("Nieuwe notitie"/"Vandaag") en de share-target ("/share")
-  // uit het PWA-manifest: via een lazy state-initializer gelezen (niet via
-  // setState in een effect) zodat de eerste render meteen klopt. "Vandaag"
-  // heeft geen eigen code nodig — view "tracker" + datum "vandaag" zijn al
-  // de standaardwaarden hierboven.
-  const [launchDraft, setLaunchDraft] = useState(() => {
-    const launch = parseLaunchAction();
-    if (launch?.action === "new-note") return {};
-    if (launch?.isShareTarget) {
-      const title = launch.params.get("title") || "";
-      const text = launch.params.get("text") || "";
-      const url = launch.params.get("url") || "";
-      return { title, body: [text, url].filter(Boolean).join("\n") };
-    }
-    return null;
-  });
+  const [launchDraft, setLaunchDraft] = useLaunchDraft();
+  useDayRollover(date, setDate, tab, setTab);
+  useTheme(settings.theme);
 
-  // Voorkomt dat de shortcut-/share-actie bij een refresh herhaalt.
-  useEffect(() => {
-    const launch = parseLaunchAction();
-    if (launch?.action || launch?.isShareTarget) {
-      window.history.replaceState(null, "", "/");
-    }
-  }, []);
-
-  const key = dk(date);
-  const total = Object.values(routines).flat().length;
-
-  const dayRecord = useLiveQuery(() => db.days.get(key), [key]);
+  const { key, total, checked, pctTotal, pDone, pPct, streak, toggle, pop } =
+    useTrackerDay({
+      date,
+      routines,
+      allDays,
+      streakPct: settings.streakPct,
+    });
   const onboarded = useLiveQuery(
     async () => !!(await db.meta.get("onboarded")),
   );
-  const day = dayRecord ?? { checked: {}, energy: 7, mood: "Goed", notes: "" };
-
-  useEffect(() => {
-    const checkDate = () => {
-      const now = new Date();
-      const period = periodForHour(now.getHours());
-      if (period !== autoPeriod.current) {
-        autoPeriod.current = period;
-        setTab(period);
-      }
-      const todayKey = dk(now);
-      const currentKey = dk(date);
-      if (currentKey !== todayKey) {
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (currentKey === dk(yesterday)) setDate(new Date());
-      }
-    };
-    const onVisible = () => {
-      if (document.visibilityState === "visible") checkDate();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", checkDate);
-    const interval = setInterval(checkDate, 60000);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", checkDate);
-      clearInterval(interval);
-    };
-  }, [date]);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = settings.theme;
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta)
-      meta.setAttribute(
-        "content",
-        settings.theme === "dark" ? "#0f1411" : "#eef1ec",
-      );
-  }, [settings.theme]);
 
   useNotifications(settings, calEvents);
   const { notifPerm, toggleNotifications } = useNotificationToggle(
@@ -169,23 +93,6 @@ export default function App({ startupErrors = [] }) {
 
   const areaStyles = useMemo(() => buildAreaStyles(areas), [areas]);
   const areaNames = areas.map((a) => a.name);
-
-  const saveDay = (data) => {
-    db.days.put({ date: key, ...data });
-  };
-
-  const toggle = (id) => {
-    const next = {
-      ...day,
-      checked: { ...day.checked, [id]: !day.checked[id] },
-    };
-    saveDay(next);
-    if (!day.checked[id]) {
-      buzz(8);
-      setPop(id);
-      setTimeout(() => setPop(null), 500);
-    }
-  };
 
   const goNav = (dir) => {
     const d = new Date(date);
@@ -204,23 +111,6 @@ export default function App({ startupErrors = [] }) {
     setDate(d);
   };
 
-  const checked = day.checked || {};
-  const totalDone = Object.values(checked).filter(Boolean).length;
-  const pctTotal = total > 0 ? Math.round((totalDone / total) * 100) : 0;
-  const pDone = (p) => routines[p].filter((r) => checked[r.id]).length;
-  const pPct = (p) =>
-    routines[p].length > 0
-      ? Math.round((pDone(p) / routines[p].length) * 100)
-      : 0;
-
-  // Reeks over de opgeslagen dagen; voor vandaag telt de huidige staat
-  // (die kan een tel voorlopen op wat er al in Dexie staat).
-  const streak = streakDays(
-    isToday(date) ? { ...allDays, [dk(new Date())]: day } : allDays,
-    total,
-    settings.streakPct || 50,
-  );
-
   // Dunne wrappers: de daadwerkelijke export/import-logica staat in
   // src/lib/backup.js; hier alleen de React-state doorgeven/opvangen.
   const exportData = () =>
@@ -237,19 +127,6 @@ export default function App({ startupErrors = [] }) {
   const exportWeekplanning = () =>
     doExportWeekplanning({ calTemplates, calEvents, weekScheduleTemplates });
   const importData = (file) => readImportFile(file, setPendingImport);
-
-  const runFullImport = async (data, merge) => {
-    try {
-      // Vangnet: vóór "vervangen" de huidige staat downloaden, zodat een
-      // verkeerde backup nooit het enige exemplaar van je data wist.
-      if (!merge) await exportData();
-      await performFullImport(data, merge);
-    } catch (err) {
-      showToast("Fout bij importeren: " + err.message);
-    } finally {
-      setPendingImport(null);
-    }
-  };
 
   const dataInfo = (() => {
     const dayCount = allDaysRaw?.length ?? 0;
@@ -271,23 +148,10 @@ export default function App({ startupErrors = [] }) {
   const { main: dateMain, sub: dateSub } = periodLabel(view, statsPeriod, date);
 
   const importDialog = pendingImport && (
-    <ConfirmDialog
-      title="Backup importeren"
-      message="Samenvoegen voegt de backup toe aan je huidige data. Volledig vervangen wist eerst je huidige data — daarvoor wordt automatisch een veiligheidsbackup gedownload."
-      danger={false}
-      actions={[
-        {
-          label: "Samenvoegen",
-          variant: "primary",
-          onClick: () => runFullImport(pendingImport, true),
-        },
-        {
-          label: "Volledig vervangen",
-          variant: "dangerSolid",
-          onClick: () => runFullImport(pendingImport, false),
-        },
-      ]}
-      onCancel={() => setPendingImport(null)}
+    <ImportDialog
+      data={pendingImport}
+      onExport={exportData}
+      onDone={() => setPendingImport(null)}
     />
   );
 

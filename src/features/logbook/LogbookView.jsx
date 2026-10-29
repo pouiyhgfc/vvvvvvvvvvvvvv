@@ -4,9 +4,6 @@ import { db } from "../../lib/db.js";
 import { uid } from "../../lib/date.js";
 import { MOODS, DEFAULT_NOTEBOOKS } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
-import { isActive, isArchived, isTrashed } from "../../lib/notes.js";
-import { tagStats } from "../../lib/tags.js";
-import Icon from "../../ui/Icon.jsx";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import ArchiveSheet from "./ArchiveSheet.jsx";
 import NoteCard from "./NoteCard.jsx";
@@ -21,8 +18,11 @@ import MoveSheet from "./MoveSheet.jsx";
 import NoteList from "./NoteList.jsx";
 import { useLongPress } from "./useLongPress.js";
 import { useNoteReorder } from "./useNoteReorder.js";
+import { useNotesData } from "./useNotesData.js";
+import { useSelection } from "./useSelection.js";
 import NotebookTabs from "./NotebookTabs.jsx";
 import NotesHeader from "./NotesHeader.jsx";
+import NoteSearch from "./NoteSearch.jsx";
 import TagFilter from "./TagFilter.jsx";
 import {
   archiveEntries,
@@ -31,7 +31,6 @@ import {
   pinEntries,
   trashEntries,
 } from "./noteActions.js";
-import { sortNotes } from "./noteOrder.js";
 import NotebookSheet from "./NotebookSheet.jsx";
 import EntryPage from "./EntryPage.jsx";
 
@@ -50,8 +49,14 @@ export default function LogbookView() {
   const [templatePicker, setTemplatePicker] = useState(false);
   const [archiveSheet, setArchiveSheet] = useState(false);
   const [trashSheet, setTrashSheet] = useState(false);
-  const [selectMode, setSelectMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const {
+    selectMode,
+    selectedIds,
+    startSelect,
+    toggleSelect,
+    selectOnly,
+    exitSelectMode,
+  } = useSelection();
   const [moveSheet, setMoveSheet] = useState(false);
   const [confirmBulkTrash, setConfirmBulkTrash] = useState(false);
 
@@ -78,62 +83,16 @@ export default function LogbookView() {
   // anders blijven id's uit een ander boek "geselecteerd" maar onzichtbaar.
   const switchNotebook = (id) => {
     setActiveNb(id);
-    setSelectMode(false);
-    setSelectedIds(new Set());
+    exitSelectMode();
   };
 
-  const logEntriesRaw = useLiveQuery(() =>
-    db.logEntries.orderBy("date").reverse().toArray(),
-  );
-  const dayNotesRaw = useLiveQuery(() =>
-    db.days.filter((d) => !!d.notes).toArray(),
-  );
-
-  const allEntries = useMemo(() => {
-    if (!logEntriesRaw || !dayNotesRaw) return [];
-    const log = logEntriesRaw
-      .filter((e) => (isAll || nbOf(e) === activeId) && isActive(e))
-      .map((e) => ({ ...e, _type: "log" }));
-    const days =
-      isAll || activeId === "logboek"
-        ? dayNotesRaw.map((d) => ({
-            id: `day_${d.date}`,
-            date: d.date,
-            body: d.notes,
-            tags: [],
-            mood: d.mood || null,
-            _type: "day",
-          }))
-        : [];
-    const sortedDays = days.sort((a, b) => b.date.localeCompare(a.date));
-    return [...sortNotes(log, sortMode), ...sortedDays];
-  }, [logEntriesRaw, dayNotesRaw, activeId, isAll, sortMode]);
-
-  // Tags van dit notitieboek, hoofdletters samengevoegd, meest gebruikt eerst.
-  const allTags = useMemo(
-    () =>
-      tagStats(
-        (logEntriesRaw ?? []).filter(
-          (e) => (isAll || nbOf(e) === activeId) && isActive(e),
-        ),
-      ),
-    [logEntriesRaw, activeId, isAll],
-  );
-
-  // Archief/prullenbak: over alle notitieboeken heen, met het notitieboek als
-  // label op de kaart (zie renderMetaEntry hieronder).
-  const archivedEntries = useMemo(() => {
-    if (!logEntriesRaw) return [];
-    return logEntriesRaw
-      .filter(isArchived)
-      .sort((a, b) => (b.archivedAt || "").localeCompare(a.archivedAt || ""));
-  }, [logEntriesRaw]);
-  const trashedEntries = useMemo(() => {
-    if (!logEntriesRaw) return [];
-    return logEntriesRaw
-      .filter(isTrashed)
-      .sort((a, b) => (b.deletedAt || "").localeCompare(a.deletedAt || ""));
-  }, [logEntriesRaw]);
+  const {
+    logEntriesRaw,
+    allEntries,
+    allTags,
+    archivedEntries,
+    trashedEntries,
+  } = useNotesData({ activeId, isAll, sortMode });
   const notebookOf = (e) =>
     notebooks.find((n) => n.id === nbOf(e)) || notebooks[0];
 
@@ -152,18 +111,7 @@ export default function LogbookView() {
     () => filtered.filter((e) => e._type === "log").map((e) => e.id),
     [filtered],
   );
-  const toggleSelect = (id) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-  const selectAllVisible = () => setSelectedIds(new Set(selectableIds));
-  const exitSelectMode = () => {
-    setSelectMode(false);
-    setSelectedIds(new Set());
-  };
+  const selectAllVisible = () => selectOnly(selectableIds);
 
   const reorder = useNoteReorder(allEntries, filtered);
 
@@ -219,8 +167,7 @@ export default function LogbookView() {
 
   // Lang indrukken op een kaart start de selectiemodus.
   const longPress = useLongPress((id) => {
-    setSelectMode(true);
-    setSelectedIds(new Set([id]));
+    selectOnly([id]);
   });
 
   const renderCard = (entry, idx, handleDown) => {
@@ -270,36 +217,7 @@ export default function LogbookView() {
         onNew={newNote}
       />
 
-      {/* Zoekbalk */}
-      <label
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          height: 48,
-          padding: "0 var(--sp-4)",
-          borderRadius: "var(--r-md)",
-          background: "var(--card)",
-          marginBottom: "var(--sp-3)",
-          color: "var(--text-muted)",
-        }}
-      >
-        <Icon name="magnifying-glass" size={20} />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Zoeken in notities en tags"
-          style={{
-            flex: 1,
-            minWidth: 0,
-            border: "none",
-            outline: "none",
-            background: "transparent",
-            color: "var(--text)",
-            fontSize: "var(--fs-md)",
-          }}
-        />
-      </label>
+      <NoteSearch value={search} onChange={setSearch} />
 
       <NotebookTabs
         notebooks={notebooks}
@@ -323,7 +241,7 @@ export default function LogbookView() {
         <NotesMenuSheet
           sortMode={savedSort}
           onSort={setSortMode}
-          onSelect={selectableIds.length > 0 ? () => setSelectMode(true) : null}
+          onSelect={selectableIds.length > 0 ? startSelect : null}
           onEditNotebook={isAll ? null : () => setNbSheet(activeNotebook)}
           onOrderNotebooks={
             notebooks.length > 1 ? () => setSortNbSheet(true) : null

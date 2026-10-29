@@ -1,14 +1,7 @@
-import {
-  useRef,
-  useState,
-  useEffect,
-  useCallback,
-  lazy,
-  Suspense,
-} from "react";
+import { useRef, useState, lazy, Suspense } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
-import { uid, dk } from "../../lib/date.js";
+import { dk } from "../../lib/date.js";
 import { DEFAULT_NOTEBOOKS } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
 import { buzz } from "../../lib/storage.js";
@@ -18,11 +11,11 @@ import EntryMeta from "./EntryMeta.jsx";
 import EntryTopBar from "./EntryTopBar.jsx";
 import FindBar from "./FindBar.jsx";
 import AskClaudeSheet from "./AskClaudeSheet.jsx";
-import { DOC_SCHEMA_VERSION } from "./docSchema.js";
 import OutlineSheet from "./OutlineSheet.jsx";
 import Backlinks from "./Backlinks.jsx";
 import SaveTemplateSheet from "./SaveTemplateSheet.jsx";
-import { cleanTags, tagStats } from "../../lib/tags.js";
+import { tagStats } from "../../lib/tags.js";
+import { useEntrySave } from "./useEntrySave.js";
 import { headingsOf, isActive } from "../../lib/notes.js";
 import { TextInput } from "../../ui/Field.jsx";
 
@@ -49,8 +42,7 @@ export default function EntryPage(props) {
   );
 }
 
-// Volledige eigen pagina met de rijke editor. Slaat automatisch op (debounced
-// + bij Terug). Maakt een nieuwe entry pas aan zodra er inhoud is.
+// Volledige eigen pagina met de rijke editor. Opslaan: zie useEntrySave.
 // `draft`: optionele voorinvulling voor een nieuwe entry ({ title?, body?, doc? }),
 // bv. vanuit een sjabloon of een gedeelde link — markeert de entry direct als
 // dirty zodat de auto-save 'm aanmaakt. Zonder draft is het gedrag ongewijzigd.
@@ -70,7 +62,6 @@ function NotePage({
     useLiveQuery(async () =>
       tagStats((await db.logEntries.toArray()).filter(isActive)),
     ) ?? NO_TAGS;
-  const [created, setCreated] = useState(!!entry?.id);
   const [pinned, setPinned] = useState(!!entry?.pinnedAt);
   const [currentNb, setCurrentNb] = useState(
     entry?.notebookId || notebookId || "logboek",
@@ -82,109 +73,42 @@ function NotePage({
   const [showOutline, setShowOutline] = useState(false);
   const [finding, setFinding] = useState(false);
   const [asking, setAsking] = useState(false);
-  const [contentVersion, setContentVersion] = useState(0);
   // Beschikbaarheid van undo/redo als state (niet de ref tijdens render lezen);
   // bijgewerkt vanuit de editor-onChange, die ook na undo/redo vuurt.
   const [hist, setHist] = useState({ undo: false, redo: false });
-  const [saveState, setSaveState] = useState("idle"); // "idle" | "saving" | "saved"
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
-
-  const idRef = useRef(entry?.id || null);
-  const contentRef = useRef({
-    doc: entry?.doc ?? draft?.doc ?? null,
-    text: entry?.body ?? draft?.body ?? "",
-  });
-  // Pas opslaan/updatedAt aanpassen als er echt iets bewerkt is — niet bij
-  // alleen openen of sluiten zonder wijziging. Een SJABLOON-draft (met `doc`)
-  // telt NIET meteen mee: alleen opslaan als je er echt iets aan toevoegt,
-  // anders maakt "openen + terug" een lege sjabloon-entry. Een share-target-
-  // draft (title/body, geen doc) telt wél meteen mee, zodat gedeelde inhoud
-  // niet verloren gaat.
-  const dirtyRef = useRef(!!draft && !draft.doc);
-  const savedTimerRef = useRef(null);
   const editorRef = useRef(null);
 
-  const markDirty = () => {
-    dirtyRef.current = true;
-    setSaveState("saving");
-  };
-
-  useEffect(() => () => clearTimeout(savedTimerRef.current), []);
+  const {
+    idRef,
+    contentRef,
+    created,
+    contentVersion,
+    saveState,
+    markDirty,
+    onContentChange,
+    flush,
+  } = useEntrySave({
+    entry,
+    draft,
+    title,
+    tags,
+    knownTags,
+    date: dateProp,
+    notebookId: currentNb,
+    editorRef,
+  });
 
   const initialContent =
     entry?.doc ?? entry?.body ?? draft?.doc ?? draft?.body ?? undefined;
   const entryDate = entry?.date || dateProp || dk(new Date());
 
-  const persist = useCallback(async () => {
-    // Geen wijziging sinds laden → niets opslaan (geen onnodige updatedAt-bump).
-    if (!dirtyRef.current) return;
-    const { doc, text } = contentRef.current;
-    const hasContent = title.trim() || (text && text.trim());
-    if (!idRef.current) {
-      if (!hasContent) return;
-      const id = uid();
-      idRef.current = id;
-      setCreated(true);
-      await db.logEntries.put({
-        id,
-        notebookId: currentNb,
-        date: dateProp || dk(new Date()),
-        title: title.trim(),
-        body: text || "",
-        doc: doc || undefined,
-        docSchemaVersion: doc ? DOC_SCHEMA_VERSION : undefined,
-        tags: cleanTags(tags, knownTags),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-    } else {
-      await db.logEntries.update(idRef.current, {
-        title: title.trim(),
-        body: text || "",
-        doc: doc || undefined,
-        docSchemaVersion: doc ? DOC_SCHEMA_VERSION : undefined,
-        tags: cleanTags(tags, knownTags),
-        updatedAt: new Date().toISOString(),
-      });
-    }
-    dirtyRef.current = false;
-    setSaveState("saved");
-    clearTimeout(savedTimerRef.current);
-    savedTimerRef.current = setTimeout(() => setSaveState("idle"), 1500);
-  }, [title, tags, knownTags, dateProp, currentNb]);
-
-  useEffect(() => {
-    const t = setTimeout(persist, 500);
-    return () => clearTimeout(t);
-  }, [persist, contentVersion]);
-
-  const onEditorChange = ({ doc, text }) => {
-    // text kan (nog) ontbreken bij de synchrone melding — dan de vorige tekst
-    // behouden; de async markdown-conversie vult 'm vlak erna alsnog aan.
-    contentRef.current = {
-      doc,
-      text: text !== undefined ? text : contentRef.current.text,
-    };
-    markDirty();
-    setContentVersion((v) => v + 1);
+  const onEditorChange = (change) => {
+    onContentChange(change);
     setHist({
       undo: editorRef.current?.canUndo?.() ?? false,
       redo: editorRef.current?.canRedo?.() ?? false,
     });
-  };
-  const flush = async () => {
-    // Race-fix: bij direct sluiten na de laatste toetsaanslag kan de async
-    // markdown-conversie van RichEditor nog niet zijn aangekomen. Vraag 'm
-    // hier alsnog op, zodat persist() de nieuwste tekst opslaat.
-    if (dirtyRef.current) {
-      try {
-        const text = await editorRef.current?.getMarkdown();
-        if (text !== undefined) contentRef.current.text = text;
-      } catch {
-        // Val terug op de laatst bekende tekst.
-      }
-    }
-    await persist();
   };
   const close = async () => {
     await flush();
