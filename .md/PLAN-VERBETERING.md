@@ -358,7 +358,8 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
       in `SLASH_KEYS` → aanzetten in slashmenu en blok-sheet. Snelle winst.
       _Gedaan: "Uitklapbare lijst" en "Uitklapbare kop 2" in het +-menu, "Uitklaplijst" in het
       blokmenu. Open/dicht onthoudt BlockNote zelf in localStorage (`toggle-<blok-id>`)._
-- [ ] **5.3 Callout-blok** (eigen blok via `createReactBlockSpec`), met emoji en kleur.
+- [x] **5.3 Callout-blok** (eigen blok via `createReactBlockSpec`), met emoji en kleur.
+      _29-10: drie varianten (info, tip, let op) met lijnicoon i.p.v. emoji; tik op het icoon._
 - [ ] **5.4 Afbeeldingen lokaal:** `uploadFile` slaat een verkleinde afbeelding (max ~1600 px)
       op in een nieuwe Dexie-tabel `files`; `resolveFileUrl` maakt er een object-URL van. Backup
       neemt bestanden mee (formaatversie omhoog) — met waarschuwing over de bestandsgrootte.
