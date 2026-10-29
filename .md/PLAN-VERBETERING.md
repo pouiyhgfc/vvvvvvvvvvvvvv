@@ -456,9 +456,10 @@ revisiedatum; beoordelen werkt; schaduwadvies is zichtbaar.
 - [x] Vite 6 → 8 (Rolldown), `@vitejs/plugin-react` 4 → 6, `vite-plugin-pwa` 0.21 → 2.0
       (ondersteunt Vite 8; vraagt Node ≥ 20.19 → Node-versie in Vercel controleren). Behoud
       `injectManifest` en de `notificationclick`-handler.
-- [ ] React 19.3, Dexie 4.4.x, ESLint/Knip/Prettier/Playwright bijwerken.
-      _28-10: alles behalve Playwright. 1.63 blijft: de cloud-sessie heeft alleen de Chromium
-      voor 1.63, en daar draaien de schermtests. Bijwerken samen met die omgeving._
+- [x] React 19.3, Dexie 4.4.x, ESLint/Knip/Prettier/Playwright bijwerken.
+      _29-10: Playwright 1.64.1, CI-image mee. De cloud-sessie heeft alleen de Chromium van 1.63;
+      daar wijst een symlink (`/opt/pw-browsers/chromium*-1248` → `-1243`) naar dezelfde
+      browser, dus de schermtests blijven pixelgelijk. Terug kan altijd naar 1.63._
 - [x] Bundel: editor-chunk en precache meten; eventueel `manualChunks`.
       _29-10 (Vite 8): hoofdbundel 620 kB (193 kB gzip), editor 980 kB (295 kB gzip, lazy),
       emoji-data van BlockNote 429 kB (lazy, alleen bij het emoji-item), precache 2,3 MB.

@@ -17,7 +17,7 @@ jobs:
     # `playwright install --with-deps` bleef op de runner soms minutenlang
     # hangen op apt. Versie gelijk houden aan @playwright/test in package.json.
     container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
