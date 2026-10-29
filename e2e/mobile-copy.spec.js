@@ -1,4 +1,5 @@
 import { test, expect, devices } from "@playwright/test";
+import { startApp } from "./helpers.js";
 
 // Mobiel toestel + klembord-rechten (top-level test.use, verplicht voor
 // device-/context-opties).
@@ -13,6 +14,7 @@ test.use({
 test("gecollapste touch-selectie kopieert nog alle blokken", async ({
   page,
 }) => {
+  await startApp(page);
   await page.goto("/?action=new-note");
   await page.waitForSelector(".ProseMirror");
   await page.tap(".ProseMirror");

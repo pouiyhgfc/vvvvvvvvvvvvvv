@@ -1,6 +1,7 @@
 // Vaste demodata voor de screenshot-tests, als volledige backup (formaat v9).
 // Alle datums hangen aan TODAY, dezelfde datum die de tests als klok zetten.
-import { DEFAULT_ROUTINES, DEFAULT_SETTINGS } from "../../src/lib/constants.js";
+import { DEFAULT_SETTINGS } from "../../src/lib/constants.js";
+import { buildStart } from "../../src/lib/starterPacks.js";
 import { SURAHS } from "../../src/lib/surahs.js";
 
 const TODAY = "2026-10-27"; // dinsdag
@@ -15,7 +16,13 @@ const day = (offset) => {
 const text = (t, styles = {}) => [{ type: "text", text: t, styles }];
 const para = (t) => ({ type: "paragraph", content: t ? text(t) : [] });
 
-const routineIds = Object.values(DEFAULT_ROUTINES)
+// Vaste demo-routines: alle startpakketten samen.
+const { routines, areas } = buildStart({
+  basis: true,
+  geloof: true,
+  hifd: true,
+});
+const routineIds = Object.values(routines)
   .flat()
   .map((r) => r.id);
 
@@ -195,14 +202,8 @@ export function demoBackup({ theme = "light" } = {}) {
   return structuredClone({
     version: 9,
     exportedAt: NOW.toISOString(),
-    routines: DEFAULT_ROUTINES,
-    areas: [
-      { name: "Quran/Hifd", color: "#dc2626" },
-      { name: "Talen", color: "#7c3aed" },
-      { name: "Fitness", color: "#ea580c" },
-      { name: "Zelfzorg", color: "#db2777" },
-      { name: "School", color: "#ca8a04" },
-    ],
+    routines,
+    areas,
     calTemplates: [],
     calEvents,
     weekScheduleTemplates: [],

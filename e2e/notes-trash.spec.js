@@ -1,12 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { demoBackup } from "./fixtures/demo.js";
-import { importBackup } from "./helpers.js";
+import { importBackup, startApp } from "./helpers.js";
 
 // Regressietests voor vastzetten, archief en prullenbak in het Logboek.
 // Elke test start met een schone IndexedDB (nieuwe browsercontext).
 
 async function openLogbook(page) {
-  await page.goto("/");
+  await startApp(page);
   await page.getByRole("button").filter({ hasText: "Notities" }).click();
 }
 
@@ -150,7 +150,7 @@ test("prullenbak legen verwijdert alle items definitief", async ({ page }) => {
 test("een verwijderde 'vandaag'-entry verdwijnt uit het widget op Dag", async ({
   page,
 }) => {
-  await page.goto("/");
+  await startApp(page);
   await expect(
     page.getByRole("button", { name: "Nieuw logboek voor vandaag aanmaken" }),
   ).toBeVisible();

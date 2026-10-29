@@ -19,12 +19,27 @@ export async function loadDemo(page, options) {
   await importBackup(page, demoBackup(options));
 }
 
-// Importeert een backup-object via de UI. "Backup en data" staat standaard
-// open, dus het bestandsveld is er meteen.
+// Opent de app. Een nieuwe browsercontext is een nieuw toestel: dan staat
+// eerst het welkomstscherm er; "Beginnen" kiest het basispakket.
+export async function startApp(page) {
+  await page.goto("/");
+  const welcome = page.getByRole("heading", { name: "Welkom" });
+  const nav = page.getByRole("navigation", { name: "Hoofdmenu" });
+  await expect(welcome.or(nav)).toBeVisible();
+  if (await welcome.isVisible())
+    await page.getByRole("button", { name: "Beginnen" }).click();
+  await expect(nav).toBeVisible();
+}
+
+// Importeert een backup-object via de UI: op het welkomstscherm of anders via
+// Meer ("Backup en data" staat standaard open).
 export async function importBackup(page, backup) {
   await page.clock.setFixedTime(NOW);
   await page.goto("/");
-  await openTab(page, "Meer");
+  const welcome = page.getByRole("heading", { name: "Welkom" });
+  const nav = page.getByRole("navigation", { name: "Hoofdmenu" });
+  await expect(welcome.or(nav)).toBeVisible();
+  if (!(await welcome.isVisible())) await openTab(page, "Meer");
   await page.locator('input[type="file"]').setInputFiles({
     name: "backup.json",
     mimeType: "application/json",

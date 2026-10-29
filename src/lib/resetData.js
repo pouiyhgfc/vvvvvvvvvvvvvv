@@ -45,6 +45,8 @@ export async function clearEverything() {
       await db.hifdLogV2.clear();
       await db.files.clear();
       await db.meta.delete("hifd_seeded");
+      // Na alles wissen: opnieuw het welkomstscherm.
+      await db.meta.delete("onboarded");
     },
   );
   await seedHifd();

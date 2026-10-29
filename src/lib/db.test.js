@@ -7,6 +7,7 @@ import {
 } from "./constants.js";
 import {
   db,
+  markExistingInstall,
   migrateFromLocalStorage,
   migrateHifdSrsV2,
   migrateNotesOrderV1,
@@ -241,5 +242,20 @@ describe("Hifd", () => {
     expect(rows.find((r) => r.surah === 1).phase).toBe("learn");
     expect(rows.find((r) => r.surah === 2).phase).toBe("review");
     expect(db.tables.map((t) => t.name)).not.toContain("hifdLog");
+  });
+});
+
+describe("markExistingInstall", () => {
+  test("een bestaande installatie slaat het welkomstscherm over", async () => {
+    await db.meta.put({ key: "migrated", value: true });
+    await markExistingInstall();
+    expect(await db.meta.get("onboarded")).toBeTruthy();
+  });
+
+  test("een nieuwe installatie krijgt het welkomstscherm, ook bij een herstart", async () => {
+    await markExistingInstall();
+    await migrateFromLocalStorage();
+    await markExistingInstall();
+    expect(await db.meta.get("onboarded")).toBeUndefined();
   });
 });

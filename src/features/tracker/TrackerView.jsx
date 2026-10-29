@@ -1,6 +1,9 @@
 import { useState, lazy, Suspense } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { DAILY_LOG_TEMPLATE_DOC } from "../../lib/constants.js";
+import {
+  DAILY_LOG_TEMPLATE_DOC,
+  DAILY_SHORT_TEMPLATE_DOC,
+} from "../../lib/constants.js";
 import { db } from "../../lib/db.js";
 import { isActive } from "../../lib/notes.js";
 import TodayHeader from "./TodayHeader.jsx";
@@ -33,6 +36,11 @@ export default function TrackerView({
 }) {
   const settingsRec = useLiveQuery(() => db.settings.get("singleton"));
   const theme = settingsRec?.theme ?? "light";
+  // Zonder keuze (bestaande installaties, oude backups): de vier vragen.
+  const dailyTemplate =
+    settingsRec?.dailyTemplate === "kort"
+      ? DAILY_SHORT_TEMPLATE_DOC
+      : DAILY_LOG_TEMPLATE_DOC;
   const todayEntry = useLiveQuery(
     () =>
       db.logEntries
@@ -63,11 +71,7 @@ export default function TrackerView({
           routines={routines}
           streak={streak}
         />
-        <UpNextCard
-          date={date}
-          calEvents={calEvents}
-          onOpen={onOpenPlanning}
-        />
+        <UpNextCard date={date} calEvents={calEvents} onOpen={onOpenPlanning} />
         <RoutineCard
           routines={routines}
           tab={tab}
@@ -93,7 +97,7 @@ export default function TrackerView({
             // nieuw entry verse blocks krijgt (geen gedeelde/gemuteerde doc).
             draft={
               entryPage === "new"
-                ? { doc: structuredClone(DAILY_LOG_TEMPLATE_DOC) }
+                ? { doc: structuredClone(dailyTemplate) }
                 : undefined
             }
             notebookId="logboek"

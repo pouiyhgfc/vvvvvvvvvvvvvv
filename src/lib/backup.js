@@ -260,6 +260,8 @@ export async function performFullImport(data, merge) {
     },
   );
   await seedHifd();
+  // Een teruggezette backup telt als ingericht (geen welkomstscherm meer).
+  await db.meta.put({ key: "onboarded", value: true });
   showToast(
     `✓ Import gelukt! ${Object.keys(data.days).length} dagen geïmporteerd.`,
   );

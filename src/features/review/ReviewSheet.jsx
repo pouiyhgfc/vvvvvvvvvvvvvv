@@ -41,6 +41,7 @@ export default function ReviewSheet({ routines, calEvents, onClose }) {
     notebooks: (await db.blobs.get("notebooks"))?.data ?? DEFAULT_NOTEBOOKS,
     hifd: await db.hifd.toArray(),
     hifdLog: await db.hifdLogV2.toArray(),
+    hifdOn: (await db.settings.get("singleton"))?.hifdEnabled !== false,
   }));
   const range = useMemo(() => periodRange(period), [period]);
 
@@ -99,17 +100,19 @@ export default function ReviewSheet({ routines, calEvents, onClose }) {
       </Field>
       <Field label="Wat gaat mee">
         <div style={row}>
-          {PARTS.map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              aria-pressed={!!include[key]}
-              onClick={() => toggle(key)}
-              style={chip(!!include[key])}
-            >
-              {label}
-            </button>
-          ))}
+          {PARTS.filter(([key]) => key !== "hifd" || stored?.hifdOn).map(
+            ([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={!!include[key]}
+                onClick={() => toggle(key)}
+                style={chip(!!include[key])}
+              >
+                {label}
+              </button>
+            ),
+          )}
         </div>
       </Field>
       {include.notes && stored && (

@@ -1,8 +1,10 @@
 import { isNativeApp } from "../../lib/platform.js";
 import Emoji from "../../ui/Emoji.jsx";
+import { Select } from "../../ui/Field.jsx";
 import Section from "../../ui/Section.jsx";
 
-// Weergave en meldingen: thema, meldingen, streak-drempel en Hifd-limiet.
+// Weergave en meldingen: thema, meldingen, streak-drempel, logboek-sjabloon
+// en Hifd (aan/uit en limiet).
 export default function DisplaySection({
   settings,
   setSettings,
@@ -13,6 +15,7 @@ export default function DisplaySection({
   const set = (key) => (e) =>
     setSettings((s) => ({ ...s, [key]: +e.target.value }));
   const cap = settings.hifdDailyCap ?? 4;
+  const hifdOn = settings.hifdEnabled !== false;
   return (
     <Section title="Weergave en meldingen" icon={<Emoji char="🎨" size={20} />}>
       <ToggleRow
@@ -67,16 +70,45 @@ export default function DisplaySection({
         value={settings.streakPct}
         onChange={set("streakPct")}
       />
-      <SliderRow
-        label={`Hifd-revisies per dag: ${cap}`}
-        hint="Maximaal aantal gememoriseerde surahs ter revisie per dag."
-        min={1}
-        max={10}
-        step={1}
-        value={cap}
-        onChange={set("hifdDailyCap")}
-        last
+      <label style={{ ...row(false), display: "block" }}>
+        <span style={{ ...titleStyle, display: "block", marginBottom: 10 }}>
+          Dagelijks logboek
+        </span>
+        <Select
+          value={settings.dailyTemplate === "kort" ? "kort" : "muhasaba"}
+          onChange={(e) =>
+            setSettings((s) => ({ ...s, dailyTemplate: e.target.value }))
+          }
+          style={{ width: "100%" }}
+        >
+          <option value="kort">Kort: goed, beter, dankbaar</option>
+          <option value="muhasaba">Muhasaba: vier vragen</option>
+        </Select>
+        <span style={{ ...descStyle, display: "block", marginTop: 8 }}>
+          Waarmee een nieuw logboek op Vandaag begint.
+        </span>
+      </label>
+      <ToggleRow
+        title="Hifd"
+        desc="Koran memoriseren en herhalen, met een eigen tabblad."
+        checked={hifdOn}
+        onChange={(e) =>
+          setSettings((s) => ({ ...s, hifdEnabled: e.target.checked }))
+        }
+        last={!hifdOn}
       />
+      {hifdOn && (
+        <SliderRow
+          label={`Hifd-revisies per dag: ${cap}`}
+          hint="Maximaal aantal gememoriseerde surahs ter revisie per dag."
+          min={1}
+          max={10}
+          step={1}
+          value={cap}
+          onChange={set("hifdDailyCap")}
+          last
+        />
+      )}
     </Section>
   );
 }
@@ -93,10 +125,10 @@ const descStyle = {
   lineHeight: 1.45,
 };
 
-function ToggleRow({ title, desc, warning, checked, onChange }) {
+function ToggleRow({ title, desc, warning, checked, onChange, last }) {
   return (
     <label
-      style={{ ...row(false), display: "flex", alignItems: "center", gap: 12 }}
+      style={{ ...row(last), display: "flex", alignItems: "center", gap: 12 }}
     >
       <span style={{ flex: 1 }}>
         <span style={{ ...titleStyle, display: "block" }}>{title}</span>

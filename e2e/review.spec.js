@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loadDemo, openTab } from "./helpers.js";
+import { loadDemo, openTab, startApp } from "./helpers.js";
 
 // Weekreview naar Claude: tekst samenstellen, kopiëren en het antwoord
 // bewaren als notitie in Muhasaba.
@@ -32,6 +32,7 @@ test("weekreview kopiëren en het antwoord bewaren", async ({ page }) => {
 });
 
 test("vraag Claude om een notitie samen te vatten", async ({ page }) => {
+  await startApp(page);
   await page.goto("/?action=new-note");
   await page.waitForSelector(".ProseMirror");
   await page.getByPlaceholder("Titel…").fill("Plan");

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { startApp } from "./helpers.js";
 
 // Data-integriteit: een rijk document (kop, alinea, lijst, tabel-met-inhoud)
 // opslaan → app herladen → entry heropenen via het Logboek → moet identiek zijn.
@@ -17,6 +18,7 @@ function snapshot(page) {
 test("rijk document overleeft opslaan → herladen → heropenen", async ({
   page,
 }) => {
+  await startApp(page);
   await page.goto("/?action=new-note");
   await page.waitForSelector(".ProseMirror");
   await page.getByPlaceholder("Titel…").fill("RT-titel-uniek");
@@ -39,7 +41,7 @@ test("rijk document overleeft opslaan → herladen → heropenen", async ({
   await page.click('button[aria-label="Terug"]');
   await page.waitForTimeout(800); // opslaan afwachten
 
-  await page.goto("/");
+  await startApp(page);
   await page.getByRole("button").filter({ hasText: "Notities" }).click();
   await page.getByText("RT-titel-uniek").first().click();
   await page.waitForSelector(".ProseMirror");

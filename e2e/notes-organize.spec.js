@@ -1,10 +1,11 @@
 import { test, expect } from "@playwright/test";
+import { startApp } from "./helpers.js";
 
 // Regressietests voor verplaatsen, datumgroepen, multi-select/bulkacties en
 // slepen tijdens zoeken. Elke test start met een schone IndexedDB.
 
 async function openLogbook(page) {
-  await page.goto("/");
+  await startApp(page);
   await page.getByRole("button").filter({ hasText: "Notities" }).click();
 }
 

@@ -1,59 +1,15 @@
-export const DEFAULT_ROUTINES = {
-  ochtend: [
-    { id: "o1", name: "Duah", icon: "🤲", area: "Quran/Hifd" },
-    {
-      id: "o2",
-      name: "Rekken, Touwtje springen, Boxen",
-      icon: "🥊",
-      area: "Fitness",
-    },
-    { id: "o3", name: "Douchen", icon: "🚿", area: "Zelfzorg" },
-    { id: "o4", name: "Bidden", icon: "🕌", area: "Quran/Hifd" },
-    { id: "o5", name: "Hifd", icon: "📖", area: "Quran/Hifd" },
-    { id: "o6", name: "Pagina Quran lezen", icon: "📜", area: "Quran/Hifd" },
-    { id: "o7", name: "Ademhalingssessie", icon: "🌬️", area: "Zelfzorg" },
-    { id: "o8", name: "Adhkar reciteren", icon: "📿", area: "Quran/Hifd" },
-    { id: "o9", name: "Frans Anki", icon: "🇫🇷", area: "Talen" },
-    { id: "o10", name: "Arabisch leren", icon: "🇸🇦", area: "Talen" },
-    { id: "o11", name: "Chinees leren", icon: "🇨🇳", area: "Talen" },
-    { id: "o12", name: "Berbers leren", icon: "ⵣ", area: "Talen" },
-    { id: "o13", name: "Video kijken", icon: "🎬", area: "School" },
-  ],
-  middag: [
-    { id: "m1", name: "Adhkar verrichten", icon: "📿", area: "Quran/Hifd" },
-    { id: "m2", name: "Arabisch met AI", icon: "🇸🇦", area: "Talen" },
-    { id: "m3", name: "Berbers met AI", icon: "ⵣ", area: "Talen" },
-    { id: "m4", name: "Chinees met AI", icon: "🇨🇳", area: "Talen" },
-    { id: "m5", name: "Hifd revisen/lezen", icon: "📖", area: "Quran/Hifd" },
-  ],
-  avond: [
-    { id: "a1", name: "Shake maken", icon: "🥤", area: "Fitness" },
-    { id: "a2", name: "Douche dingen", icon: "🚿", area: "Zelfzorg" },
-    { id: "a3", name: "Rekken", icon: "🧘", area: "Fitness" },
-    { id: "a4", name: "Blz Quran lezen", icon: "📜", area: "Quran/Hifd" },
-    { id: "a5", name: "Ademhalingssessie", icon: "🌬️", area: "Zelfzorg" },
-    { id: "a6", name: "Duah lezen", icon: "🤲", area: "Quran/Hifd" },
-    { id: "a7", name: "Logboek", icon: "📓", area: "Zelfzorg" },
-    { id: "a8", name: "Slapen (10-11 uur)", icon: "😴", area: "Zelfzorg" },
-  ],
-};
+import { DEFAULT_PACK, DEFAULT_PACK_AREAS } from "./starterPacks.js";
+
+// Standaard voor een nieuwe installatie = het basispakket (zie welkomstscherm).
+export const DEFAULT_ROUTINES = DEFAULT_PACK;
 
 export const DEFAULT_CAL_TEMPLATES = [
-  { id: "ct1", title: "Hifd", icon: "📖", color: "#dc2626" },
-  { id: "ct2", title: "Rekken / Boxen", icon: "🥊", color: "#d97706" },
-  { id: "ct3", title: "Arabisch", icon: "🇸🇦", color: "#7c3aed" },
-  { id: "ct4", title: "Quran lezen", icon: "📜", color: "#0e7a52" },
-  { id: "ct5", title: "Frans Anki", icon: "🇫🇷", color: "#2563eb" },
-  { id: "ct6", title: "School", icon: "🎬", color: "#0891b2" },
+  { id: "ct1", title: "Werk of studie", icon: "📚", color: "#7c3aed" },
+  { id: "ct2", title: "Sport", icon: "🚶", color: "#ea580c" },
+  { id: "ct3", title: "Afspraak", icon: "🗓️", color: "#0891b2" },
 ];
 
-export const DEFAULT_AREAS = [
-  { name: "Quran/Hifd", color: "#dc2626" },
-  { name: "Talen", color: "#7c3aed" },
-  { name: "Fitness", color: "#ea580c" },
-  { name: "Zelfzorg", color: "#db2777" },
-  { name: "School", color: "#ca8a04" },
-];
+export const DEFAULT_AREAS = DEFAULT_PACK_AREAS;
 
 function areaStyleFromColor(c) {
   return { accent: c, border: c, text: c, bg: c + "1c", tag: c + "2b" };
@@ -351,6 +307,18 @@ export const DAILY_LOG_TEMPLATE_DOC = [
     "Het Preventie-Protocol (De 'Als-Dan' Regel):",
     "Wat is de gedetailleerde, fysieke actie die onmiddellijk wordt uitgevoerd zodra deze specifieke trigger of dit excuus zich in de toekomst opnieuw voordoet?",
   ),
+];
+// Korte variant (standaard voor nieuwe gebruikers; keuze in Meer → Weergave).
+export const DAILY_SHORT_TEMPLATE_DOC = [
+  {
+    type: "heading",
+    props: { level: 2 },
+    content: [{ type: "text", text: "Vandaag:", styles: {} }],
+  },
+  p(""),
+  numberedWithQuestion("Wat ging goed?", ""),
+  numberedWithQuestion("Wat kan beter?", ""),
+  numberedWithQuestion("Waar ben ik dankbaar voor?", ""),
 ];
 export const DEFAULT_SETTINGS = {
   theme: "light",

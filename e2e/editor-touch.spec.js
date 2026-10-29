@@ -1,4 +1,5 @@
 import { expect, test, devices } from "@playwright/test";
+import { startApp } from "./helpers.js";
 
 // Editor op een telefoon: alles moet binnen het scherm en met een duim te
 // raken zijn, en een "spookklik" na het openen van een menu doet niets.
@@ -9,6 +10,7 @@ const HANDLE =
 const PLUS = 'button[aria-label="Nieuw blok invoegen"]';
 
 async function newNote(page, lines) {
+  await startApp(page);
   await page.goto("/?action=new-note");
   await page.waitForSelector(".ProseMirror");
   await page.tap(".ProseMirror");

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { NOW } from "./fixtures/demo.js";
-import { exportBackup, loadDemo, openTab } from "./helpers.js";
+import { exportBackup, loadDemo, openTab, startApp } from "./helpers.js";
 
 // Kernflows buiten de editor: afvinken, Hifd beoordelen en een backup die
 // via de echte knoppen weer volledig te exporteren is.
@@ -15,11 +15,11 @@ test("een afgevinkte routine blijft afgevinkt na herladen", async ({
   page,
 }) => {
   // De ochtend-teller staat zowel in de voortgangsbalk als op de tab.
-  const ochtend = page.getByText("1/13").first();
-  await page.goto("/");
-  await expect(page.getByText("0/13").first()).toBeVisible();
+  const ochtend = page.getByText("1/3").first();
+  await startApp(page);
+  await expect(page.getByText("0/3").first()).toBeVisible();
 
-  await page.getByText("Duah", { exact: true }).click();
+  await page.getByText("Glas water", { exact: true }).click();
   await expect(ochtend).toBeVisible();
 
   await page.reload();
@@ -76,7 +76,7 @@ test("'Exporteer alles' levert een volledige backup op", async ({ page }) => {
 test("een blok aanmaken via een tik in de tijdlijn blijft staan", async ({
   page,
 }) => {
-  await page.goto("/");
+  await startApp(page);
   await openTab(page, "Planning");
 
   // Een tik op een leeg stuk van de tijdlijn opent de sheet.
@@ -95,8 +95,8 @@ test("een blok aanmaken via een tik in de tijdlijn blijft staan", async ({
 test("een kapotte backup wordt afgekeurd en verandert niets", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByText("Duah", { exact: true }).click();
+  await startApp(page);
+  await page.getByText("Glas water", { exact: true }).click();
   await openTab(page, "Meer");
 
   await page.locator('input[type="file"]').setInputFiles({
@@ -110,14 +110,14 @@ test("een kapotte backup wordt afgekeurd en verandert niets", async ({
     page.getByRole("button", { name: "Volledig vervangen" }),
   ).toHaveCount(0);
   await openTab(page, "Vandaag");
-  await expect(page.getByText("1/13").first()).toBeVisible();
+  await expect(page.getByText("1/3").first()).toBeVisible();
 });
 
 test("'volledig vervangen' downloadt eerst een veiligheidsbackup", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByText("Duah", { exact: true }).click();
+  await startApp(page);
+  await page.getByText("Glas water", { exact: true }).click();
   await openTab(page, "Meer");
   await page.locator('input[type="file"]').setInputFiles({
     name: "leeg.json",
@@ -139,7 +139,9 @@ test("'volledig vervangen' downloadt eerst een veiligheidsbackup", async ({
   const safety = JSON.parse(await readFile(file, "utf8"));
 
   // De veiligheidsbackup bevat de staat van vóór het vervangen.
-  const checkedDays = Object.values(safety.days).filter((d) => d.checked?.o1);
+  const checkedDays = Object.values(safety.days).filter(
+    (d) => d.checked?.["bas-water"],
+  );
   expect(checkedDays).toHaveLength(1);
 });
 
@@ -147,18 +149,18 @@ test("backup-herinnering: verschijnt zonder backup, 'later' en exporteren verber
   page,
 }) => {
   const reminder = page.getByText(/nog geen backup gemaakt/);
-  await page.goto("/");
+  await startApp(page);
   await expect(reminder).toBeVisible();
 
   await page.getByRole("button", { name: "Over een week" }).click();
   await expect(reminder).toBeHidden();
   await page.reload();
-  await expect(page.getByText("Duah", { exact: true })).toBeVisible();
+  await expect(page.getByText("Glas water", { exact: true })).toBeVisible();
   await expect(reminder).toBeHidden();
 
   // In een schone context: exporteren verbergt hem ook.
   await page.evaluate(() => indexedDB.deleteDatabase("routine-tracker"));
-  await page.reload();
+  await startApp(page);
   await expect(reminder).toBeVisible();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Exporteer nu" }).click();

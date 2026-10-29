@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { startApp } from "./helpers.js";
 
 // Regressietests rond het dataverlies dat we onderzochten:
 //  1. De `blocksToMarkdownLossy(...).then`-fout brak de markdown-input-rules
@@ -8,6 +9,7 @@ import { test, expect } from "@playwright/test";
 //     niet van een losse cursor — test 2 legt het cursor-gedrag vast.
 
 async function openEditor(page) {
+  await startApp(page);
   await page.goto("/?action=new-note");
   await page.waitForSelector(".ProseMirror");
   await page.click(".ProseMirror");

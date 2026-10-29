@@ -15,13 +15,13 @@ test.beforeEach(async ({ page }) => {
 test("een routine hernoemen onder Meer", async ({ page }) => {
   const routines = section(page, "Routines");
   await routines.locator("button[aria-expanded]").first().click();
-  await routines.getByText("Douchen", { exact: true }).click();
+  await routines.getByText("Bewegen", { exact: true }).click();
   const sheet = page.getByRole("dialog", { name: "Routine bewerken" });
-  await sheet.getByRole("textbox").first().fill("Koud douchen");
+  await sheet.getByRole("textbox").first().fill("Wandelen");
   await sheet.getByRole("button", { name: /Opslaan/ }).click();
   await expect(sheet).toBeHidden();
   await openTab(page, "Vandaag");
-  await expect(page.getByText("Koud douchen", { exact: true })).toBeVisible();
+  await expect(page.getByText("Wandelen", { exact: true })).toBeVisible();
 });
 
 test("een focusgebied toevoegen", async ({ page }) => {

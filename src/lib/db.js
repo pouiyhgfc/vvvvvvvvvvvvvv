@@ -62,6 +62,15 @@ function safeParse(raw, fallback) {
   }
 }
 
+// Installaties van vóór het welkomstscherm hoeven niet opnieuw ingericht te
+// worden. Draait één keer en vóór migrateFromLocalStorage (die "migrated" zet).
+export async function markExistingInstall() {
+  if (await db.meta.get("welcome_checked")) return;
+  if (await db.meta.get("migrated"))
+    await db.meta.put({ key: "onboarded", value: true });
+  await db.meta.put({ key: "welcome_checked", value: true });
+}
+
 export async function migrateFromLocalStorage() {
   const already = await db.meta.get("migrated");
   if (already) return;

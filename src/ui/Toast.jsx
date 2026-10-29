@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { registerToast } from "../lib/toast.js";
 
-// Mount één keer in App. Toont korte in-app meldingen i.p.v. native alert("✓ ...").
+// Mount één keer (main.jsx). Toont korte in-app meldingen i.p.v. native alert("✓ ...").
 export default function ToastHost() {
   const [toasts, setToasts] = useState([]);
   useEffect(() => {

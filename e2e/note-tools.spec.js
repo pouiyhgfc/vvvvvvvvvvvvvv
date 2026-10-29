@@ -1,4 +1,5 @@
 import { expect, test, devices } from "@playwright/test";
+import { startApp } from "./helpers.js";
 
 // Hulpmiddelen binnen één notitie: zoeken, inhoudsopgave en datum invoegen.
 test.use({ ...devices["Pixel 7"] });
@@ -7,6 +8,7 @@ const NOW = new Date("2026-10-28T10:00:00+08:00");
 
 async function newNote(page, lines) {
   await page.clock.setFixedTime(NOW);
+  await startApp(page);
   await page.goto("/?action=new-note");
   await page.waitForSelector(".ProseMirror");
   await page.tap(".ProseMirror");

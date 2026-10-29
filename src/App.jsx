@@ -23,7 +23,6 @@ import { streakDays } from "./features/stats/statsData.js";
 import LogbookView from "./features/logbook/LogbookView.jsx";
 import EntryPage from "./features/logbook/EntryPage.jsx";
 import HifdView from "./features/hifd/HifdView.jsx";
-import ToastHost from "./ui/Toast.jsx";
 import ConfirmDialog from "./ui/ConfirmDialog.jsx";
 import Banner from "./ui/Banner.jsx";
 import Button from "./ui/Button.jsx";
@@ -35,6 +34,7 @@ import { useNotificationToggle } from "./hooks/useNotificationToggle.js";
 import { periodLabel } from "./lib/periodLabel.js";
 import { clearAllDays, clearEverything } from "./lib/resetData.js";
 import BackButton from "./ui/BackButton.jsx";
+import Welcome from "./features/welcome/Welcome.jsx";
 
 // Leest de PWA-shortcut-/share-target-parameters uit de URL (?action=…,
 // /share met title/text/url). Puur lezen — geen state, geen side effects.
@@ -116,6 +116,9 @@ export default function App({ startupErrors = [] }) {
   const total = Object.values(routines).flat().length;
 
   const dayRecord = useLiveQuery(() => db.days.get(key), [key]);
+  const onboarded = useLiveQuery(
+    async () => !!(await db.meta.get("onboarded")),
+  );
   const day = dayRecord ?? { checked: {}, energy: 7, mood: "Goed", notes: "" };
 
   useEffect(() => {
@@ -267,6 +270,37 @@ export default function App({ startupErrors = [] }) {
 
   const { main: dateMain, sub: dateSub } = periodLabel(view, statsPeriod, date);
 
+  const importDialog = pendingImport && (
+    <ConfirmDialog
+      title="Backup importeren"
+      message="Samenvoegen voegt de backup toe aan je huidige data. Volledig vervangen wist eerst je huidige data — daarvoor wordt automatisch een veiligheidsbackup gedownload."
+      danger={false}
+      actions={[
+        {
+          label: "Samenvoegen",
+          variant: "primary",
+          onClick: () => runFullImport(pendingImport, true),
+        },
+        {
+          label: "Volledig vervangen",
+          variant: "dangerSolid",
+          onClick: () => runFullImport(pendingImport, false),
+        },
+      ]}
+      onCancel={() => setPendingImport(null)}
+    />
+  );
+
+  // Nieuw toestel: eerst het welkomstscherm (kiezen of backup terugzetten).
+  if (onboarded === undefined) return null;
+  if (!onboarded)
+    return (
+      <>
+        <Welcome onImport={importData} />
+        {importDialog}
+      </>
+    );
+
   return (
     <div
       style={{
@@ -407,33 +441,17 @@ export default function App({ startupErrors = [] }) {
         />
       )}
 
-      {pendingImport && (
-        <ConfirmDialog
-          title="Backup importeren"
-          message="Samenvoegen voegt de backup toe aan je huidige data. Volledig vervangen wist eerst je huidige data — daarvoor wordt automatisch een veiligheidsbackup gedownload."
-          danger={false}
-          actions={[
-            {
-              label: "Samenvoegen",
-              variant: "primary",
-              onClick: () => runFullImport(pendingImport, true),
-            },
-            {
-              label: "Volledig vervangen",
-              variant: "dangerSolid",
-              onClick: () => runFullImport(pendingImport, false),
-            },
-          ]}
-          onCancel={() => setPendingImport(null)}
-        />
-      )}
+      {importDialog}
 
       <TabBar
-        items={TABS}
+        items={
+          settings.hifdEnabled === false
+            ? TABS.filter((t) => t.id !== "hifd")
+            : TABS
+        }
         active={view === "stats" ? "meer" : view}
         onSelect={setView}
       />
-      <ToastHost />
     </div>
   );
 }
