@@ -367,8 +367,12 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
       Op jouw verzoek gaan afbeeldingen standaard mee, zonder aparte waarschuwing (JPEG ±200–500
       KB per stuk). Definitief verwijderen ruimt ongebruikte afbeeldingen op. Via + of "/" →
       Afbeelding._
-- [ ] **5.5 Links tussen notities + backlinks:** eigen inline-element "notitielink" met een
+- [x] **5.5 Links tussen notities + backlinks:** eigen inline-element "notitielink" met een
       zoek-pop-up (bijv. via "@"), en onderaan een notitie "Gelinkt vanuit…".
+      _29-10: + of "/" → "Link naar notitie" (zoek-sheet, werkt op touch) of "@" + titel met een
+      toetsenbord. De link toont de actuele titel (doorgestreept als de notitie weg is); tikken
+      opent die notitie (de huidige wordt eerst opgeslagen). Geen nieuw veld in de data: de link
+      staat in het document zelf. Nog op een Android-toestel te testen._
 - [x] **5.6 Kleine Notion-dingen:** inhoudsopgave uit koppen, zoeken binnen een notitie,
       datum invoegen.
       _Gedaan: ⋯ → "Zoeken in notitie" (treffers gemarkeerd via CSS Highlight API, raakt de

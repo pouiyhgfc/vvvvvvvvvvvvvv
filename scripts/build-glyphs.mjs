@@ -46,6 +46,7 @@ const UI_GLYPHS = [
   "share-network",
   "info",
   "play-circle",
+  "link",
 ];
 
 const circle = (cx, cy, r) =>

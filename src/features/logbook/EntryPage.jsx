@@ -20,6 +20,7 @@ import FindBar from "./FindBar.jsx";
 import AskClaudeSheet from "./AskClaudeSheet.jsx";
 import { DOC_SCHEMA_VERSION } from "./docSchema.js";
 import OutlineSheet from "./OutlineSheet.jsx";
+import Backlinks from "./Backlinks.jsx";
 import SaveTemplateSheet from "./SaveTemplateSheet.jsx";
 import { cleanTags, tagStats } from "../../lib/tags.js";
 import { headingsOf, isActive } from "../../lib/notes.js";
@@ -28,18 +29,39 @@ import { TextInput } from "../../ui/Field.jsx";
 const RichEditor = lazy(() => import("./RichEditor.jsx"));
 const NO_TAGS = [];
 
+// Een tik op een notitielink opent die notitie op dezelfde pagina (de huidige
+// is dan al opgeslagen). Terug gaat naar waar je vandaan kwam.
+export default function EntryPage(props) {
+  const [entry, setEntry] = useState(props.entry);
+  const openNote = async (id) => {
+    const next = await db.logEntries.get(id);
+    if (next) setEntry(next);
+  };
+  const moved = entry !== props.entry;
+  return (
+    <NotePage
+      key={entry?.id ?? "new"}
+      {...props}
+      entry={entry}
+      draft={moved ? undefined : props.draft}
+      onOpenNote={openNote}
+    />
+  );
+}
+
 // Volledige eigen pagina met de rijke editor. Slaat automatisch op (debounced
 // + bij Terug). Maakt een nieuwe entry pas aan zodra er inhoud is.
 // `draft`: optionele voorinvulling voor een nieuwe entry ({ title?, body?, doc? }),
 // bv. vanuit een sjabloon of een gedeelde link — markeert de entry direct als
 // dirty zodat de auto-save 'm aanmaakt. Zonder draft is het gedrag ongewijzigd.
-export default function EntryPage({
+function NotePage({
   entry,
   notebookId,
   date: dateProp,
   theme,
   draft,
   onClose,
+  onOpenNote,
 }) {
   const [title, setTitle] = useState(entry?.title || draft?.title || "");
   const [tags, setTags] = useState(entry?.tags ?? []);
@@ -150,7 +172,7 @@ export default function EntryPage({
       redo: editorRef.current?.canRedo?.() ?? false,
     });
   };
-  const close = async () => {
+  const flush = async () => {
     // Race-fix: bij direct sluiten na de laatste toetsaanslag kan de async
     // markdown-conversie van RichEditor nog niet zijn aangekomen. Vraag 'm
     // hier alsnog op, zodat persist() de nieuwste tekst opslaat.
@@ -163,7 +185,14 @@ export default function EntryPage({
       }
     }
     await persist();
+  };
+  const close = async () => {
+    await flush();
     onClose();
+  };
+  const openNote = async (id) => {
+    await flush();
+    onOpenNote(id);
   };
   // Verwijderen is zacht: de entry gaat naar de prullenbak (deletedAt) en
   // wordt pas na 30 dagen (of "definitief verwijderen" daar) echt gewist.
@@ -308,9 +337,11 @@ export default function EntryPage({
               ref={editorRef}
               initialContent={initialContent}
               onChange={onEditorChange}
+              onOpenNote={openNote}
               theme={theme}
             />
           </Suspense>
+          <Backlinks id={entry?.id} onOpen={openNote} />
         </div>
       </div>
 
