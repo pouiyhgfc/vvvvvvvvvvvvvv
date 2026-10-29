@@ -83,6 +83,21 @@ test("ingedrukt houden en slepen verschuift een blok per kwartier", async ({
   await expect(page.getByText(/geselecteerd|Blok bewerken/)).toHaveCount(0);
 });
 
+test("het streepje onderaan maakt een blok langer", async ({ page }) => {
+  const lunch = block(page, "Lunch");
+  await lunch.scrollIntoViewIfNeeded();
+  const handle = lunch.getByLabel("Langer of korter maken");
+  const box = await handle.boundingBox();
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 32, { steps: 6 }); // 32 px = half uur
+  await page.mouse.up();
+
+  await expect(lunch).toContainText("12:30 – 13:45");
+});
+
 test("een blok verwijderen vraagt bij herhalen om deze dag of alles", async ({
   page,
 }) => {

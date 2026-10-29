@@ -319,9 +319,11 @@ blocking). Ontwerp: canvas-rij "B — Weekplanning, opnieuw".
 - [x] **Dag als standaard:** weekstrip (ma–zo, bolletje als er iets gepland is) + één brede
       tijdlijn voor de gekozen dag, met een "nu"-lijn. **Week** wordt een lijst per dag i.p.v.
       zeven smalle kolommen.
-- [ ] **Slepen opnieuw:** ingedrukt houden = verplaatsen (in stappen van 15 min), handvat
+- [x] **Slepen opnieuw:** ingedrukt houden = verplaatsen (in stappen van 15 min), handvat
       onderaan = langer/korter maken; trilfeedback bij oppakken. Tik op leeg vlak = nieuw blok
       op dat tijdstip.
+      _Gebouwd in `DayTimeline.jsx` (pointer events, 300 ms ingedrukt, per kwartier). E2e voor
+      verplaatsen én (30-10) langer maken. Gevoel op touch: telefoontest hieronder._
 - [x] **Blok toevoegen in één sheet:** titel, snelkeuze (de huidige event-sjablonen),
       begintijd, duur-knoppen (30 m–3 u), herhalen (eenmalig / elke week / elke dag), melding.
 - [x] **Herhalen begrijpelijk:** bij bewerken of verwijderen van een herhalend blok altijd de
