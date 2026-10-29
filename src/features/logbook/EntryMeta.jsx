@@ -3,7 +3,7 @@ import { Select } from "../../ui/Field.jsx";
 import TagField from "./TagField.jsx";
 
 // Korte datum voor de meta-regel, bv. "di 27 okt".
-function fmtDay(str) {
+function fmtShortDay(str) {
   const d = new Date(str + "T12:00");
   return `${DAYS_NL[d.getDay()].slice(0, 2).toLowerCase()} ${d.getDate()} ${MONTHS_NL[d.getMonth()].slice(0, 3).toLowerCase()}`;
 }
@@ -78,7 +78,7 @@ export default function EntryMeta({
           ))}
         </Select>
       </label>
-      <span style={{ whiteSpace: "nowrap" }}>{fmtDay(date)}</span>
+      <span style={{ whiteSpace: "nowrap" }}>{fmtShortDay(date)}</span>
       <TagField tags={tags} known={knownTags} onChange={onTags} />
       <span style={{ fontSize: "var(--fs-xs)" }}>
         {saveState === "saving" && "Opslaan…"}

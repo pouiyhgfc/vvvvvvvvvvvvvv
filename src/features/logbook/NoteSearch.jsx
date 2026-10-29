@@ -18,6 +18,7 @@ export default function NoteSearch({ value, onChange }) {
     >
       <Icon name="magnifying-glass" size={20} />
       <input
+        dir="auto"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Zoeken in notities en tags"

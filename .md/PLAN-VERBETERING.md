@@ -258,18 +258,27 @@ bewust anders).
       Alleen echte datakleuren (event-/routinekleur, heatmap) blijven inline of als
       CSS-variabele.
 - [x] Fonts volgens `ONTWERP.md` v2; alleen de nodige gewichten; `latin-ext` blijft (Tarifit).
-- [ ] RTL: `dir="auto"` op tekstvelden en titels; logische CSS-eigenschappen
+- [x] RTL: `dir="auto"` op tekstvelden en titels; logische CSS-eigenschappen
       (`margin-inline-start` i.p.v. `margin-left`) waar het ertoe doet.
+      _30-10: `TextInput`/`TextArea` hebben standaard `dir="auto"`, net als zoeken, tags en
+      zoeken-in-notitie; titels en notitietekst hadden het al. Test: `e2e/rtl.spec.js`._
 
 ### 4b — Gedeelde helpers en primitives
 
-- [ ] Dubbele helpers samenvoegen (`fmtDay`, `SectionLabel`, `parseTags`) in `src/lib/` of
+- [x] Dubbele helpers samenvoegen (`fmtDay`, `SectionLabel`, `parseTags`) in `src/lib/` of
       `src/ui/`.
-- [ ] `src/ui/`-primitives eerst naar de nieuwe stijl (Button, Sheet, Field, Section, Toast,
+      _30-10: `parseTags` bestaat niet meer, `SectionLabel` komt nog maar op één plek voor, en de
+      twee `fmtDay`'s zijn verschillende formaten (de korte heet nu `fmtShortDay`). Verder
+      samengevoegd wat jscpd vond: `EditFooter`, `IconNameField`, `ListRow`, stats- en
+      backup-helpers (duplicatie 1,05% → 0,24%)._
+- [x] `src/ui/`-primitives eerst naar de nieuwe stijl (Button, Sheet, Field, Section, Toast,
       ConfirmDialog, Ring, NavBtn) — dan erven alle schermen het automatisch.
       _Stand 28-10: Button, Sheet, Field, Section, SortableList, Card klaar; NavBtn weg.
-      Toast, ConfirmDialog en Ring nog nalopen._
-- [ ] Eventueel nieuwe primitives uit de componentspecs (Card, ListRow, EmptyState).
+      30-10: Toast, ConfirmDialog en Ring nagelopen — gebruiken de tokens al; geen harde
+      kleuren meer in `src/ui/` (dangerSolid via `--danger-solid`)._
+- [x] Eventueel nieuwe primitives uit de componentspecs (Card, ListRow, EmptyState).
+      _30-10: `ListRow`, `EditFooter`, `IconNameField` erbij. EmptyState niet: lege staten zijn
+      telkens één regel tekst._
 - [x] **Iconen (besluit eigenaar 27-10-2026):** emoji vervangen door één set lijniconen
       (Phosphor regular, MIT, plus eigen tasbih, gebedskleed en yaz). Data bewaart het emoji;
       `<Emoji>` toont het als icoon, een vlag als lettertegel (ع, 中). Icoonkiezer met negen
@@ -331,9 +340,12 @@ blocking). Ontwerp: canvas-rij "B — Weekplanning, opnieuw".
 
 ### 4d — Bewaking tegen nieuwe slop
 
-- [ ] ESLint: `max-lines` (waarschuwing vanaf 400), verbod op harde hexkleuren in JSX via
+- [x] ESLint: `max-lines` (waarschuwing vanaf 400), verbod op harde hexkleuren in JSX via
       `no-restricted-syntax`, React 19-regels uit `eslint-plugin-react-hooks`.
-- [ ] jscpd blokkerend maken in CI zodra de duplicatie is opgeruimd.
+      _30-10: beide regels aan; `npm run lint` faalt nu ook op waarschuwingen
+      (`--max-warnings 0`). De React 19-regels zaten al in de `recommended`-set van v7._
+- [x] jscpd blokkerend maken in CI zodra de duplicatie is opgeruimd.
+      _30-10: CI faalt boven 1% (nu 0,24%)._
 - [ ] Toegankelijkheid: contrast in beide thema's, tikvlakken, focusvolgorde in sheets.
 - [ ] **Fase 4 afgerond** (alle schermen in nieuw ontwerp; geen inline styles buiten datakleuren)
 

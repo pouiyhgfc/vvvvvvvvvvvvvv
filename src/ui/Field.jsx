@@ -25,6 +25,8 @@ export const TextInput = forwardRef(function TextInput(
     <input
       ref={ref}
       type="text"
+      // Arabisch/Tarifit-tekst loopt dan vanzelf van rechts naar links.
+      dir="auto"
       onFocus={focusOn}
       onBlur={focusOff}
       style={{ ...base, ...style }}
@@ -37,6 +39,7 @@ export const TextArea = forwardRef(function TextArea({ style, ...rest }, ref) {
   return (
     <textarea
       ref={ref}
+      dir="auto"
       onFocus={focusOn}
       onBlur={focusOff}
       style={{ ...base, lineHeight: 1.5, resize: "vertical", ...style }}

@@ -65,6 +65,7 @@ export default function TagField({ tags, onChange, known }) {
         </span>
       ))}
       <input
+        dir="auto"
         value={query}
         onChange={(e) => {
           const v = e.target.value;
