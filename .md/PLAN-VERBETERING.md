@@ -454,15 +454,23 @@ zien, notitielink volgen, zoeken vindt tekst uit een tabel, Arabische alinea sta
 
 ### 6b — Bouwen (na de keuze)
 
-- [ ] Datamodel uitbreiden met een migratie die het **huidige schema meeneemt** (geen reset naar
+- [x] Datamodel uitbreiden met een migratie die het **huidige schema meeneemt** (geen reset naar
       "nieuw"); nieuwe velden naast de oude.
+      _Voor optie B was alleen `mistakes` in de revisielog nodig (29-10, backup v10); bestaande
+      velden blijven en worden bijgewerkt. De pagina-tabel van optie C volgt als je aan langere
+      surahs begint._
 - [x] **Schaduwmodus 2–4 weken:** _(gestart 29-10 met optie B; dezelfde dag op verzoek van de
       eigenaar omgeschakeld: sabqi + manzil is nu leidend. De SRS-velden worden nog bijgewerkt,
       dus terugschakelen kan.)_ het nieuwe algoritme rekent mee en toont zijn advies naast het
       huidige; het oude blijft leidend. Pas na akkoord omschakelen. Terug kan altijd.
-- [ ] Unit-tests met fixtures van echte voortgang (gememoriseerd, lerend, veel lapses).
-- [ ] Ervaring: revisiesessie-flow, voorspelde intervallen op de knoppen (bestaat al),
+- [x] Unit-tests met fixtures van echte voortgang (gememoriseerd, lerend, veel lapses).
+      _30-10: `hifdStats.test.js` met een stand als de jouwe (15 gememoriseerd, 99 lerend, lapses,
+      zwakke revisies)._
+- [x] Ervaring: revisiesessie-flow, voorspelde intervallen op de knoppen (bestaat al),
       voortgang en retentie in Statistieken.
+      _Revisie gaat één surah tegelijk (RecallCard). 30-10: kaart "Hifd · laatste 30 dagen" in
+      Statistieken: dekking, revisies, manzil-cyclus (waarschuwing boven 30 dagen) en de drie
+      zwakste surahs._
 - [ ] **Fase 6 afgerond**
 
 **Telefoontest:** bestaande gememoriseerde surahs staan na de update nog op dezelfde
