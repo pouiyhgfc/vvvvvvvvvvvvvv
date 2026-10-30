@@ -1,0 +1,13 @@
+/* Witte kaart van ontwerp B. */
+.card {
+  background: var(--card);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) 18px;
+  border: none;
+  width: 100%;
+  text-align: left;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}

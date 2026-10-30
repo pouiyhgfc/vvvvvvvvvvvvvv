@@ -1,0 +1,52 @@
+/* Knoppen: varianten en maten. Kleuren via tokens (licht/donker vanzelf). */
+.btn {
+  font-weight: 600;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
+}
+.btn:disabled {
+  opacity: 0.5;
+}
+.full {
+  width: 100%;
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: 1px solid var(--accent);
+}
+.secondary {
+  background: var(--sunken);
+  color: var(--text);
+  border: 1px solid transparent;
+}
+.danger {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+}
+.dangerSolid {
+  background: var(--danger-solid);
+  color: var(--danger-solid-text);
+  border: 1px solid var(--danger-solid);
+}
+.ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+}
+
+.md {
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: var(--fs-md);
+  border-radius: var(--r-md);
+}
+.sm {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: var(--fs-sm);
+  border-radius: var(--r-sm);
+}

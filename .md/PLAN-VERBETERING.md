@@ -253,10 +253,13 @@ bewust anders).
 
 - [x] Tokens uit `index.html` naar `src/styles/base.css` (zelfde waarden →
       screenshots identiek), daarna de nieuwe tokens uit `ONTWERP.md` v2 toevoegen.
-- [ ] **Stijlaanpak (besluit):** inline styles → **CSS Modules** per component (Vite ondersteunt
+- [x] **Stijlaanpak (besluit):** inline styles → **CSS Modules** per component (Vite ondersteunt
       dit zonder extra dependency, de stijlen blijven bij het component en lekken niet).
       Alleen echte datakleuren (event-/routinekleur, heatmap) blijven inline of als
       CSS-variabele.
+      _Besluit eigenaar 30-10: **alleen de bouwstenen** in `src/ui/` (Button, Field, Card,
+      ListRow) krijgen een CSS Module, voor tik-effect en focusrand. Schermen blijven inline
+      met tokens (alles omzetten: ±6–10 uur zonder zichtbaar verschil)._
 - [x] Fonts volgens `ONTWERP.md` v2; alleen de nodige gewichten; `latin-ext` blijft (Tarifit).
 - [x] RTL: `dir="auto"` op tekstvelden en titels; logische CSS-eigenschappen
       (`margin-inline-start` i.p.v. `margin-left`) waar het ertoe doet.
