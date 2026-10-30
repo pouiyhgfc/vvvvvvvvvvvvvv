@@ -406,7 +406,9 @@ donker thema leesbaar, scrollen en sheets voelen soepel.
       vet, cursief, in-/uitspringen, toetsenbord sluiten. Enter op een lege ingesprongen
       lijstregel gaat één niveau terug. _Nog op Android te testen._
 - [x] **5.7c Overzicht "Alles":** alle notities over de notitieboeken heen, op datum.
-- [ ] **5.8 Onderzoek:** multi-block-selectie op touch (groot; pas na 0.56 beoordelen).
+- [x] **5.8 Onderzoek:** multi-block-selectie op touch (groot; pas na 0.56 beoordelen).
+      _30-10: zie [`ONDERZOEK-5.8-7A.md`](ONDERZOEK-5.8-7A.md). Kan met BlockNote's publieke
+      `setSelection`; advies: pas bouwen als je het mist (kopiëren werkt al)._
 - [x] **5.9 Tags met structuur** (besluit eigenaar 27-10-2026: tags blijven, maar beter). Nu: los
       intypen, komma-gescheiden, eindeloze lijst zonder samenhang (#hifd naast gebied
       "Quran/Hifd").
@@ -495,8 +497,10 @@ revisiedatum; beoordelen werkt; schaduwadvies is zichtbaar.
       _28-10: Meer → "Weekreview naar Claude". Periode (deze/vorige week, 30 dagen), onderdelen
       (standaard alleen routines), opdracht aanpasbaar (wordt nog niet bewaard), Delen/Kopiëren,
       antwoord bewaren als notitie in "Muhasaba". Telefoontest: delen naar de Claude-app._
-- [ ] Onderzoek: is AI in de browser zelf (zonder server) inmiddels bruikbaar op Android-Chrome?
+- [x] Onderzoek: is AI in de browser zelf (zonder server) inmiddels bruikbaar op Android-Chrome?
       Zo ja: optioneel later.
+      _30-10: nee — Chrome's ingebouwde AI is alleen desktop; een eigen model via WebGPU is te
+      zwaar en te zwak. Zie [`ONDERZOEK-5.8-7A.md`](ONDERZOEK-5.8-7A.md)._
 
 ### 7b — Stack-upgrade (één pakket per commit)
 
