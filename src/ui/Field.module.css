@@ -10,6 +10,10 @@
   background: var(--input-bg);
   color: var(--text);
 }
+/* Groene focusrand, voor elk invoerveld gelijk. */
+.input:focus {
+  border-color: var(--accent);
+}
 /* Wint van de algemene input[type="text"]-regel in base.css. */
 input.input {
   background: var(--input-bg);

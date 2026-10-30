@@ -60,3 +60,32 @@ test("focus gaat de sheet in en weer terug", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(button).toBeFocused();
 });
+
+// Toetsenbord: een knop krijgt een zichtbare focusrand, een invoerveld een
+// groene rand.
+test("focusrand op knoppen en invoervelden", async ({ page }) => {
+  await loadDemo(page);
+  await openTab(page, "Meer");
+  const exportBtn = page.getByRole("button", { name: /Exporteer alles/ });
+  await exportBtn.focus();
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Tab");
+  await expect(exportBtn).toBeFocused();
+  expect(
+    await exportBtn.evaluate((el) => getComputedStyle(el).outlineStyle),
+  ).toBe("solid");
+
+  await page.getByRole("button", { name: "Tags" }).click();
+  await page.getByRole("button", { name: /#hifd/ }).click();
+  const field = page.getByRole("textbox", { name: "Nieuwe naam" });
+  await field.focus();
+  const [border, accent] = await field.evaluate((el) => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--accent)";
+    document.body.append(probe);
+    const a = getComputedStyle(probe).color;
+    probe.remove();
+    return [getComputedStyle(el).borderTopColor, a];
+  });
+  expect(border).toBe(accent);
+});
