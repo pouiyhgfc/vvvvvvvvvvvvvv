@@ -16,6 +16,7 @@ import {
   fillSearchText,
 } from "./lib/db.js";
 import { runStartup } from "./lib/startup.js";
+import { setupNativeBack } from "./lib/nativeBack.js";
 
 // Volgorde is belangrijk: elke stap bouwt voort op de vorige.
 const STARTUP_STEPS = [
@@ -28,6 +29,8 @@ const STARTUP_STEPS = [
   ["prullenbak opschonen", purgeTrash],
   ["zoektekst van notities", fillSearchText],
 ];
+
+setupNativeBack();
 
 (async () => {
   const startupErrors = await runStartup(STARTUP_STEPS);

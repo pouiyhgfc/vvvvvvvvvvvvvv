@@ -35,6 +35,7 @@ import { useLaunchDraft } from "./hooks/useLaunchDraft.js";
 import { useTrackerDay } from "./hooks/useTrackerDay.js";
 import { useDayRollover } from "./hooks/useDayRollover.js";
 import { useTheme } from "./hooks/useTheme.js";
+import { useBackHandler } from "./hooks/useBackHandler.js";
 
 // Vaste plekken in de tabbalk. "stats" is een subpagina van Meer.
 const TABS = [
@@ -72,6 +73,9 @@ export default function App({ startupErrors = [] }) {
   const [launchDraft, setLaunchDraft] = useLaunchDraft();
   useDayRollover(date, setDate, tab, setTab);
   useTheme(settings.theme);
+  // Terugknop: Statistieken → Meer, elk ander tabblad → Vandaag, dan de app uit.
+  useBackHandler(view !== "tracker", () => setView("tracker"));
+  useBackHandler(view === "stats", () => setView("meer"));
 
   const { key, total, checked, pctTotal, pDone, pPct, streak, toggle, pop } =
     useTrackerDay({

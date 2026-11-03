@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useGhostClickShield } from "../hooks/useGhostClickShield.js";
 import { useDialogFocus } from "../hooks/useDialogFocus.js";
+import { useBackHandler } from "../hooks/useBackHandler.js";
 import Button from "./Button.jsx";
 
 // Gecentreerd bevestig-dialoog. Vervangt native confirm().
@@ -18,6 +19,7 @@ export default function ConfirmDialog({
 }) {
   const shield = useGhostClickShield();
   const panel = useDialogFocus();
+  useBackHandler(true, onCancel);
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onCancel();

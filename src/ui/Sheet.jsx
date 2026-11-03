@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useGhostClickShield } from "../hooks/useGhostClickShield.js";
 import { useDialogFocus } from "../hooks/useDialogFocus.js";
+import { useBackHandler } from "../hooks/useBackHandler.js";
 import Icon from "./Icon.jsx";
 
 // Gedeelde bottom-sheet. Sluit op een tik naast het paneel en op Escape;
@@ -17,6 +18,7 @@ export default function Sheet({
 }) {
   const shield = useGhostClickShield();
   const panel = useDialogFocus();
+  useBackHandler(true, onClose);
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") onClose();

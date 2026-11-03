@@ -16,6 +16,7 @@ import Backlinks from "./Backlinks.jsx";
 import SaveTemplateSheet from "./SaveTemplateSheet.jsx";
 import { tagStats } from "../../lib/tags.js";
 import { useEntrySave } from "./useEntrySave.js";
+import { useBackHandler } from "../../hooks/useBackHandler.js";
 import { headingsOf, isActive } from "../../lib/notes.js";
 import { TextInput } from "../../ui/Field.jsx";
 
@@ -114,6 +115,7 @@ function NotePage({
     await flush();
     onClose();
   };
+  useBackHandler(true, close);
   const openNote = async (id) => {
     await flush();
     onOpenNote(id);

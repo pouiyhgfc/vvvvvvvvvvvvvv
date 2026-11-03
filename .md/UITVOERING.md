@@ -38,6 +38,10 @@ _Daarvóór:_ _Notities beter organiseren — vastzetten, archief/prullenbak (za
       gebed en Quran, en/of Hifd, of zet een backup terug); algemene standaarden i.p.v. de eigen
       routines; Hifd en het logboek-sjabloon zijn instelbaar in Meer → Weergave. Bestaande
       installaties en oude backups houden alles zoals het was (Hifd aan, muhasaba-sjabloon).
+- [x] **Terugknop binnen de app** (idee eigenaar 03-11) — terug sluit eerst een sheet, dialoog,
+      notitie of Statistieken, gaat dan naar Vandaag en pas daarna de app uit (in de APK: naar de
+      achtergrond, zodat hij niet opnieuw start). `hooks/useBackHandler.js`, `lib/nativeBack.js`
+      (nieuwe dependency `@capacitor/app` voor de Android-terugknop). Test: `e2e/back.spec.js`.
 - [x] **Mobiele editor-werkbalk** — opgelost via het touch blok-handvat (⠿) i.p.v. een vaste balk:
       tik = blok-menu (sheet), ingedrukt houden = verslepen. De oude `MobileToolbar`-balk crashte
       (VisualViewport + vaste positionering); de nieuwe aanpak vermijdt dat. Zie de fase onderaan.
