@@ -4,15 +4,14 @@ import { DEFAULT_NOTEBOOKS, DEFAULT_SETTINGS } from "./constants.js";
 import { showToast } from "./toast.js";
 import { BACKUP_VERSION, validateBackup } from "./validateBackup.js";
 import { filesForBackup, filesFromBackup } from "./files.js";
-import { shareJSON } from "./nativeFiles.js";
+import { saveJSON } from "./nativeFiles.js";
 import { isNativeApp } from "./platform.js";
 
 // Genereert en downloadt een JSON-bestand — gedeelde Blob/anchor-boilerplate
 // voor alle export-functies hieronder. In de Android-app werkt een download
-// niet (de WebView negeert hem): daar gaat het bestand via het deel-menu,
-// zodat je het in Drive of Bestanden kunt bewaren.
+// niet (de WebView negeert hem): daar komt het in Documenten/Routine.
 function downloadJSON(filename, payload) {
-  if (isNativeApp) return shareJSON(filename, payload);
+  if (isNativeApp) return saveJSON(filename, payload);
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json",
   });
@@ -46,7 +45,7 @@ export async function exportData({
   const tagMetaBlob = await db.blobs.get("tagMeta");
   const hifdData = await db.hifd.toArray();
   const hifdLogData = await db.hifdLogV2.toArray();
-  downloadJSON(`routine-backup-${dk(new Date())}.json`, {
+  await downloadJSON(`routine-backup-${dk(new Date())}.json`, {
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     routines,
@@ -69,8 +68,8 @@ export async function exportData({
   await db.meta.put({ key: "lastExportAt", value: new Date().toISOString() });
 }
 
-export function exportRoutines(routines) {
-  downloadJSON(`routines-${dk(new Date())}.json`, {
+export async function exportRoutines(routines) {
+  await downloadJSON(`routines-${dk(new Date())}.json`, {
     version: 1,
     exportedAt: new Date().toISOString(),
     type: "routines",
@@ -78,12 +77,12 @@ export function exportRoutines(routines) {
   });
 }
 
-export function exportWeekplanning({
+export async function exportWeekplanning({
   calTemplates,
   calEvents,
   weekScheduleTemplates,
 }) {
-  downloadJSON(`weekplanning-${dk(new Date())}.json`, {
+  await downloadJSON(`weekplanning-${dk(new Date())}.json`, {
     version: 1,
     exportedAt: new Date().toISOString(),
     type: "weekplanning",
@@ -97,7 +96,7 @@ export async function exportNotities() {
   const logEntries = await db.logEntries.toArray();
   const notebooksBlob = await db.blobs.get("notebooks");
   const entryTemplatesBlob = await db.blobs.get("entryTemplates");
-  downloadJSON(`notities-${dk(new Date())}.json`, {
+  await downloadJSON(`notities-${dk(new Date())}.json`, {
     version: 1,
     exportedAt: new Date().toISOString(),
     type: "notities",
