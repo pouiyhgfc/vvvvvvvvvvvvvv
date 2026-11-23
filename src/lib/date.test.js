@@ -3,6 +3,7 @@ import {
   addDays,
   applyWeekTemplate,
   dk,
+  fmtShortDay,
   eventsOnDate,
   getMonday,
   periodForHour,
@@ -95,4 +96,8 @@ describe("periodForHour", () => {
     expect(periodForHour(18)).toBe("avond");
     expect(periodForHour(0)).toBe("ochtend");
   });
+});
+
+test("fmtShortDay geeft een korte datum", () => {
+  expect(fmtShortDay("2026-10-27")).toBe("di 27 okt");
 });

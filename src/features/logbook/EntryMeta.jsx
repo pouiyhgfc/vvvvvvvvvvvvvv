@@ -1,12 +1,6 @@
-import { DAYS_NL, MONTHS_NL } from "../../lib/constants.js";
+import { fmtShortDay } from "../../lib/date.js";
 import { Select } from "../../ui/Field.jsx";
 import TagField from "./TagField.jsx";
-
-// Korte datum voor de meta-regel, bv. "di 27 okt".
-function fmtShortDay(str) {
-  const d = new Date(str + "T12:00");
-  return `${DAYS_NL[d.getDay()].slice(0, 2).toLowerCase()} ${d.getDate()} ${MONTHS_NL[d.getMonth()].slice(0, 3).toLowerCase()}`;
-}
 
 // Meta-rij boven de titel: notitieboek · datum · tags · opslaan-status.
 export default function EntryMeta({
