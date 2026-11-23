@@ -59,6 +59,7 @@ export async function exportData({
     notebooks: notebooksBlob?.data ?? DEFAULT_NOTEBOOKS,
     entryTemplates: entryTemplatesBlob?.data ?? [],
     tagMeta: tagMetaBlob?.data ?? {},
+    tasks: await db.tasks.toArray(),
     hifd: hifdData,
     hifdLog: hifdLogData,
     files: await filesForBackup(),
@@ -215,8 +216,10 @@ export async function performFullImport(data, merge) {
     db.hifdLogV2,
     db.meta,
     db.files,
+    db.tasks,
     async () => {
       if (!merge) {
+        await db.tasks.clear();
         await db.files.clear();
         await db.days.clear();
         await db.calEvents.clear();
@@ -259,6 +262,8 @@ export async function performFullImport(data, merge) {
           data.hifdLog.map((r) => ({ ...r, phase: r.phase || "learn" })),
         );
       if (files.length) await db.files.bulkPut(files);
+      if (Array.isArray(data.tasks) && data.tasks.length)
+        await db.tasks.bulkPut(data.tasks);
     },
   );
   await seedHifd();

@@ -28,6 +28,7 @@ export async function clearEverything() {
     db.hifdLogV2,
     db.meta,
     db.files,
+    db.tasks,
     async () => {
       await db.settings.put({ id: "singleton", ...DEFAULT_SETTINGS });
       await db.blobs.put({ key: "areas", data: DEFAULT_AREAS });
@@ -45,6 +46,7 @@ export async function clearEverything() {
       await db.hifd.clear();
       await db.hifdLogV2.clear();
       await db.files.clear();
+      await db.tasks.clear();
       await db.meta.delete("hifd_seeded");
       // Na alles wissen: opnieuw het welkomstscherm.
       await db.meta.delete("onboarded");

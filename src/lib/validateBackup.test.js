@@ -52,4 +52,11 @@ describe("validateBackup", () => {
       '1 ongeldige item(s) in "hifd".',
     ]);
   });
+
+  test("keurt taken zonder id of titel af", () => {
+    expect(validateBackup({ tasks: [{ id: 1 }] })).toEqual([
+      '1 ongeldige item(s) in "tasks".',
+    ]);
+    expect(validateBackup({ tasks: [{ id: "a", title: "x" }] })).toEqual([]);
+  });
 });

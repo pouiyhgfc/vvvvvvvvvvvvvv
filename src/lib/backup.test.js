@@ -115,13 +115,36 @@ describe("volledige backup", () => {
     await fillSearchText(); // zoals bij het opstarten van de app
     const before = await snapshot();
     const backup = await exportAll();
-    expect(backup.version).toBe(13);
+    expect(backup.version).toBe(14);
 
     await db.delete();
     await db.open();
     await performFullImport(backup, false);
 
     expect(await snapshot()).toEqual(before);
+  });
+
+  test("taken gaan mee in de backup en komen terug", async () => {
+    await seed();
+    await db.tasks.bulkPut([
+      { id: "t1", title: "Fiets", horizon: "kort", parentId: null },
+      { id: "t2", title: "Stap", horizon: "kort", parentId: "t1" },
+    ]);
+    const backup = await exportAll();
+    expect(backup.tasks).toHaveLength(2);
+    await db.delete();
+    await db.open();
+    await performFullImport(backup, false);
+    expect(await db.tasks.count()).toBe(2);
+  });
+
+  test("een backup zonder taken importeert en wist bestaande taken bij vervangen", async () => {
+    await seed();
+    const backup = await exportAll();
+    delete backup.tasks;
+    await db.tasks.put({ id: "oud", title: "oud" });
+    await performFullImport(backup, false);
+    expect(await db.tasks.count()).toBe(0);
   });
 
   test("koppelingen tag → focusgebied gaan mee in de backup", async () => {

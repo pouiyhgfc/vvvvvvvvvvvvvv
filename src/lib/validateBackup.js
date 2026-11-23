@@ -6,8 +6,8 @@
 import { PERIOD_LABELS } from "./constants.js";
 
 // 12: notities hebben `searchText` (afgeleid; oudere backups krijgen hem bij
-// het importeren). 13: `tagMeta` (tag → focusgebied).
-export const BACKUP_VERSION = 13;
+// het importeren). 13: `tagMeta` (tag → focusgebied). 14: `tasks`.
+export const BACKUP_VERSION = 14;
 
 // De tracker rendert elk dagdeel; ontbreekt er één, dan crasht de app.
 const PERIODS = Object.keys(PERIOD_LABELS);
@@ -30,6 +30,7 @@ const LISTS = {
   hifd: (r) => Number.isInteger(r.surah) && r.surah >= 1 && r.surah <= 114,
   hifdLog: (r) => Number.isInteger(r.surah) && typeof r.date === "string",
   files: (f) => typeof f.id === "string" && typeof f.data === "string",
+  tasks: (t) => typeof t.id === "string" && typeof t.title === "string",
 };
 
 export function validateBackup(data) {
