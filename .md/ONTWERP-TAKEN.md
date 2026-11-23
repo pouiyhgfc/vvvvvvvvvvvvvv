@@ -1,6 +1,6 @@
 # Ontwerp: Taken (te-doen-lijst)
 
-_24-11-2026 · status: ontwerp, wacht op akkoord eigenaar_
+_24-11-2026 · status: gebouwd (24-11), plan: [`PLAN-TAKEN.md`](PLAN-TAKEN.md)_
 
 ## Waarom
 

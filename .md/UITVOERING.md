@@ -38,6 +38,10 @@ _Daarvóór:_ _Notities beter organiseren — vastzetten, archief/prullenbak (za
       gebed en Quran, en/of Hifd, of zet een backup terug); algemene standaarden i.p.v. de eigen
       routines; Hifd en het logboek-sjabloon zijn instelbaar in Meer → Weergave. Bestaande
       installaties en oude backups houden alles zoals het was (Hifd aan, muhasaba-sjabloon).
+- [x] **Takenlijst** (idee eigenaar 24-11) — korte en lange termijn, optioneel datum/tijd/
+      deadline en stappen met percentage; kaartje "Te doen" op Vandaag, volledige lijst als
+      subpagina; taken met datum staan in Planning en blijven daar doorgestreept als geschiedenis.
+      Ontwerp: [`ONTWERP-TAKEN.md`](ONTWERP-TAKEN.md). Dexie v7 (`tasks`), backup v14.
 - [x] **Terugknop binnen de app** (idee eigenaar 03-11) — terug sluit eerst een sheet, dialoog,
       notitie of Statistieken, gaat dan naar Vandaag en pas daarna de app uit (in de APK: naar de
       achtergrond, zodat hij niet opnieuw start). `hooks/useBackHandler.js`, `lib/nativeBack.js`

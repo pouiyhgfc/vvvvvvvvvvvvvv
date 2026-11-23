@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { fmtShortDay } from "../../lib/date.js";
 import Icon from "../../ui/Icon.jsx";
-import { daysLeft, isOverdue, progress } from "./tasks.js";
+import { canMoveToToday, daysLeft, isOverdue, progress } from "./tasks.js";
 
 // Eén taak: afvinkrondje, titel met labels, en bij stappen een pijltje om
 // ze open te klappen (standaard dicht, zodat de lijst kort blijft).
@@ -56,7 +56,7 @@ export default function TaskRow({
             te laat
           </span>
         )}
-        {late && onToday && (
+        {onToday && canMoveToToday(task, today) && (
           <button type="button" onClick={() => onToday(task)} style={chip}>
             naar vandaag
           </button>

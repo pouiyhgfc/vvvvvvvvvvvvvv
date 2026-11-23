@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canMoveToToday,
   cardList,
   daysLeft,
   doneList,
@@ -186,4 +187,11 @@ describe("taskEvents (herinneringen)", () => {
     });
     expect(taskEvents([t("x", { deadline: "2026-12-10" })])).toEqual([]);
   });
+});
+
+it("naar vandaag kan alleen bij een geplande datum in het verleden", () => {
+  expect(canMoveToToday(t("a", { date: "2026-11-20" }), today)).toBe(true);
+  // Te laat door de deadline: verplaatsen naar vandaag lost niets op.
+  expect(canMoveToToday(t("b", { deadline: "2026-11-20" }), today)).toBe(false);
+  expect(canMoveToToday(t("c", { date: today }), today)).toBe(false);
 });

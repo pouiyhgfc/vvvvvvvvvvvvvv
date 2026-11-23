@@ -26,6 +26,11 @@ export const isOverdue = (t, today) =>
   isOpen(t) &&
   ((!!t.date && t.date < today) || (!!t.deadline && t.deadline < today));
 
+// "naar vandaag" heeft alleen zin als de geplande datum voorbij is (te laat
+// door een deadline los je zo niet op).
+export const canMoveToToday = (t, today) =>
+  isOpen(t) && !!t.date && t.date < today;
+
 export function progress(steps) {
   if (!steps.length) return null;
   return Math.round(

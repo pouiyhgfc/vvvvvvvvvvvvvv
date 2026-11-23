@@ -19,6 +19,15 @@ const screens = [
   ["Hifd", (page) => openTab(page, "Hifd")],
   ["Statistieken", (page) => openTab(page, "Statistieken")],
   ["Meer", (page) => openTab(page, "Meer")],
+  [
+    "Taken",
+    async (page) => {
+      // Met een taak erin, zodat ook de taakregels gecontroleerd worden.
+      await page.getByPlaceholder("+ Taak voor vandaag").fill("Testtaak");
+      await page.keyboard.press("Enter");
+      await page.getByRole("button", { name: /Te doen/ }).click();
+    },
+  ],
 ];
 
 for (const theme of ["light", "dark"]) {

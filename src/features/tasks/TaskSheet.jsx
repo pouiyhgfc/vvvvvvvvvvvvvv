@@ -43,7 +43,8 @@ export default function TaskSheet({
   const [openStep, setOpenStep] = useState(null);
   const [stepTitle, setStepTitle] = useState("");
   const [toggle, toggleDialog] = useToggleTask();
-  const steps = stepsOf(useTasks(), task?.id);
+  const tasks = useTasks();
+  const steps = task ? stepsOf(tasks, task.id) : [];
   const isStep = !!(task?.parentId || parentId);
   const set = (key) => (e) => setF({ ...f, [key]: e.target.value });
 
