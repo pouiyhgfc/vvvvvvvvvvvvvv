@@ -53,8 +53,15 @@ export function WeekNav({ date, onShift }) {
   );
 }
 
-// Weekstrip boven de dag-tijdlijn: kies een dag; een bolletje = iets gepland.
-export default function WeekStrip({ date, onSelect, onShift, calEvents }) {
+// Weekstrip boven de dag-tijdlijn: kies een dag; een bolletje = iets gepland
+// (een blok, of een taak met die datum).
+export default function WeekStrip({
+  date,
+  onSelect,
+  onShift,
+  calEvents,
+  taskDays,
+}) {
   const selected = dk(date);
   return (
     <Card
@@ -117,7 +124,9 @@ export default function WeekStrip({ date, onSelect, onShift, calEvents }) {
                   borderRadius: 3,
                   background: first
                     ? first.color || "var(--accent)"
-                    : "transparent",
+                    : taskDays?.has(key)
+                      ? "var(--accent)"
+                      : "transparent",
                 }}
               />
             </button>

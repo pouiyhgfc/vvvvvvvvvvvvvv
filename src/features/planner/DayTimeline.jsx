@@ -3,6 +3,8 @@ import { CAL_START_H, CAL_END_H, EVENT_COLORS } from "../../lib/constants.js";
 import { dk, isToday, tMin } from "../../lib/date.js";
 import { buzz } from "../../lib/storage.js";
 import Icon from "../../ui/Icon.jsx";
+import TaskBlock from "../tasks/TaskBlock.jsx";
+import { taskEnd } from "../tasks/tasks.js";
 import {
   durationMin,
   isRecurring,
@@ -17,6 +19,17 @@ const LONG_PRESS_MS = 300;
 const START = CAL_START_H * 60;
 const END = CAL_END_H * 60;
 const yOf = (min) => ((min - START) / 60) * HOUR_H;
+// Plek en maat van een blok in de tijdlijn (ook voor taken met tijd).
+const boxStyle = (startTime, endTime, col, totalCols) => {
+  const w = 100 / totalCols;
+  return {
+    position: "absolute",
+    top: yOf(tMin(startTime)) + 1,
+    height: Math.max(26, (durationMin(startTime, endTime) / 60) * HOUR_H - 2),
+    left: `calc(52px + (100% - 60px) * ${(col * w) / 100})`,
+    width: `calc((100% - 60px) * ${w / 100} - 4px)`,
+  };
+};
 const minOf = (px) => (px / HOUR_H) * 60;
 
 // Eén brede tijdlijn voor een dag. Tik op een leeg stuk = nieuw blok op dat
@@ -25,6 +38,9 @@ const minOf = (px) => (px / HOUR_H) * 60;
 export default function DayTimeline({
   date,
   events,
+  tasks = [],
+  onToggleTask,
+  onEditTask,
   onAdd,
   onEdit,
   onMove,
@@ -128,7 +144,13 @@ export default function DayTimeline({
     onAdd(Math.min(END - 30, min));
   };
 
-  const layout = layoutOverlaps(events);
+  const taskBlocks = tasks.map((t) => ({
+    id: `task-${t.id}`,
+    startTime: t.time,
+    endTime: taskEnd(t),
+    task: t,
+  }));
+  const layout = layoutOverlaps([...events, ...taskBlocks]);
   const hours = Array.from(
     { length: CAL_END_H - CAL_START_H },
     (_, i) => CAL_START_H + i,
@@ -204,7 +226,6 @@ export default function DayTimeline({
 
         {events.map((occ) => {
           const { col, totalCols } = layout.get(occ.id);
-          const w = 100 / totalCols;
           const dur = durationMin(occ.startTime, occ.endTime);
           const active = drag?.id === occ.id ? drag : null;
           const shown =
@@ -213,11 +234,8 @@ export default function DayTimeline({
               : active?.kind === "resize"
                 ? { ...occ, endTime: resizedEnd(occ, minOf(active.dy), END) }
                 : occ;
-          const top = yOf(tMin(shown.startTime));
-          const height = Math.max(
-            26,
-            (durationMin(shown.startTime, shown.endTime) / 60) * HOUR_H - 2,
-          );
+          const box = boxStyle(shown.startTime, shown.endTime, col, totalCols);
+          const { height } = box;
           const c = occ.color || EVENT_COLORS[0];
           return (
             <div
@@ -236,11 +254,7 @@ export default function DayTimeline({
                 onEdit(occ);
               }}
               style={{
-                position: "absolute",
-                top: top + 1,
-                height,
-                left: `calc(52px + (100% - 60px) * ${(col * w) / 100})`,
-                width: `calc((100% - 60px) * ${w / 100} - 4px)`,
+                ...box,
                 borderRadius: "var(--r-sm)",
                 background: c + "26",
                 borderLeft: `4px solid ${c}`,
@@ -328,6 +342,20 @@ export default function DayTimeline({
                 </span>
               )}
             </div>
+          );
+        })}
+
+        {taskBlocks.map((b) => {
+          const { col, totalCols } = layout.get(b.id);
+          return (
+            <TaskBlock
+              key={b.id}
+              task={b.task}
+              end={b.endTime}
+              style={boxStyle(b.startTime, b.endTime, col, totalCols)}
+              onToggle={onToggleTask}
+              onOpen={onEditTask}
+            />
           );
         })}
 

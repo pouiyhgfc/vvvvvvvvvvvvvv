@@ -1,6 +1,6 @@
 // Regels voor taken, los van de weergave (zie .md/ONTWERP-TAKEN.md). Datums
 // zijn "YYYY-MM-DD"-strings, dus vergelijken kan gewoon als tekst.
-import { addDays } from "../../lib/date.js";
+import { addDays, minT, tMin } from "../../lib/date.js";
 
 const DEFAULT_DURATION = 30;
 const DEADLINE_SOON_DAYS = 3;
@@ -102,3 +102,7 @@ export const daysLeft = (deadline, today) =>
   Math.round(
     (new Date(deadline + "T12:00") - new Date(today + "T12:00")) / 86400000,
   );
+
+// Eindtijd van een taak met tijd (blijft binnen de dag).
+export const taskEnd = (t) =>
+  minT(tMin(t.time) + (t.durationMin || DEFAULT_DURATION));

@@ -7,6 +7,12 @@ import DayTimeline from "./DayTimeline.jsx";
 import WeekList from "./WeekList.jsx";
 import WeekStrip from "./WeekStrip.jsx";
 import WeekScheduleSheet from "./WeekScheduleSheet.jsx";
+import Card from "../../ui/Card.jsx";
+import DayTasks from "../tasks/DayTasks.jsx";
+import TaskSheet from "../tasks/TaskSheet.jsx";
+import { useTasks } from "../tasks/taskStore.js";
+import { onDate } from "../tasks/tasks.js";
+import { useToggleTask } from "../tasks/useToggleTask.jsx";
 import { deleteOccurrence, isRecurring, updateOccurrence } from "./planner.js";
 
 const shiftDate = (d, n) => {
@@ -31,6 +37,14 @@ export default function PlanningView({
   const [scheduleSheet, setScheduleSheet] = useState(false);
 
   const dayEvents = eventsOnDate(calEvents, day);
+  // Taken met een datum (de planning leest ze, maakt geen kopie).
+  const tasks = useTasks();
+  const today = dk(new Date());
+  const dayTasks = onDate(tasks, dk(day));
+  const taskDays = new Set(tasks.map((t) => t.date).filter(Boolean));
+  const [taskSheet, setTaskSheet] = useState(null);
+  const [toggleTask, toggleDialog] = useToggleTask();
+  const taskProps = { today, onToggle: toggleTask, onOpen: setTaskSheet };
 
   const apply = (occ, changes, scope) =>
     setCalEvents((prev) => updateOccurrence(prev, occ, changes, scope));
@@ -158,10 +172,19 @@ export default function PlanningView({
               onSelect={setDay}
               onShift={(n) => setDay((d) => shiftDate(d, n))}
               calEvents={calEvents}
+              taskDays={taskDays}
             />
+            {(dayTasks.untimed.length > 0 || dayTasks.deadlines.length > 0) && (
+              <Card style={{ gap: 0, paddingBlock: "var(--sp-2)" }}>
+                <DayTasks {...dayTasks} {...taskProps} />
+              </Card>
+            )}
             <DayTimeline
               date={day}
               events={dayEvents}
+              tasks={dayTasks.timed}
+              onToggleTask={toggleTask}
+              onEditTask={setTaskSheet}
               onAdd={(min) => addAt(day, min)}
               onEdit={(occ) => setSheet({ mode: "edit", occ })}
               onMove={change}
@@ -173,6 +196,8 @@ export default function PlanningView({
             date={day}
             onShift={(n) => setDay((d) => shiftDate(d, n))}
             calEvents={calEvents}
+            tasks={tasks}
+            taskProps={taskProps}
             onOpenDay={(d) => {
               setDay(d);
               setMode("dag");
@@ -206,6 +231,14 @@ export default function PlanningView({
         <Icon name="plus" size={28} />
       </button>
 
+      {taskSheet && (
+        <TaskSheet
+          task={taskSheet}
+          today={today}
+          onClose={() => setTaskSheet(null)}
+        />
+      )}
+      {toggleDialog}
       {sheet && (
         <BlockSheet
           key={sheet.mode === "edit" ? sheet.occ.id + sheet.occ.date : "add"}

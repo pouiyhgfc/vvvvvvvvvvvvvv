@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loadDemo } from "./helpers.js";
+import { loadDemo, openTab } from "./helpers.js";
 
 // Taken: kaartje "Te doen" op Vandaag en de volledige lijst als subpagina.
 // Demo-klok: dinsdag 27 oktober 2026.
@@ -123,4 +123,39 @@ test("een deadline binnenkort staat op het kaartje", async ({ page }) => {
   await expect(
     card(page).getByText(/Deadline: Verslag H2 — over 2 dagen/),
   ).toBeVisible();
+});
+
+test.describe("in de planning", () => {
+  test("gedaan blijft doorgestreept op de dag staan", async ({ page }) => {
+    await quickAdd(page, "Mail begeleider");
+    await card(page)
+      .getByRole("button", { name: "Afvinken: Mail begeleider" })
+      .click();
+    await openTab(page, "Planning");
+    const done = page.getByRole("button", {
+      name: "Terugzetten: Mail begeleider",
+    });
+    await expect(done).toBeVisible();
+  });
+
+  test("met tijd een blok, zonder datum niet, deadline als label", async ({
+    page,
+  }) => {
+    await openList(page);
+    await newTask(page, "Literatuur zoeken", {
+      datum: "2026-10-27",
+      tijd: "14:00",
+    });
+    await newTask(page, "Ooit doen");
+    await newTask(page, "Verslag H2", { deadline: "2026-10-29" });
+    await openTab(page, "Planning");
+
+    await expect(page.locator('[data-task="Literatuur zoeken"]')).toContainText(
+      "14:00 – 14:30",
+    );
+    await expect(page.getByText("Ooit doen")).toBeHidden();
+    await page.getByRole("tab", { name: "Week" }).click();
+    await expect(page.getByText("Deadline: Verslag H2")).toBeVisible();
+    await expect(page.getByText("Literatuur zoeken")).toBeVisible();
+  });
 });

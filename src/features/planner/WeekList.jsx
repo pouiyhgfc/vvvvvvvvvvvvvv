@@ -1,6 +1,8 @@
 import { dk, eventsOnDate, isToday } from "../../lib/date.js";
 import Card from "../../ui/Card.jsx";
 import { WeekNav, weekDays } from "./WeekStrip.jsx";
+import DayTasks from "../tasks/DayTasks.jsx";
+import { onDate } from "../tasks/tasks.js";
 
 const DAY_LETTERS = ["ma", "di", "wo", "do", "vr", "za", "zo"];
 
@@ -10,6 +12,8 @@ export default function WeekList({
   date,
   onShift,
   calEvents,
+  tasks,
+  taskProps,
   onOpenDay,
   onEdit,
 }) {
@@ -23,6 +27,8 @@ export default function WeekList({
           a.startTime.localeCompare(b.startTime),
         );
         const today = isToday(d);
+        const { timed, untimed, deadlines } = onDate(tasks, dk(d));
+        const dayTasks = [...timed, ...untimed];
         return (
           <Card
             key={dk(d)}
@@ -77,23 +83,24 @@ export default function WeekList({
                 flexDirection: "column",
               }}
             >
-              {events.length === 0 && (
-                <button
-                  type="button"
-                  onClick={() => onOpenDay(d)}
-                  style={{
-                    minHeight: 44,
-                    border: "none",
-                    background: "transparent",
-                    textAlign: "left",
-                    color: "var(--text-muted)",
-                    fontSize: "var(--fs-sm)",
-                    padding: 0,
-                  }}
-                >
-                  Niets gepland
-                </button>
-              )}
+              {events.length === 0 &&
+                dayTasks.length + deadlines.length === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenDay(d)}
+                    style={{
+                      minHeight: 44,
+                      border: "none",
+                      background: "transparent",
+                      textAlign: "left",
+                      color: "var(--text-muted)",
+                      fontSize: "var(--fs-sm)",
+                      padding: 0,
+                    }}
+                  >
+                    Niets gepland
+                  </button>
+                )}
               {events.map((ev) => (
                 <button
                   key={ev.id}
@@ -145,6 +152,11 @@ export default function WeekList({
                   </span>
                 </button>
               ))}
+              <DayTasks
+                untimed={dayTasks}
+                deadlines={deadlines}
+                {...taskProps}
+              />
             </div>
           </Card>
         );

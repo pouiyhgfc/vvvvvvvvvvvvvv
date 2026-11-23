@@ -10,6 +10,7 @@ import {
   progress,
   shortList,
   stepsOf,
+  taskEnd,
 } from "./tasks.js";
 
 const today = "2026-11-24";
@@ -149,4 +150,9 @@ describe("cardList", () => {
 it("daysLeft telt kalenderdagen", () => {
   expect(daysLeft("2026-11-26", today)).toBe(2);
   expect(daysLeft(today, today)).toBe(0);
+});
+
+it("taskEnd telt de duur op bij de begintijd", () => {
+  expect(taskEnd({ time: "10:00", durationMin: 45 })).toBe("10:45");
+  expect(taskEnd({ time: "23:45", durationMin: 30 })).toBe("23:59");
 });

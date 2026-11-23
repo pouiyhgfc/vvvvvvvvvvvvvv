@@ -91,7 +91,7 @@ export default function TaskRow({
   );
 }
 
-function TaskCheck({ task, onToggle }) {
+export function TaskCheck({ task, onToggle }) {
   const done = !!task.doneAt;
   return (
     <button
