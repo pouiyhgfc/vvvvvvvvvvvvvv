@@ -14,6 +14,7 @@ const OUT = join(root, "src/ui/glyphs.js");
 // Iconen die de UI zelf gebruikt via <Icon name="…">.
 const UI_GLYPHS = [
   "check-circle",
+  "circle",
   "calendar-blank",
   "notebook",
   "book-open-text",

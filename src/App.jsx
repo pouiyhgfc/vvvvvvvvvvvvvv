@@ -30,6 +30,7 @@ import { periodLabel } from "./lib/periodLabel.js";
 import { clearAllDays, clearEverything } from "./lib/resetData.js";
 import BackButton from "./ui/BackButton.jsx";
 import Welcome from "./features/welcome/Welcome.jsx";
+import TasksPage from "./features/tasks/TasksPage.jsx";
 import ImportDialog from "./features/settings/ImportDialog.jsx";
 import { useLaunchDraft } from "./hooks/useLaunchDraft.js";
 import { useTrackerDay } from "./hooks/useTrackerDay.js";
@@ -250,6 +251,7 @@ export default function App({ startupErrors = [] }) {
           banner={<BackupReminder onExport={exportData} />}
           calEvents={calEvents}
           onOpenPlanning={() => setView("week")}
+          onOpenTasks={() => setView("taken")}
           dateKey={key}
           routines={routines}
           tab={tab}
@@ -293,6 +295,10 @@ export default function App({ startupErrors = [] }) {
         />
       )}
 
+      {view === "taken" && (
+        <TasksPage today={dk(new Date())} onBack={() => setView("tracker")} />
+      )}
+
       {/* LOGBOOK VIEW */}
       {view === "logbook" && <LogbookView />}
 
@@ -317,7 +323,7 @@ export default function App({ startupErrors = [] }) {
             ? TABS.filter((t) => t.id !== "hifd")
             : TABS
         }
-        active={view === "stats" ? "meer" : view}
+        active={{ stats: "meer", taken: "tracker" }[view] ?? view}
         onSelect={setView}
       />
     </div>
