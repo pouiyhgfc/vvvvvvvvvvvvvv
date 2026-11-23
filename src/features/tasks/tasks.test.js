@@ -11,6 +11,7 @@ import {
   shortList,
   stepsOf,
   taskEnd,
+  taskEvents,
 } from "./tasks.js";
 
 const today = "2026-11-24";
@@ -155,4 +156,34 @@ it("daysLeft telt kalenderdagen", () => {
 it("taskEnd telt de duur op bij de begintijd", () => {
   expect(taskEnd({ time: "10:00", durationMin: 45 })).toBe("10:45");
   expect(taskEnd({ time: "23:45", durationMin: 30 })).toBe("23:59");
+});
+
+describe("taskEvents (herinneringen)", () => {
+  it("taak met tijd wordt een event, gedane taak niet", () => {
+    const ev = taskEvents([
+      t("a", { date: today, time: "10:00", durationMin: 45 }),
+      t("b", { date: today, time: "11:00", doneAt: "x" }),
+    ]);
+    expect(ev).toEqual([
+      expect.objectContaining({
+        id: "task-a",
+        date: today,
+        startTime: "10:00",
+        endTime: "10:45",
+        title: "a",
+      }),
+    ]);
+  });
+  it("deadline met herinnering: om 09:00, zoveel dagen vooraf", () => {
+    const [ev] = taskEvents([
+      t("v", { title: "Verslag", deadline: "2026-12-10", remindDays: 3 }),
+    ]);
+    expect(ev).toMatchObject({
+      id: "deadline-v",
+      date: "2026-12-07",
+      startTime: "09:00",
+      title: "Deadline: Verslag",
+    });
+    expect(taskEvents([t("x", { deadline: "2026-12-10" })])).toEqual([]);
+  });
 });

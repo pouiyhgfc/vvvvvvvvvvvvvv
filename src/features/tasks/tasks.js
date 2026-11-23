@@ -106,3 +106,30 @@ export const daysLeft = (deadline, today) =>
 // Eindtijd van een taak met tijd (blijft binnen de dag).
 export const taskEnd = (t) =>
   minT(tMin(t.time) + (t.durationMin || DEFAULT_DURATION));
+
+// Taken als events voor de meldingen (zelfde vorm als calEvents): een taak
+// met tijd op zijn tijd, een deadline met herinnering om 09:00 zoveel dagen
+// vooraf. Gedane taken melden niets. Alleen voor meldingen, niet voor Planning.
+export function taskEvents(tasks) {
+  const out = [];
+  for (const t of tasks) {
+    if (t.doneAt) continue;
+    if (t.date && t.time)
+      out.push({
+        id: `task-${t.id}`,
+        date: t.date,
+        startTime: t.time,
+        endTime: taskEnd(t),
+        title: t.title,
+      });
+    if (t.deadline && t.remindDays != null)
+      out.push({
+        id: `deadline-${t.id}`,
+        date: addDays(t.deadline, -t.remindDays),
+        startTime: "09:00",
+        endTime: "09:00",
+        title: `Deadline: ${t.title}`,
+      });
+  }
+  return out;
+}

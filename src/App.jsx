@@ -31,6 +31,8 @@ import { clearAllDays, clearEverything } from "./lib/resetData.js";
 import BackButton from "./ui/BackButton.jsx";
 import Welcome from "./features/welcome/Welcome.jsx";
 import TasksPage from "./features/tasks/TasksPage.jsx";
+import { useTasks } from "./features/tasks/taskStore.js";
+import { taskEvents } from "./features/tasks/tasks.js";
 import ImportDialog from "./features/settings/ImportDialog.jsx";
 import { useLaunchDraft } from "./hooks/useLaunchDraft.js";
 import { useTrackerDay } from "./hooks/useTrackerDay.js";
@@ -89,12 +91,18 @@ export default function App({ startupErrors = [] }) {
     async () => !!(await db.meta.get("onboarded")),
   );
 
-  useNotifications(settings, calEvents);
+  // Meldingen voor blokken én taken (met tijd, of een deadline-herinnering).
+  const tasks = useTasks();
+  const reminderEvents = useMemo(
+    () => [...calEvents, ...taskEvents(tasks)],
+    [calEvents, tasks],
+  );
+  useNotifications(settings, reminderEvents);
   const { notifPerm, toggleNotifications } = useNotificationToggle(
     settings,
     setSettings,
   );
-  useNativeNotifications(settings, calEvents);
+  useNativeNotifications(settings, reminderEvents);
 
   const areaStyles = useMemo(() => buildAreaStyles(areas), [areas]);
   const areaNames = areas.map((a) => a.name);
