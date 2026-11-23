@@ -48,6 +48,10 @@ db.version(5).stores({ hifdLog: null });
 // notitie verwijst ernaar met "rtfile:<id>" (zie files.js).
 db.version(6).stores({ files: "&id" });
 
+// Taken (te-doen-lijst, zie .md/ONTWERP-TAKEN.md): een eigen tabel, de
+// planning leest ze maar maakt er geen kopie van.
+db.version(7).stores({ tasks: "&id, parentId, date, deadline, doneAt" });
+
 // Parseert een localStorage-item veilig: één corrupt item mag de rest van de
 // migratie niet meeslepen (valt terug op `fallback` i.p.v. te throwen).
 function safeParse(raw, fallback) {
