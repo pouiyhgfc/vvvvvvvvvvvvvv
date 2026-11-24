@@ -68,30 +68,32 @@ describe("progress", () => {
 });
 
 describe("lijsten", () => {
+  // Alleen je eigen (gesleepte) volgorde telt; datum en deadline sorteren
+  // niet mee (besluit eigenaar 24-11).
   const tasks = [
-    t("zonder", { order: 2 }),
-    t("later", { date: "2026-11-30" }),
-    t("telaat", { date: "2026-11-20" }),
+    t("zonder", { order: 3 }),
+    t("later", { date: "2026-11-30", order: 0 }),
+    t("telaat", { date: "2026-11-20", order: 2 }),
     t("vroeg", { order: 1 }),
-    t("klaar", { doneAt: "2026-11-24T10:00", order: 3 }),
+    t("klaar", { doneAt: "2026-11-24T10:00", order: 4 }),
     t("stap", { parentId: "zonder" }),
-    t("doel", { horizon: "lang" }),
-    t("deadline", { horizon: "lang", deadline: "2027-01-15" }),
-    t("eerder", { horizon: "lang", deadline: "2026-12-01" }),
+    t("doel", { horizon: "lang", order: 0 }),
+    t("deadline", { horizon: "lang", deadline: "2027-01-15", order: 2 }),
+    t("eerder", { horizon: "lang", deadline: "2026-12-01", order: 1 }),
   ];
-  it("korte termijn: te laat, dan op datum, dan op eigen volgorde", () => {
+  it("korte termijn: op eigen volgorde, ook met datum of te laat", () => {
     expect(shortList(tasks, today).map((x) => x.id)).toEqual([
-      "telaat",
       "later",
       "vroeg",
+      "telaat",
       "zonder",
     ]);
   });
-  it("lange termijn: op deadline, dan zonder deadline", () => {
+  it("lange termijn: op eigen volgorde, ook met deadline", () => {
     expect(longList(tasks).map((x) => x.id)).toEqual([
+      "doel",
       "eerder",
       "deadline",
-      "doel",
     ]);
   });
   it("gedaan: alleen hoofdtaken zonder datum, nieuwste eerst", () => {

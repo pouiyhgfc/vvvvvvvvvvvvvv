@@ -77,6 +77,12 @@ async function syncParent(parentId) {
     });
 }
 
+// Na slepen: de ids in hun nieuwe volgorde.
+export const reorderTasks = (ids) =>
+  db.transaction("rw", db.tasks, () =>
+    Promise.all(ids.map((id, order) => db.tasks.update(id, { order }))),
+  );
+
 export const moveToToday = (id, today) => db.tasks.update(id, { date: today });
 
 // Een hoofdtaak gaat samen met zijn stappen weg.

@@ -51,27 +51,17 @@ export function progress(steps) {
   );
 }
 
-// Te laat eerst, dan op datum, dan zonder datum in eigen volgorde.
-const byShort = (today) => (a, b) =>
-  isOverdue(b, today) - isOverdue(a, today) ||
-  (a.date ? 0 : 1) - (b.date ? 0 : 1) ||
-  (a.date ?? "").localeCompare(b.date ?? "") ||
-  byOrder(a, b);
-
-export const shortList = (tasks, today) =>
+// Beide lijsten staan in je eigen (gesleepte) volgorde; datum, deadline en
+// "te laat" zijn labels en sorteren niet mee (besluit eigenaar 24-11).
+export const shortList = (tasks) =>
   tasks
     .filter((t) => isMain(t) && isOpen(t) && t.horizon !== "lang")
-    .sort(byShort(today));
+    .sort(byOrder);
 
 export const longList = (tasks) =>
   tasks
     .filter((t) => isMain(t) && isOpen(t) && t.horizon === "lang")
-    .sort(
-      (a, b) =>
-        (a.deadline ? 0 : 1) - (b.deadline ? 0 : 1) ||
-        (a.deadline ?? "").localeCompare(b.deadline ?? "") ||
-        byOrder(a, b),
-    );
+    .sort(byOrder);
 
 // Gedaan zonder datum: die staan niet in de planning, dus hier bewaard.
 export const doneList = (tasks) =>
@@ -94,6 +84,13 @@ export function onDate(tasks, day) {
 
 // Het kaartje op Vandaag: de taken van de getoonde dag, en op vandaag ook
 // wat te laat is en deadlines binnen drie dagen.
+// Op het Vandaag-kaartje: te laat eerst, dan op datum, dan eigen volgorde.
+const byShort = (today) => (a, b) =>
+  isOverdue(b, today) - isOverdue(a, today) ||
+  (a.date ? 0 : 1) - (b.date ? 0 : 1) ||
+  (a.date ?? "").localeCompare(b.date ?? "") ||
+  byOrder(a, b);
+
 export function cardList(tasks, day, today) {
   const isToday = day === today;
   const items = tasks

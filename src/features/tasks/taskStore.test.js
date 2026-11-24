@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { db } from "../../lib/db.js";
-import { addTask, deleteTask, moveToToday, toggleDone } from "./taskStore.js";
+import {
+  addTask,
+  deleteTask,
+  moveToToday,
+  reorderTasks,
+  toggleDone,
+} from "./taskStore.js";
 
 beforeEach(async () => {
   await db.delete();
@@ -63,6 +69,15 @@ describe("taskStore", () => {
     await toggleDone(s1);
     await deleteTask(s2);
     expect((await db.tasks.get(p)).doneAt).toBeTruthy();
+  });
+
+  test("slepen legt de nieuwe volgorde vast", async () => {
+    const a = await addTask({ title: "a" });
+    const b = await addTask({ title: "b" });
+    const c = await addTask({ title: "c" });
+    await reorderTasks([c, a, b]);
+    const order = async (id) => (await db.tasks.get(id)).order;
+    expect([await order(c), await order(a), await order(b)]).toEqual([0, 1, 2]);
   });
 
   test("een stap neemt de lijst van de hoofdtaak over", async () => {

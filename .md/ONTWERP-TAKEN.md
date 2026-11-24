@@ -143,8 +143,9 @@ LANGE TERMIJN
 ```
 
 - **Volgorde:**
-  - Korte termijn: te laat bovenaan, dan op datum, dan taken zonder datum in eigen volgorde.
-  - Lange termijn: op deadline (eerst wat het eerst komt), dan taken zonder deadline.
+  - Beide lijsten en de stappen: je eigen volgorde, door te slepen aan het handvat (eigenaar,
+    24-11). Datum, deadline en "te laat" zijn labels en sorteren niet mee. Nieuw komt onderaan.
+  - Het kaartje op Vandaag sorteert wel zelf: te laat eerst, dan op datum.
 - **Ingeklapt (▸):** met stappen klapt de taak open. Standaard is hij dicht. Open of dicht
   onthouden per toestel mag via `localStorage` (alleen een weergavevoorkeur).
 - **Te laat:** naast de taak staat een knop "naar vandaag", die `date` op vandaag zet.

@@ -3,6 +3,7 @@ import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import EditFooter from "../../ui/EditFooter.jsx";
 import { Field, Select, TextArea, TextInput } from "../../ui/Field.jsx";
 import Sheet from "../../ui/Sheet.jsx";
+import SortableTasks from "./SortableTasks.jsx";
 import TaskRow from "./TaskRow.jsx";
 import {
   addTask,
@@ -174,15 +175,19 @@ export default function TaskSheet({
         )}
         {task && !isStep && (
           <Field label="Stappen">
-            {steps.map((s) => (
-              <TaskRow
-                key={s.id}
-                task={s}
-                today={today}
-                onToggle={toggleTask}
-                onOpen={setOpenStep}
-              />
-            ))}
+            <SortableTasks
+              list={steps}
+              row={(s, drag) => (
+                <TaskRow
+                  key={s.id}
+                  task={s}
+                  today={today}
+                  drag={drag}
+                  onToggle={toggleTask}
+                  onOpen={setOpenStep}
+                />
+              )}
+            />
             <TextInput
               value={stepTitle}
               placeholder="+ Stap toevoegen"

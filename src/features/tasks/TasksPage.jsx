@@ -2,6 +2,7 @@ import { useState } from "react";
 import BackButton from "../../ui/BackButton.jsx";
 import Card from "../../ui/Card.jsx";
 import Icon from "../../ui/Icon.jsx";
+import SortableTasks from "./SortableTasks.jsx";
 import TaskRow from "./TaskRow.jsx";
 import TaskSheet from "./TaskSheet.jsx";
 import { moveToToday, toggleTask, useTasks } from "./taskStore.js";
@@ -14,9 +15,10 @@ export default function TasksPage({ today, onBack }) {
   const [showDone, setShowDone] = useState(false);
   const done = doneList(tasks);
 
-  const row = (t) => (
+  const row = (t, drag) => (
     <TaskRow
       key={t.id}
+      drag={drag}
       task={t}
       steps={stepsOf(tasks, t.id)}
       today={today}
@@ -38,7 +40,7 @@ export default function TasksPage({ today, onBack }) {
           <Icon name="plus" size={20} />
         </button>
       </div>
-      {list.map(row)}
+      <SortableTasks list={list} row={row} />
       {list.length === 0 && <p style={empty}>Niets op deze lijst.</p>}
     </Card>
   );
@@ -70,7 +72,7 @@ export default function TasksPage({ today, onBack }) {
       <div
         style={{ display: "flex", flexDirection: "column", gap: "var(--sp-3)" }}
       >
-        {section("Korte termijn", shortList(tasks, today), "kort")}
+        {section("Korte termijn", shortList(tasks), "kort")}
         {section("Lange termijn", longList(tasks), "lang")}
         {done.length > 0 && (
           <Card style={{ gap: 0 }}>
@@ -83,7 +85,7 @@ export default function TasksPage({ today, onBack }) {
               <Icon name={showDone ? "caret-down" : "caret-right"} size={18} />
               Gedaan ({done.length})
             </button>
-            {showDone && done.map(row)}
+            {showDone && done.map((t) => row(t))}
           </Card>
         )}
       </div>

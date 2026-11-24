@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { fmtShortDay } from "../../lib/date.js";
+import DragHandle from "../../ui/DragHandle.jsx";
 import Icon from "../../ui/Icon.jsx";
+import SortableTasks from "./SortableTasks.jsx";
 import { canMoveToToday, daysLeft, isOverdue, progress } from "./tasks.js";
 
 // Eén taak: afvinkrondje, titel met labels, en bij stappen een pijltje om
-// ze open te klappen (standaard dicht, zodat de lijst kort blijft).
+// ze open te klappen (standaard dicht, zodat de lijst kort blijft). Met
+// `drag` (uit SortableTasks) krijgt hij een sleephandvat, en zijn stappen ook.
 export default function TaskRow({
   task,
   steps = [],
@@ -13,6 +16,7 @@ export default function TaskRow({
   onToggle,
   onOpen,
   onToday,
+  drag,
 }) {
   const [open, setOpen] = useState(false);
   const pct = progress(steps);
@@ -26,10 +30,26 @@ export default function TaskRow({
       `deadline ${fmtShortDay(task.deadline)} · nog ${daysLeft(task.deadline, today)} d`,
     parentTitle && `· ${parentTitle}`,
   ].filter(Boolean);
+  const stepRow = (s, stepDrag) => (
+    <TaskRow
+      key={s.id}
+      task={s}
+      today={today}
+      onToggle={onToggle}
+      onOpen={onOpen}
+      onToday={onToday}
+      drag={stepDrag}
+    />
+  );
 
   return (
-    <div>
+    <div
+      data-srow={drag ? "1" : undefined}
+      className={drag?.dragging ? "dragging" : undefined}
+      style={drag && { background: "var(--card)" }}
+    >
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {drag && <DragHandle onPointerDown={drag.onHandleDown} />}
         <TaskCheck task={task} onToggle={() => onToggle(task)} />
         <button type="button" onClick={() => onOpen(task)} style={textBtn}>
           <span
@@ -75,16 +95,11 @@ export default function TaskRow({
       </div>
       {open && (
         <div style={{ paddingInlineStart: 34 }}>
-          {steps.map((s) => (
-            <TaskRow
-              key={s.id}
-              task={s}
-              today={today}
-              onToggle={onToggle}
-              onOpen={onOpen}
-              onToday={onToday}
-            />
-          ))}
+          {drag ? (
+            <SortableTasks list={steps} row={stepRow} />
+          ) : (
+            steps.map((s) => stepRow(s))
+          )}
         </div>
       )}
     </div>

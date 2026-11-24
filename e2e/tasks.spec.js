@@ -173,3 +173,28 @@ test.describe("in de planning", () => {
     await expect(page.getByText("Literatuur zoeken")).toBeVisible();
   });
 });
+
+// Slepen aan het handvat zet een taak bovenaan; datum sorteert niet mee.
+test("een taak naar boven slepen blijft daar staan", async ({ page }) => {
+  await openList(page);
+  await newTask(page, "Sleep-A");
+  await newTask(page, "Sleep-B", { datum: "2026-11-20" });
+  await newTask(page, "Sleep-C");
+  const row = (title) =>
+    page.locator('[data-srow="1"]').filter({ hasText: title });
+  const handle = await row("Sleep-C").locator(".drag-handle").boundingBox();
+  const target = await row("Sleep-A").boundingBox();
+
+  await page.mouse.move(handle.x + handle.width / 2, handle.y + 10);
+  await page.mouse.down();
+  await page.mouse.move(handle.x + handle.width / 2, target.y + 4, {
+    steps: 10,
+  });
+  await page.mouse.up();
+
+  const titles = page.locator('[data-srow="1"]').filter({ hasText: /^Sleep-/ });
+  await expect(titles).toHaveText([/^Sleep-C/, /^Sleep-A/, /^Sleep-B/]);
+  await page.reload();
+  await openList(page);
+  await expect(titles).toHaveText([/^Sleep-C/, /^Sleep-A/, /^Sleep-B/]);
+});

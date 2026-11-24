@@ -24,7 +24,9 @@ export function useSortable(onReorder) {
     if (st.current) return; // al een sleep bezig: tweede pointer negeren
     const container = ref.current;
     if (!container) return;
-    const els = [...container.querySelectorAll('[data-srow="1"]')];
+    // Alleen directe rijen: een geneste sorteerlijst (stappen in een taak)
+    // heeft zijn eigen container.
+    const els = [...container.querySelectorAll(':scope > [data-srow="1"]')];
     if (!els[index]) return; // index buiten bereik: niets doen i.p.v. crashen
     const rows = els.map((el) => {
       const b = el.getBoundingClientRect();
