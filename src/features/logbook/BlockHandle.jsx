@@ -62,23 +62,11 @@ function domSelectionBlocks(editor) {
   const hit = [...root.querySelectorAll("[data-id]")].filter((el) =>
     range.intersectsNode(el),
   );
-  const inSel = new Set(hit);
-  const blocks = [];
-  for (const el of hit) {
-    // Geneste blokken overslaan: hun voorouder (ook geselecteerd) dekt ze al.
-    let p = el.parentElement?.closest("[data-id]");
-    let nested = false;
-    while (p) {
-      if (inSel.has(p)) {
-        nested = true;
-        break;
-      }
-      p = p.parentElement?.closest("[data-id]");
-    }
-    if (nested) continue;
-    const b = editor.getBlock(el.getAttribute("data-id"));
-    if (b) blocks.push(b);
-  }
+  // Geneste blokken overslaan: hun voorouder (ook geselecteerd) dekt ze al.
+  const blocks = hit
+    .filter((el) => !hit.some((other) => other !== el && other.contains(el)))
+    .map((el) => editor.getBlock(el.getAttribute("data-id")))
+    .filter(Boolean);
   return blocks.length > 1 ? blocks : null;
 }
 
