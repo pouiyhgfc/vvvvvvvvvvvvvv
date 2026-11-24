@@ -5,7 +5,7 @@ import { Field, Select, TextArea, TextInput } from "../../ui/Field.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 import TaskRow from "./TaskRow.jsx";
 import { addTask, deleteTask, updateTask, useTasks } from "./taskStore.js";
-import { stepsOf } from "./tasks.js";
+import { sheetFields, stepsOf } from "./tasks.js";
 import { useToggleTask } from "./useToggleTask.jsx";
 
 const DURATIONS = [15, 30, 45, 60, 90, 120];
@@ -50,15 +50,7 @@ export default function TaskSheet({
 
   const save = async () => {
     if (!f.title.trim()) return;
-    const fields = {
-      ...f,
-      date: f.date || null,
-      time: f.time || null,
-      durationMin: Number(f.durationMin),
-      deadline: f.deadline || null,
-      remindDays:
-        f.deadline && f.remindDays !== "" ? Number(f.remindDays) : null,
-    };
+    const fields = sheetFields(f);
     if (task) await updateTask(task.id, fields);
     else await addTask({ ...fields, parentId: parentId ?? null });
     onClose();

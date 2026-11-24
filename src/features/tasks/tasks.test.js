@@ -3,6 +3,7 @@ import {
   canMoveToToday,
   cardList,
   daysLeft,
+  sheetFields,
   doneList,
   isOverdue,
   longList,
@@ -194,4 +195,37 @@ it("naar vandaag kan alleen bij een geplande datum in het verleden", () => {
   // Te laat door de deadline: verplaatsen naar vandaag lost niets op.
   expect(canMoveToToday(t("b", { deadline: "2026-11-20" }), today)).toBe(false);
   expect(canMoveToToday(t("c", { date: today }), today)).toBe(false);
+});
+
+describe("sheetFields", () => {
+  // Was een bug: opslaan in de sheet zette "hele taak afvinken" terug.
+  it("neemt alleen de velden uit de sheet mee, niet doneAt of volgorde", () => {
+    const f = { ...t("a", { doneAt: null, order: 4 }), title: " Verslag " };
+    const out = sheetFields(f);
+    expect(out).not.toHaveProperty("doneAt");
+    expect(out).not.toHaveProperty("order");
+    expect(out).not.toHaveProperty("id");
+    expect(out.title).toBe(" Verslag ");
+  });
+
+  it("maakt lege velden null en getallen van de keuzes", () => {
+    const out = sheetFields({
+      title: "x",
+      horizon: "kort",
+      date: "",
+      time: "",
+      durationMin: "45",
+      deadline: "2026-12-01",
+      remindDays: "3",
+      note: "",
+    });
+    expect(out).toMatchObject({
+      date: null,
+      time: null,
+      durationMin: 45,
+      deadline: "2026-12-01",
+      remindDays: 3,
+    });
+    expect(sheetFields({ ...out, deadline: "" }).remindDays).toBeNull();
+  });
 });

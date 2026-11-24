@@ -22,6 +22,19 @@ export function normalizeTask(fields) {
   };
 }
 
+// Alleen wat je in de sheet kunt aanpassen: de rest (doneAt, volgorde) kan
+// sinds het openen al veranderd zijn en mag niet terug naar die stand.
+export const sheetFields = (f) => ({
+  title: f.title,
+  horizon: f.horizon,
+  date: f.date || null,
+  time: f.time || null,
+  durationMin: Number(f.durationMin),
+  deadline: f.deadline || null,
+  remindDays: f.deadline && f.remindDays !== "" ? Number(f.remindDays) : null,
+  note: f.note,
+});
+
 export const isOverdue = (t, today) =>
   isOpen(t) &&
   ((!!t.date && t.date < today) || (!!t.deadline && t.deadline < today));
