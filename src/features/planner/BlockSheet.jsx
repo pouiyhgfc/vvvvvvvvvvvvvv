@@ -39,17 +39,6 @@ const chip = (on) => ({
   color: on ? "var(--bg)" : "var(--text)",
 });
 
-const timeInput = {
-  width: "100%",
-  minHeight: 44,
-  padding: "0 12px",
-  borderRadius: "var(--r-md)",
-  border: "none",
-  fontSize: "var(--fs-md)",
-  background: "var(--sunken)",
-  color: "var(--text)",
-};
-
 // Eén sheet om een blok toe te voegen of te bewerken. `initial`:
 // { mode: "add", date: Date, startMin } of { mode: "edit", occ }.
 export default function BlockSheet({
@@ -189,32 +178,29 @@ export default function BlockSheet({
         )}
 
         <Field label="Dag">
-          <input
+          <TextInput
             type="date"
             value={date}
             onChange={(e) => e.target.value && setDate(e.target.value)}
-            style={timeInput}
           />
         </Field>
         <div
           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}
         >
           <Field label="Begint">
-            <input
+            <TextInput
               type="time"
               aria-label="Begintijd"
               value={startTime}
               onChange={(e) => onStart(e.target.value)}
-              style={timeInput}
             />
           </Field>
           <Field label="Eindigt">
-            <input
+            <TextInput
               type="time"
               aria-label="Eindtijd"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              style={timeInput}
             />
           </Field>
         </div>
