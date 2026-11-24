@@ -4,6 +4,7 @@ import { DEFAULT_NOTEBOOKS, DEFAULT_SETTINGS } from "./constants.js";
 import { showToast } from "./toast.js";
 import { BACKUP_VERSION, validateBackup } from "./validateBackup.js";
 import { filesForBackup, filesFromBackup } from "./files.js";
+import { addMissingBlob, addMissingRows } from "./backupMerge.js";
 import { saveJSON } from "./nativeFiles.js";
 import { isNativeApp } from "./platform.js";
 
@@ -138,7 +139,7 @@ export function importData(file, onFullBackup) {
           return;
         }
         await db.transaction("rw", db.blobs, db.logEntries, async () => {
-          await putNotes(data);
+          await putNotes(data, write(true));
         });
         showToast("✓ Notities geïmporteerd.");
         return;
@@ -148,27 +149,18 @@ export function importData(file, onFullBackup) {
           showToast("Geen routines gevonden in dit bestand.");
           return;
         }
-        await db.blobs.put({ key: "routines", data: data.routines });
+        await addMissingBlob("routines", data.routines);
         showToast("✓ Routines geïmporteerd.");
         return;
       }
       if (type === "weekplanning") {
-        if (data.calTemplates)
-          await db.blobs.put({
-            key: "calTemplates",
-            data: data.calTemplates,
-          });
-        if (data.calEvents)
-          await db.transaction("rw", db.calEvents, async () => {
-            await db.calEvents.clear();
-            if (data.calEvents.length)
-              await db.calEvents.bulkPut(data.calEvents);
-          });
-        if (data.weekScheduleTemplates)
-          await db.blobs.put({
-            key: "weekTemplates",
-            data: data.weekScheduleTemplates,
-          });
+        await db.transaction("rw", db.blobs, db.calEvents, async () => {
+          if (data.calTemplates)
+            await addMissingBlob("calTemplates", data.calTemplates);
+          await addMissingRows(db.calEvents, data.calEvents);
+          if (data.weekScheduleTemplates)
+            await addMissingBlob("weekTemplates", data.weekScheduleTemplates);
+        });
         showToast("✓ Weekplanning geïmporteerd.");
         return;
       }
@@ -184,17 +176,26 @@ export function importData(file, onFullBackup) {
   reader.readAsText(file);
 }
 
+// Samenvoegen vult alleen aan (zie backupMerge.js); vervangen schrijft alles.
+const write = (merge) =>
+  merge
+    ? { rows: addMissingRows, blob: addMissingBlob }
+    : {
+        rows: (table, rows) => table.bulkPut(rows),
+        blob: (key, data) => db.blobs.put({ key, data }),
+      };
+
 // Notities, notitieboeken en sjablonen uit een backup (binnen een transactie
 // met db.logEntries en db.blobs).
-async function putNotes(data) {
+async function putNotes(data, w) {
   if (Array.isArray(data.logEntries) && data.logEntries.length)
-    await db.logEntries.bulkPut(data.logEntries);
+    await w.rows(db.logEntries, data.logEntries);
   if (Array.isArray(data.notebooks) && data.notebooks.length)
-    await db.blobs.put({ key: "notebooks", data: data.notebooks });
+    await w.blob("notebooks", data.notebooks);
   if (Array.isArray(data.entryTemplates) && data.entryTemplates.length)
-    await db.blobs.put({ key: "entryTemplates", data: data.entryTemplates });
+    await w.blob("entryTemplates", data.entryTemplates);
   if (isPlainObject(data.tagMeta) && Object.keys(data.tagMeta).length)
-    await db.blobs.put({ key: "tagMeta", data: data.tagMeta });
+    await w.blob("tagMeta", data.tagMeta);
 }
 
 const isPlainObject = (v) =>
@@ -218,6 +219,7 @@ export async function performFullImport(data, merge) {
     db.files,
     db.tasks,
     async () => {
+      const w = write(merge);
       if (!merge) {
         await db.tasks.clear();
         await db.files.clear();
@@ -231,39 +233,37 @@ export async function performFullImport(data, merge) {
         await db.meta.delete("hifd_seeded");
         await db.blobs.delete("tagMeta");
       }
-      await db.blobs.put({ key: "routines", data: data.routines });
-      if (data.calTemplates)
-        await db.blobs.put({ key: "calTemplates", data: data.calTemplates });
+      await w.blob("routines", data.routines);
+      if (data.calTemplates) await w.blob("calTemplates", data.calTemplates);
       if (data.weekScheduleTemplates)
-        await db.blobs.put({
-          key: "weekTemplates",
-          data: data.weekScheduleTemplates,
-        });
+        await w.blob("weekTemplates", data.weekScheduleTemplates);
       if (data.calEvents && data.calEvents.length)
-        await db.calEvents.bulkPut(data.calEvents);
-      if (data.settings)
+        await w.rows(db.calEvents, data.calEvents);
+      const keepSettings = merge && (await db.settings.get("singleton"));
+      if (data.settings && !keepSettings)
         await db.settings.put({
           id: "singleton",
           ...DEFAULT_SETTINGS,
           ...data.settings,
         });
       if (Array.isArray(data.areas) && data.areas.length)
-        await db.blobs.put({ key: "areas", data: data.areas });
+        await w.blob("areas", data.areas);
       const dayEntries = Object.entries(data.days).map(([d, dayData]) => ({
         date: d,
         ...dayData,
       }));
-      if (dayEntries.length) await db.days.bulkPut(dayEntries);
-      await putNotes(data);
+      if (dayEntries.length) await w.rows(db.days, dayEntries);
+      await putNotes(data, w);
       if (Array.isArray(data.hifd) && data.hifd.length)
-        await db.hifd.bulkPut(data.hifd);
+        await w.rows(db.hifd, data.hifd);
       if (Array.isArray(data.hifdLog) && data.hifdLog.length)
-        await db.hifdLogV2.bulkPut(
+        await w.rows(
+          db.hifdLogV2,
           data.hifdLog.map((r) => ({ ...r, phase: r.phase || "learn" })),
         );
-      if (files.length) await db.files.bulkPut(files);
+      if (files.length) await w.rows(db.files, files);
       if (Array.isArray(data.tasks) && data.tasks.length)
-        await db.tasks.bulkPut(data.tasks);
+        await w.rows(db.tasks, data.tasks);
     },
   );
   await seedHifd();

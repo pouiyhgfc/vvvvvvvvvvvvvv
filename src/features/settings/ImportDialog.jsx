@@ -19,7 +19,7 @@ export default function ImportDialog({ data, onExport, onDone }) {
   return (
     <ConfirmDialog
       title="Backup importeren"
-      message="Samenvoegen voegt de backup toe aan je huidige data. Volledig vervangen wist eerst je huidige data — daarvoor wordt automatisch een veiligheidsbackup gedownload."
+      message="Samenvoegen vult aan wat je nog niet hebt; wat er al staat blijft zoals het is. Volledig vervangen wist eerst je huidige data — daarvoor wordt automatisch een veiligheidsbackup gedownload."
       danger={false}
       actions={[
         { label: "Samenvoegen", variant: "primary", onClick: () => run(true) },

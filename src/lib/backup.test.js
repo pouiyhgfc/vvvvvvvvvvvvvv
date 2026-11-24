@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { DEFAULT_SETTINGS } from "./constants.js";
 import { db, fillSearchText, seedHifd } from "./db.js";
-import { exportData, performFullImport } from "./backup.js";
+import { exportData, importData, performFullImport } from "./backup.js";
 
 // exportData downloadt via een <a>-klik; vang de Blob op in plaats daarvan.
 let downloaded;
@@ -186,6 +186,49 @@ describe("volledige backup", () => {
     expect(await db.logEntries.get("n1")).toBeTruthy();
   });
 
+  // Was een bug: samenvoegen overschreef nieuwere data met de oudere backup.
+  test("samenvoegen laat wat je na de export veranderde staan", async () => {
+    await seed();
+    await db.tasks.put({ id: "k1", title: "Verslag", doneAt: null });
+    const backup = await exportAll();
+    await db.logEntries.update("n1", { body: "nieuwer" });
+    await db.hifd.update(2, { status: "memorized" });
+    await db.tasks.update("k1", { doneAt: "2026-10-28T10:00:00.000Z" });
+    await db.blobs.put({
+      key: "routines",
+      data: {
+        ochtend: [
+          { id: "r1", name: "Fajr" },
+          { id: "r2", name: "Sport" },
+        ],
+      },
+    });
+    await db.blobs.put({ key: "areas", data: [{ id: "a9", name: "Nieuw" }] });
+
+    await performFullImport(backup, true);
+
+    expect((await db.logEntries.get("n1")).body).toBe("nieuwer");
+    expect((await db.hifd.get(2)).status).toBe("memorized");
+    expect((await db.tasks.get("k1")).doneAt).toBeTruthy();
+    const routines = (await db.blobs.get("routines")).data;
+    expect(routines.ochtend.map((r) => r.id)).toEqual(["r1", "r2"]);
+    const areas = (await db.blobs.get("areas")).data;
+    expect(areas.map((a) => a.id)).toEqual(["a9", "a1"]);
+  });
+
+  test("samenvoegen op een nieuw toestel neemt de Hifd-voortgang over", async () => {
+    await seed();
+    const backup = await exportAll();
+    await db.delete();
+    await db.open();
+    await seedHifd();
+
+    await performFullImport(backup, true);
+
+    expect((await db.hifd.get(1)).status).toBe("memorized");
+    expect(await db.logEntries.get("n1")).toBeTruthy();
+  });
+
   test("een oude backup (v1, nog zonder logboek en Hifd) importeert met samenvoegen", async () => {
     await seed();
     const v1 = {
@@ -217,5 +260,43 @@ describe("volledige backup", () => {
     await performFullImport(v1, false);
 
     expect(await db.hifd.count()).toBe(114);
+  });
+});
+
+// importData leest via FileReader; deze vervanging geeft de tekst direct door.
+async function importFile(payload) {
+  let done;
+  vi.stubGlobal(
+    "FileReader",
+    class {
+      readAsText(text) {
+        done = this.onload({ target: { result: text } });
+      }
+    },
+  );
+  importData(JSON.stringify(payload), () => {});
+  await done;
+}
+
+describe("deel-import", () => {
+  test("een weekplanning-bestand vult aan en wist geen bestaande blokken", async () => {
+    await seed();
+    await importFile({
+      type: "weekplanning",
+      calEvents: [{ id: "e2", date: "2026-10-28", title: "Sport" }],
+    });
+
+    expect(await db.calEvents.get("e1")).toBeTruthy();
+    expect(await db.calEvents.get("e2")).toBeTruthy();
+  });
+
+  test("een notities-bestand overschrijft een nieuwere notitie niet", async () => {
+    await seed();
+    await importFile({
+      type: "notities",
+      logEntries: [{ id: "n1", date: "2026-10-27", body: "oud" }],
+    });
+
+    expect((await db.logEntries.get("n1")).body).toBe("ballast");
   });
 });
