@@ -3,7 +3,9 @@ import { db } from "../../lib/db.js";
 import { uid, dk } from "../../lib/date.js";
 import { cleanTags } from "../../lib/tags.js";
 import { docText } from "../../lib/docText.js";
+import { showToast } from "../../lib/toast.js";
 import { DOC_SCHEMA_VERSION } from "./docSchema.js";
+import { editCounter } from "./editCounter.js";
 
 // Automatisch opslaan van een notitie (debounced + bij Terug). Maakt een
 // nieuwe entry pas aan zodra er inhoud is.
@@ -32,55 +34,76 @@ export function useEntrySave({
   // anders maakt "openen + terug" een lege sjabloon-entry. Een share-target-
   // draft (title/body, geen doc) telt wél meteen mee, zodat gedeelde inhoud
   // niet verloren gaat.
-  const dirtyRef = useRef(!!draft && !draft.doc);
+  const [edits] = useState(() => editCounter(!!draft && !draft.doc));
   const savedTimerRef = useRef(null);
 
   const markDirty = () => {
-    dirtyRef.current = true;
+    edits.edit();
     setSaveState("saving");
   };
 
   useEffect(() => () => clearTimeout(savedTimerRef.current), []);
 
+  const write = useCallback(
+    async (doc, text) => {
+      if (!idRef.current) {
+        const id = uid();
+        idRef.current = id;
+        await db.logEntries
+          .put({
+            id,
+            notebookId,
+            date: date || dk(new Date()),
+            title: title.trim(),
+            body: text || "",
+            doc: doc || undefined,
+            docSchemaVersion: doc ? DOC_SCHEMA_VERSION : undefined,
+            searchText: doc ? docText(doc) : undefined,
+            tags: cleanTags(tags, knownTags),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          })
+          .catch((err) => {
+            idRef.current = null; // volgende poging maakt hem alsnog aan
+            throw err;
+          });
+        setCreated(true);
+      } else {
+        await db.logEntries.update(idRef.current, {
+          title: title.trim(),
+          body: text || "",
+          doc: doc || undefined,
+          docSchemaVersion: doc ? DOC_SCHEMA_VERSION : undefined,
+          searchText: doc ? docText(doc) : undefined,
+          tags: cleanTags(tags, knownTags),
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    },
+    [title, tags, knownTags, date, notebookId],
+  );
+
   const persist = useCallback(async () => {
     // Geen wijziging sinds laden → niets opslaan (geen onnodige updatedAt-bump).
-    if (!dirtyRef.current) return;
+    if (!edits.isDirty()) return;
     const { doc, text } = contentRef.current;
     const hasContent = title.trim() || (text && text.trim());
-    if (!idRef.current) {
-      if (!hasContent) return;
-      const id = uid();
-      idRef.current = id;
-      setCreated(true);
-      await db.logEntries.put({
-        id,
-        notebookId,
-        date: date || dk(new Date()),
-        title: title.trim(),
-        body: text || "",
-        doc: doc || undefined,
-        docSchemaVersion: doc ? DOC_SCHEMA_VERSION : undefined,
-        searchText: doc ? docText(doc) : undefined,
-        tags: cleanTags(tags, knownTags),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-    } else {
-      await db.logEntries.update(idRef.current, {
-        title: title.trim(),
-        body: text || "",
-        doc: doc || undefined,
-        docSchemaVersion: doc ? DOC_SCHEMA_VERSION : undefined,
-        searchText: doc ? docText(doc) : undefined,
-        tags: cleanTags(tags, knownTags),
-        updatedAt: new Date().toISOString(),
-      });
+    if (!idRef.current && !hasContent) return;
+    const done = edits.start();
+    try {
+      await write(doc, text);
+    } catch (err) {
+      console.error("[useEntrySave]", err);
+      setSaveState("idle");
+      showToast("Opslaan mislukt. Is de opslag van je telefoon vol?");
+      return;
     }
-    dirtyRef.current = false;
+    done();
+    if (edits.isDirty()) return; // tijdens het schrijven verder getypt
     setSaveState("saved");
     clearTimeout(savedTimerRef.current);
     savedTimerRef.current = setTimeout(() => setSaveState("idle"), 1500);
-  }, [title, tags, knownTags, date, notebookId]);
+  }, [edits, write, title]);
 
   useEffect(() => {
     const t = setTimeout(persist, 500);
@@ -102,7 +125,7 @@ export function useEntrySave({
     // Race-fix: bij direct sluiten na de laatste toetsaanslag kan de async
     // markdown-conversie van RichEditor nog niet zijn aangekomen. Vraag 'm
     // hier alsnog op, zodat persist() de nieuwste tekst opslaat.
-    if (dirtyRef.current) {
+    if (edits.isDirty()) {
       try {
         const text = await editorRef.current?.getMarkdown();
         if (text !== undefined) contentRef.current.text = text;

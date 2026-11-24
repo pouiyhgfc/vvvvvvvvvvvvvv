@@ -134,6 +134,7 @@ function NotePage({
   };
 
   const archive = async () => {
+    await flush();
     if (!idRef.current) return;
     buzz();
     await db.logEntries.update(idRef.current, {
