@@ -5,6 +5,7 @@ import "./styles/base.css";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import ToastHost from "./ui/Toast.jsx";
+import ErrorBoundary from "./ui/ErrorBoundary.jsx";
 import {
   markExistingInstall,
   migrateFromLocalStorage,
@@ -41,7 +42,9 @@ setupNativeBack();
   // en de app zelf (anders valt een melding als "Import gelukt" weg).
   createRoot(document.getElementById("root")).render(
     <>
-      <App startupErrors={startupErrors} />
+      <ErrorBoundary>
+        <App startupErrors={startupErrors} />
+      </ErrorBoundary>
       <ToastHost />
     </>,
   );
