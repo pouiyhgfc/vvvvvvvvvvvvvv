@@ -50,6 +50,21 @@ _Daarvóór:_ _Notities beter organiseren — vastzetten, archief/prullenbak (za
       tik = blok-menu (sheet), ingedrukt houden = verslepen. De oude `MobileToolbar`-balk crashte
       (VisualViewport + vaste positionering); de nieuwe aanpak vermijdt dat. Zie de fase onderaan.
 
+- [x] **Review hele app (24-11-2026)** — aparte reviewer; opgelost: samenvoegen en deel-imports
+      vullen alleen aan (`backupMerge.js`), taak-sheet zet afvinken niet terug, notitie-autosave
+      verliest geen laatste wijziging, setters lezen verse stand (`dataWrites.js`), melding bij
+      mislukt opslaan, vangnet `ErrorBoundary`, tijd in backup-bestandsnaam.
+- [ ] **Kleine punten uit die review** (nog niet gedaan, geen dataverlies):
+      snelheid bij honderden notities (EntryPage/Backlinks lezen alle notities per autosave);
+      "alle keren" verschuiven laat overgeslagen weken (`exDates`) staan; herhaling op "geen"
+      zetten springt naar de startdatum; stappen van een handmatig afgevinkte taak blijven "te
+      laat"; meldingen rond middernacht en bij meer dan ~500 alarmen; Hifd-plan na middernacht pas
+      vers na een wijziging; afbeeldingen van gewiste notities blijven in `db.files`;
+      `filesFromBackup` accepteert ook niet-`data:`-adressen; "Alles wissen" laat notitie-
+      sjablonen staan; percentages > 100% door vinkjes van verwijderde routines; grote export in
+      de APK in één keer over de brug; bestanden boven ~300 regels opsplitsen; keystore-secret in
+      `android.yml` via `env:`.
+
 _Nieuw idee toevoegen? Vraag Claude: "zet dit als idee in de backlog van UITVOERING.md." Uitwerken? Vraag: "werk backlog-idee X uit tot een volledige fase onderaan."_
 
 ---
