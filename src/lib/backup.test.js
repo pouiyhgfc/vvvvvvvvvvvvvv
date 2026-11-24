@@ -5,12 +5,13 @@ import { exportData, importData, performFullImport } from "./backup.js";
 
 // exportData downloadt via een <a>-klik; vang de Blob op in plaats daarvan.
 let downloaded;
+let anchor;
 beforeEach(async () => {
   await db.delete();
   await db.open();
   downloaded = null;
   vi.stubGlobal("document", {
-    createElement: () => ({ click() {} }),
+    createElement: () => (anchor = { click() {} }),
     body: { appendChild() {}, removeChild() {} },
   });
   vi.spyOn(URL, "createObjectURL").mockImplementation((blob) => {
@@ -110,6 +111,16 @@ async function exportAll() {
 }
 
 describe("volledige backup", () => {
+  // Was een bug: twee backups op één dag kregen dezelfde naam, dus de
+  // veiligheidsbackup kon een eerdere backup in Documenten overschrijven.
+  test("de bestandsnaam bevat ook de tijd", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 10, 24, 13, 42, 5));
+    await exportAll();
+    vi.useRealTimers();
+    expect(anchor.download).toBe("routine-backup-2026-11-24-134205.json");
+  });
+
   test("export → alles wissen → import (vervangen) geeft dezelfde data terug", async () => {
     await seed();
     await fillSearchText(); // zoals bij het opstarten van de app

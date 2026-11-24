@@ -26,6 +26,14 @@ function downloadJSON(filename, payload) {
   URL.revokeObjectURL(url);
 }
 
+// Datum én tijd in de naam: een tweede backup op dezelfde dag (zoals de
+// veiligheidsbackup vóór "vervangen") overschrijft de eerste niet.
+function stamp() {
+  const d = new Date();
+  const two = (n) => String(n).padStart(2, "0");
+  return `${dk(d)}-${two(d.getHours())}${two(d.getMinutes())}${two(d.getSeconds())}`;
+}
+
 export async function exportData({
   routines,
   areas,
@@ -46,7 +54,7 @@ export async function exportData({
   const tagMetaBlob = await db.blobs.get("tagMeta");
   const hifdData = await db.hifd.toArray();
   const hifdLogData = await db.hifdLogV2.toArray();
-  await downloadJSON(`routine-backup-${dk(new Date())}.json`, {
+  await downloadJSON(`routine-backup-${stamp()}.json`, {
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     routines,
@@ -71,7 +79,7 @@ export async function exportData({
 }
 
 export async function exportRoutines(routines) {
-  await downloadJSON(`routines-${dk(new Date())}.json`, {
+  await downloadJSON(`routines-${stamp()}.json`, {
     version: 1,
     exportedAt: new Date().toISOString(),
     type: "routines",
@@ -84,7 +92,7 @@ export async function exportWeekplanning({
   calEvents,
   weekScheduleTemplates,
 }) {
-  await downloadJSON(`weekplanning-${dk(new Date())}.json`, {
+  await downloadJSON(`weekplanning-${stamp()}.json`, {
     version: 1,
     exportedAt: new Date().toISOString(),
     type: "weekplanning",
@@ -98,7 +106,7 @@ export async function exportNotities() {
   const logEntries = await db.logEntries.toArray();
   const notebooksBlob = await db.blobs.get("notebooks");
   const entryTemplatesBlob = await db.blobs.get("entryTemplates");
-  await downloadJSON(`notities-${dk(new Date())}.json`, {
+  await downloadJSON(`notities-${stamp()}.json`, {
     version: 1,
     exportedAt: new Date().toISOString(),
     type: "notities",
