@@ -62,7 +62,7 @@ _Daarvóór:_ _Notities beter organiseren — vastzetten, archief/prullenbak (za
       vers na een wijziging; afbeeldingen van gewiste notities blijven in `db.files`;
       `filesFromBackup` accepteert ook niet-`data:`-adressen; "Alles wissen" laat notitie-
       sjablonen staan; percentages > 100% door vinkjes van verwijderde routines; grote export in
-      de APK in één keer over de brug; bestanden boven ~300 regels opsplitsen; keystore-secret in
+      de APK in één keer over de brug; keystore-secret in
       `android.yml` via `env:`.
 
 _Nieuw idee toevoegen? Vraag Claude: "zet dit als idee in de backlog van UITVOERING.md." Uitwerken? Vraag: "werk backlog-idee X uit tot een volledige fase onderaan."_

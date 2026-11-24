@@ -37,7 +37,7 @@ Schrijf code die ik over een half jaar nog snap en zelf kan aanpassen.
 
 - De **eenvoudigste oplossing die werkt**. Geen abstractie, optie of "voor later"-code die niet gevraagd is.
 - **Geen dode code**: geen uitgecommentarieerde blokken, ongebruikte imports, variabelen of functies.
-- **Korte componenten en functies met één taak.** Groeit iets boven ~300 regels, stel dan voor het op te splitsen.
+- **Korte componenten en functies met één taak.** Lang mag als het nodig is; wat onnodig lang is (herhaling, eigen variant van een bouwsteen, omslachtige logica) maak je kort. Groeit iets boven ~300 regels, kijk dan of het kan worden opgesplitst.
 - **Hergebruik** bestaande helpers (`src/lib/`) en primitives (`src/ui/`); bouw geen kopie of variant ernaast.
 - Geen onnodige dependency als een paar regels eigen code volstaat.
 - Commentaar alleen voor het **waarom** bij niet-vanzelfsprekende keuzes.
