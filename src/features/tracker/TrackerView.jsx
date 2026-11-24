@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   DAILY_LOG_TEMPLATE_DOC,
@@ -13,7 +13,7 @@ import TodayLogCard from "./TodayLogCard.jsx";
 import UpNextCard from "./UpNextCard.jsx";
 import TodayTasksCard from "../tasks/TodayTasksCard.jsx";
 
-const EntryPage = lazy(() => import("../logbook/EntryPage.jsx"));
+import EntryPage from "../logbook/EntryPage.jsx";
 
 export default function TrackerView({
   date,
@@ -92,23 +92,21 @@ export default function TrackerView({
       </div>
 
       {entryPage && (
-        <Suspense fallback={null}>
-          <EntryPage
-            entry={entryPage === "new" ? null : entryPage}
-            // Nieuw dagelijks logboek start met het reflectie-sjabloon; een
-            // bestaand logboek opent zoals opgeslagen. Diepe kopie zodat elk
-            // nieuw entry verse blocks krijgt (geen gedeelde/gemuteerde doc).
-            draft={
-              entryPage === "new"
-                ? { doc: structuredClone(dailyTemplate) }
-                : undefined
-            }
-            notebookId="logboek"
-            date={dateKey}
-            theme={theme}
-            onClose={() => setEntryPage(null)}
-          />
-        </Suspense>
+        <EntryPage
+          entry={entryPage === "new" ? null : entryPage}
+          // Nieuw dagelijks logboek start met het reflectie-sjabloon; een
+          // bestaand logboek opent zoals opgeslagen. Diepe kopie zodat elk
+          // nieuw entry verse blocks krijgt (geen gedeelde/gemuteerde doc).
+          draft={
+            entryPage === "new"
+              ? { doc: structuredClone(dailyTemplate) }
+              : undefined
+          }
+          notebookId="logboek"
+          date={dateKey}
+          theme={theme}
+          onClose={() => setEntryPage(null)}
+        />
       )}
     </div>
   );
