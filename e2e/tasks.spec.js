@@ -104,6 +104,17 @@ test("lange termijn met stappen toont het percentage en klapt open", async ({
   await expect(page.getByText("Literatuur zoeken")).toBeHidden();
   await expand.click();
   await expect(page.getByText("Literatuur zoeken")).toBeVisible();
+
+  // Zelf afvinken kan niet; de laatste stap maakt hem klaar.
+  await page.getByRole("button", { name: "Afvinken: Afstudeerstage" }).click();
+  await expect(page.getByText(/Klaar zodra alle stappen/)).toBeVisible();
+  await page
+    .getByRole("button", { name: "Afvinken: Literatuur zoeken" })
+    .click();
+  await page.getByRole("button", { name: /^Gedaan/ }).click();
+  await expect(
+    page.getByRole("button", { name: "Terugzetten: Afstudeerstage" }),
+  ).toBeVisible();
 });
 
 test("te laat → naar vandaag, en terug brengt je naar Vandaag", async ({

@@ -4,9 +4,14 @@ import EditFooter from "../../ui/EditFooter.jsx";
 import { Field, Select, TextArea, TextInput } from "../../ui/Field.jsx";
 import Sheet from "../../ui/Sheet.jsx";
 import TaskRow from "./TaskRow.jsx";
-import { addTask, deleteTask, updateTask, useTasks } from "./taskStore.js";
+import {
+  addTask,
+  deleteTask,
+  toggleTask,
+  updateTask,
+  useTasks,
+} from "./taskStore.js";
 import { sheetFields, stepsOf } from "./tasks.js";
-import { useToggleTask } from "./useToggleTask.jsx";
 
 const DURATIONS = [15, 30, 45, 60, 90, 120];
 const REMINDERS = [
@@ -42,7 +47,6 @@ export default function TaskSheet({
   const [confirmDel, setConfirmDel] = useState(false);
   const [openStep, setOpenStep] = useState(null);
   const [stepTitle, setStepTitle] = useState("");
-  const [toggle, toggleDialog] = useToggleTask();
   const tasks = useTasks();
   const steps = task ? stepsOf(tasks, task.id) : [];
   const isStep = !!(task?.parentId || parentId);
@@ -175,7 +179,7 @@ export default function TaskSheet({
                 key={s.id}
                 task={s}
                 today={today}
-                onToggle={toggle}
+                onToggle={toggleTask}
                 onOpen={setOpenStep}
               />
             ))}
@@ -196,7 +200,6 @@ export default function TaskSheet({
           onClose={() => setOpenStep(null)}
         />
       )}
-      {toggleDialog}
       {confirmDel && (
         <ConfirmDialog
           title="Taak verwijderen?"

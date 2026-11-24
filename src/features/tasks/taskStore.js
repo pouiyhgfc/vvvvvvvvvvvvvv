@@ -1,6 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { uid } from "../../lib/date.js";
+import { showToast } from "../../lib/toast.js";
 import { normalizeTask } from "./tasks.js";
 
 const NO_TASKS = [];
@@ -36,6 +37,7 @@ export async function addTask(fields) {
         doneAt: null,
       }),
     );
+    if (parent) await syncParent(parent.id);
     return id;
   });
 }
@@ -45,11 +47,34 @@ export async function updateTask(id, fields) {
   await db.tasks.put(normalizeTask({ ...task, ...fields }));
 }
 
-export async function toggleDone(id) {
-  const task = await db.tasks.get(id);
-  await db.tasks.update(id, {
-    doneAt: task.doneAt ? null : new Date().toISOString(),
+// Een taak met stappen vink je niet zelf af (anders gebeurt dat per
+// ongeluk): hij is klaar zodra al zijn stappen klaar zijn.
+export function toggleDone(id) {
+  return db.transaction("rw", db.tasks, async () => {
+    const task = await db.tasks.get(id);
+    if (await db.tasks.where("parentId").equals(id).count()) return false;
+    await db.tasks.update(id, {
+      doneAt: task.doneAt ? null : new Date().toISOString(),
+    });
+    if (task.parentId) await syncParent(task.parentId);
+    return true;
   });
+}
+
+// Voor het afvinkrondje: legt uit waarom een taak met stappen niet afgaat.
+export async function toggleTask(task) {
+  if (!(await toggleDone(task.id)))
+    showToast("Klaar zodra alle stappen zijn afgevinkt.");
+}
+
+async function syncParent(parentId) {
+  const parent = await db.tasks.get(parentId);
+  const steps = await db.tasks.where("parentId").equals(parentId).toArray();
+  const allDone = steps.length > 0 && steps.every((t) => t.doneAt);
+  if (!!parent?.doneAt !== allDone)
+    await db.tasks.update(parentId, {
+      doneAt: allDone ? new Date().toISOString() : null,
+    });
 }
 
 export const moveToToday = (id, today) => db.tasks.update(id, { date: today });
@@ -57,7 +82,9 @@ export const moveToToday = (id, today) => db.tasks.update(id, { date: today });
 // Een hoofdtaak gaat samen met zijn stappen weg.
 export function deleteTask(id) {
   return db.transaction("rw", db.tasks, async () => {
+    const task = await db.tasks.get(id);
     await db.tasks.where("parentId").equals(id).delete();
     await db.tasks.delete(id);
+    if (task?.parentId) await syncParent(task.parentId);
   });
 }

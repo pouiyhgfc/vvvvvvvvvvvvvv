@@ -10,9 +10,8 @@ import WeekScheduleSheet from "./WeekScheduleSheet.jsx";
 import Card from "../../ui/Card.jsx";
 import DayTasks from "../tasks/DayTasks.jsx";
 import TaskSheet from "../tasks/TaskSheet.jsx";
-import { useTasks } from "../tasks/taskStore.js";
+import { toggleTask, useTasks } from "../tasks/taskStore.js";
 import { onDate } from "../tasks/tasks.js";
-import { useToggleTask } from "../tasks/useToggleTask.jsx";
 import { deleteOccurrence, isRecurring, updateOccurrence } from "./planner.js";
 
 const shiftDate = (d, n) => {
@@ -43,7 +42,6 @@ export default function PlanningView({
   const dayTasks = onDate(tasks, dk(day));
   const taskDays = new Set(tasks.map((t) => t.date).filter(Boolean));
   const [taskSheet, setTaskSheet] = useState(null);
-  const [toggleTask, toggleDialog] = useToggleTask();
   const taskProps = { today, onToggle: toggleTask, onOpen: setTaskSheet };
 
   const apply = (occ, changes, scope) =>
@@ -238,7 +236,6 @@ export default function PlanningView({
           onClose={() => setTaskSheet(null)}
         />
       )}
-      {toggleDialog}
       {sheet && (
         <BlockSheet
           key={sheet.mode === "edit" ? sheet.occ.id + sheet.occ.date : "add"}

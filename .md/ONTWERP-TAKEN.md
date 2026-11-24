@@ -57,11 +57,11 @@ in de planning zichtbaar als "gedaan op die dag", als geschiedenis.
 
 ## Aanpakken (gekozen: B)
 
-| | Wat | Afweging |
-|---|---|---|
-| A | Eigen tabblad "Taken" plus een kaartje op Vandaag | Snel bij de hele lijst, maar zes tabbladen is krap |
+|       | Wat                                                                          | Afweging                                                                                       |
+| ----- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| A     | Eigen tabblad "Taken" plus een kaartje op Vandaag                            | Snel bij de hele lijst, maar zes tabbladen is krap                                             |
 | **B** | **Kaartje "Te doen" op Vandaag; tik opent de volledige lijst als subpagina** | **Tabbalk blijft rustig. De lange-termijnlijst zit één tik dieper. Gekozen door de eigenaar.** |
-| C | Taken in Planning | Doelen zonder datum horen niet in een planning |
+| C     | Taken in Planning                                                            | Doelen zonder datum horen niet in een planning                                                 |
 
 **Koppeling met de planning (keuze Claude).** Taken zijn een eigen soort gegeven. Planning leest
 ze en toont ze, maar maakt er geen kopie van in `calEvents`. Zo is er één bron, en klopt
@@ -72,20 +72,20 @@ ze en toont ze, maar maakt er geen kopie van in `calEvents`. Zo is er één bron
 Nieuwe Dexie-tabel `tasks` via `db.version(7).stores({ tasks: "&id, parentId, date, deadline,
 doneAt" })`. Bestaande tabellen blijven ongewijzigd.
 
-| Veld | Type | Betekenis |
-|---|---|---|
-| `id` | string | `uid()` |
-| `title` | string | verplicht, niet leeg |
-| `horizon` | `"kort"` \| `"lang"` | in welke lijst de taak staat; een stap neemt die van de hoofdtaak over |
-| `parentId` | string \| null | gezet = het is een stap van die taak (één niveau) |
-| `date` | `"YYYY-MM-DD"` \| null | wanneer je het doet; daarmee komt de taak in Planning |
-| `time` | `"HH:MM"` \| null | alleen met `date`; daarmee wordt het een blok in de tijdlijn |
-| `durationMin` | number | alleen met `time`; standaard 30 |
-| `deadline` | `"YYYY-MM-DD"` \| null | uiterste datum, los van `date` |
-| `remindDays` | number \| null | herinnering zoveel dagen vóór de deadline (0 = op de dag zelf) |
-| `note` | string | optioneel, kort |
-| `order` | number | handmatige volgorde binnen een lijst of hoofdtaak |
-| `createdAt`, `doneAt` | ISO-tijd \| null | `doneAt` gezet = gedaan |
+| Veld                  | Type                   | Betekenis                                                              |
+| --------------------- | ---------------------- | ---------------------------------------------------------------------- |
+| `id`                  | string                 | `uid()`                                                                |
+| `title`               | string                 | verplicht, niet leeg                                                   |
+| `horizon`             | `"kort"` \| `"lang"`   | in welke lijst de taak staat; een stap neemt die van de hoofdtaak over |
+| `parentId`            | string \| null         | gezet = het is een stap van die taak (één niveau)                      |
+| `date`                | `"YYYY-MM-DD"` \| null | wanneer je het doet; daarmee komt de taak in Planning                  |
+| `time`                | `"HH:MM"` \| null      | alleen met `date`; daarmee wordt het een blok in de tijdlijn           |
+| `durationMin`         | number                 | alleen met `time`; standaard 30                                        |
+| `deadline`            | `"YYYY-MM-DD"` \| null | uiterste datum, los van `date`                                         |
+| `remindDays`          | number \| null         | herinnering zoveel dagen vóór de deadline (0 = op de dag zelf)         |
+| `note`                | string                 | optioneel, kort                                                        |
+| `order`               | number                 | handmatige volgorde binnen een lijst of hoofdtaak                      |
+| `createdAt`, `doneAt` | ISO-tijd \| null       | `doneAt` gezet = gedaan                                                |
 
 - **Backup:** `BACKUP_VERSION` 14, met `tasks` in de export. De import zet ze terug: vervangen
   wist eerst, samenvoegen doet een `bulkPut`. Validatie: een lijst met objecten die een
@@ -95,15 +95,16 @@ doneAt" })`. Bestaande tabellen blijven ongewijzigd.
   - **Te laat:** `date < vandaag` of `deadline < vandaag`, en nog niet gedaan.
   - **Percentage:** gedane stappen gedeeld door alle stappen. Zonder stappen is er geen
     percentage.
-  - **Hoofdtaak met stappen:** die vink je zelf af. Als de laatste stap gedaan is, krijg je
-    een melding met de knop "Hele taak afvinken?" (keuze Claude). Er wordt niets automatisch
-    afgevinkt.
+  - **Hoofdtaak met stappen:** vink je niet zelf af, zodat dat niet per ongeluk gebeurt
+    (eigenaar, 24-11). Hij is klaar zodra alle stappen klaar zijn, en weer open als je een stap
+    terugzet of erbij zet. Een tik op zijn rondje legt dat uit.
 
 ## Schermen
 
 ### Vandaag: kaartje "Te doen"
 
 Het kaartje staat onder "Nu en straks". Het toont:
+
 - taken (en stappen) met `date` = vandaag,
 - taken die te laat zijn,
 - deadlines in de komende 3 dagen, als korte regel "Deadline: … over 2 dagen".
@@ -153,6 +154,7 @@ LANGE TERMIJN
 
 Dit is één sheet voor nieuw, bewerken en stappen. Bovenaan staat alleen de titel en
 "Toevoegen". Daaronder, ingeklapt onder "Meer opties":
+
 - korte of lange termijn,
 - datum (+ tijd en duur),
 - deadline (+ herinnering: geen / op de dag / 1 / 3 / 7 dagen vooraf),
@@ -224,8 +226,7 @@ regels zolang de app open is (`notify.js`).
 
 1. **Te laat:** blijft in de lijst met het label "te laat" en de knop "naar vandaag". Verhuist
    niet vanzelf.
-2. **Hoofdtaak met stappen:** wordt nooit automatisch afgevinkt. Na de laatste stap komt de vraag
-   "Hele taak afvinken?".
+2. **Hoofdtaak met stappen:** klaar zodra alle stappen klaar zijn; zelf afvinken kan niet.
 3. **Kaartje op Vandaag:** toont vandaag, te laat en deadlines binnen 3 dagen. Staat er altijd,
    ook als het leeg is, met het veld "+ Taak voor vandaag".
 4. **Taak met tijd:** duurt standaard 30 minuten en is niet te slepen in de tijdlijn.

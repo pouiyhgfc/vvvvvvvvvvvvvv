@@ -4,16 +4,14 @@ import Card from "../../ui/Card.jsx";
 import Icon from "../../ui/Icon.jsx";
 import TaskRow from "./TaskRow.jsx";
 import TaskSheet from "./TaskSheet.jsx";
-import { moveToToday, useTasks } from "./taskStore.js";
+import { moveToToday, toggleTask, useTasks } from "./taskStore.js";
 import { doneList, longList, shortList, stepsOf } from "./tasks.js";
-import { useToggleTask } from "./useToggleTask.jsx";
 
 // Alle taken: korte termijn, lange termijn en (ingeklapt) wat gedaan is.
 export default function TasksPage({ today, onBack }) {
   const tasks = useTasks();
   const [sheet, setSheet] = useState(null); // { task } | { defaults }
   const [showDone, setShowDone] = useState(false);
-  const [toggle, toggleDialog] = useToggleTask();
   const done = doneList(tasks);
 
   const row = (t) => (
@@ -22,7 +20,7 @@ export default function TasksPage({ today, onBack }) {
       task={t}
       steps={stepsOf(tasks, t.id)}
       today={today}
-      onToggle={toggle}
+      onToggle={toggleTask}
       onOpen={(task) => setSheet({ task })}
       onToday={(task) => moveToToday(task.id, today)}
     />
@@ -97,7 +95,6 @@ export default function TasksPage({ today, onBack }) {
           onClose={() => setSheet(null)}
         />
       )}
-      {toggleDialog}
     </div>
   );
 }

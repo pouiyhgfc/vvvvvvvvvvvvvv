@@ -26,13 +26,42 @@ describe("taskStore", () => {
     expect(await db.tasks.count()).toBe(0);
   });
 
-  test("een stap terugzetten laat de gedane hoofdtaak gedaan", async () => {
+  // Een taak met stappen vink je niet zelf af (anders gebeurt dat per
+  // ongeluk): hij is klaar zodra alle stappen klaar zijn.
+  test("een hoofdtaak met stappen vink je niet zelf af", async () => {
+    const p = await addTask({ title: "p", horizon: "lang" });
+    await addTask({ title: "s", parentId: p });
+    await toggleDone(p);
+    expect((await db.tasks.get(p)).doneAt).toBeNull();
+  });
+
+  test("de laatste stap afvinken maakt de hoofdtaak klaar", async () => {
+    const p = await addTask({ title: "p", horizon: "lang" });
+    const s1 = await addTask({ title: "s1", parentId: p });
+    const s2 = await addTask({ title: "s2", parentId: p });
+    await toggleDone(s1);
+    expect((await db.tasks.get(p)).doneAt).toBeNull();
+    await toggleDone(s2);
+    expect((await db.tasks.get(p)).doneAt).toBeTruthy();
+  });
+
+  test("een stap terugzetten of erbij zetten maakt de hoofdtaak weer open", async () => {
     const p = await addTask({ title: "p", horizon: "lang" });
     const s = await addTask({ title: "s", parentId: p });
     await toggleDone(s);
-    await toggleDone(p);
     await toggleDone(s);
-    expect((await db.tasks.get(s)).doneAt).toBeNull();
+    expect((await db.tasks.get(p)).doneAt).toBeNull();
+    await toggleDone(s);
+    await addTask({ title: "s2", parentId: p });
+    expect((await db.tasks.get(p)).doneAt).toBeNull();
+  });
+
+  test("de laatste open stap weghalen maakt de hoofdtaak klaar", async () => {
+    const p = await addTask({ title: "p", horizon: "lang" });
+    const s1 = await addTask({ title: "s1", parentId: p });
+    const s2 = await addTask({ title: "s2", parentId: p });
+    await toggleDone(s1);
+    await deleteTask(s2);
     expect((await db.tasks.get(p)).doneAt).toBeTruthy();
   });
 

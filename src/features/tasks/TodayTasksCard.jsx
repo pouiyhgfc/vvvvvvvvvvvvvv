@@ -5,9 +5,8 @@ import { TextInput } from "../../ui/Field.jsx";
 import Icon from "../../ui/Icon.jsx";
 import TaskRow from "./TaskRow.jsx";
 import TaskSheet from "./TaskSheet.jsx";
-import { addTask, moveToToday, useTasks } from "./taskStore.js";
+import { addTask, moveToToday, toggleTask, useTasks } from "./taskStore.js";
 import { cardList, daysLeft } from "./tasks.js";
-import { useToggleTask } from "./useToggleTask.jsx";
 
 // "Te doen" op Vandaag: de taken van de getoonde dag (op vandaag ook wat te
 // laat is en deadlines binnenkort), afvinken en snel iets toevoegen. De kop
@@ -16,7 +15,6 @@ export default function TodayTasksCard({ date, onOpenAll }) {
   const tasks = useTasks();
   const [title, setTitle] = useState("");
   const [open, setOpen] = useState(null);
-  const [toggle, toggleDialog] = useToggleTask();
   const day = dk(date);
   const today = dk(new Date());
   const { items, deadlines } = cardList(tasks, day, today);
@@ -44,7 +42,7 @@ export default function TodayTasksCard({ date, onOpenAll }) {
           task={t}
           today={today}
           parentTitle={t.parentId && titleOf(t.parentId)}
-          onToggle={toggle}
+          onToggle={toggleTask}
           onOpen={setOpen}
           onToday={(task) => moveToToday(task.id, today)}
         />
@@ -70,7 +68,6 @@ export default function TodayTasksCard({ date, onOpenAll }) {
       {open && (
         <TaskSheet task={open} today={today} onClose={() => setOpen(null)} />
       )}
-      {toggleDialog}
     </Card>
   );
 }
