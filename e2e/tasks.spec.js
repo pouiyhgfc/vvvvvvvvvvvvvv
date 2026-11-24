@@ -87,6 +87,9 @@ test("lange termijn met stappen toont het percentage en klapt open", async ({
   for (const step of ["Onderwerp kiezen", "Literatuur zoeken"]) {
     await sheet.getByPlaceholder("+ Stap toevoegen").fill(step);
     await page.keyboard.press("Enter");
+    // Wachten tot de stap er staat: anders wist het leegmaken van het veld
+    // na de vorige stap soms de nieuwe tekst (flaky in CI).
+    await expect(sheet.getByText(step, { exact: true })).toBeVisible();
   }
   await sheet
     .getByRole("button", { name: "Afvinken: Onderwerp kiezen" })
