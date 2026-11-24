@@ -12,8 +12,10 @@ export default function DisplaySection({
   toggleNotifications,
   total,
 }) {
-  const set = (key) => (e) =>
-    setSettings((s) => ({ ...s, [key]: +e.target.value }));
+  // Waarde eerst uitlezen: de updater draait pas na het event, als React het
+  // (gecontroleerde) veld alweer op de oude stand heeft gezet.
+  const put = (fields) => setSettings((s) => ({ ...s, ...fields }));
+  const set = (key) => (e) => put({ [key]: +e.target.value });
   const cap = settings.hifdDailyCap ?? 4;
   const hifdOn = settings.hifdEnabled !== false;
   return (
@@ -22,12 +24,7 @@ export default function DisplaySection({
         title="Donkere modus"
         desc="Rustiger voor je ogen 's avonds."
         checked={settings.theme === "dark"}
-        onChange={(e) =>
-          setSettings((s) => ({
-            ...s,
-            theme: e.target.checked ? "dark" : "light",
-          }))
-        }
+        onChange={(e) => put({ theme: e.target.checked ? "dark" : "light" })}
       />
       <ToggleRow
         title="Meldingen planning"
@@ -76,9 +73,7 @@ export default function DisplaySection({
         </span>
         <Select
           value={settings.dailyTemplate === "kort" ? "kort" : "muhasaba"}
-          onChange={(e) =>
-            setSettings((s) => ({ ...s, dailyTemplate: e.target.value }))
-          }
+          onChange={(e) => put({ dailyTemplate: e.target.value })}
           style={{ width: "100%" }}
         >
           <option value="kort">Kort: goed, beter, dankbaar</option>
@@ -92,9 +87,7 @@ export default function DisplaySection({
         title="Hifd"
         desc="Koran memoriseren en herhalen, met een eigen tabblad."
         checked={hifdOn}
-        onChange={(e) =>
-          setSettings((s) => ({ ...s, hifdEnabled: e.target.checked }))
-        }
+        onChange={(e) => put({ hifdEnabled: e.target.checked })}
         last={!hifdOn}
       />
       {hifdOn && (

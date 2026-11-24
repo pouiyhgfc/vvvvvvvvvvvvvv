@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../lib/db.js";
+import { EMPTY_DAY, reportSaveError, toggleCheck } from "../lib/dataWrites.js";
 import { dk, isToday } from "../lib/date.js";
 import { buzz } from "../lib/storage.js";
 import { streakDays } from "../features/stats/statsData.js";
-
-const EMPTY_DAY = { checked: {}, energy: 7, mood: "Goed", notes: "" };
 
 // De afgevinkte routines van één dag, met voortgang per dagdeel en de reeks.
 export function useTrackerDay({ date, routines, allDays, streakPct }) {
@@ -16,12 +15,8 @@ export function useTrackerDay({ date, routines, allDays, streakPct }) {
   const day = dayRecord ?? EMPTY_DAY;
 
   const toggle = (id) => {
-    const next = {
-      ...day,
-      checked: { ...day.checked, [id]: !day.checked[id] },
-    };
-    db.days.put({ date: key, ...next });
-    if (!day.checked[id]) {
+    reportSaveError(toggleCheck(key, id));
+    if (!day.checked?.[id]) {
       buzz(8);
       setPop(id);
       setTimeout(() => setPop(null), 500);

@@ -4,6 +4,7 @@ import { uid, dk } from "../../lib/date.js";
 import { cleanTags } from "../../lib/tags.js";
 import { docText } from "../../lib/docText.js";
 import { showToast } from "../../lib/toast.js";
+import { SAVE_FAILED } from "../../lib/dataWrites.js";
 import { DOC_SCHEMA_VERSION } from "./docSchema.js";
 import { editCounter } from "./editCounter.js";
 
@@ -95,7 +96,7 @@ export function useEntrySave({
     } catch (err) {
       console.error("[useEntrySave]", err);
       setSaveState("idle");
-      showToast("Opslaan mislukt. Is de opslag van je telefoon vol?");
+      showToast(SAVE_FAILED);
       return;
     }
     done();

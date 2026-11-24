@@ -2,6 +2,12 @@ import { useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../lib/db.js";
 import {
+  reportSaveError as report,
+  updateBlob,
+  updateCalEvents,
+  updateSettings,
+} from "../lib/dataWrites.js";
+import {
   DEFAULT_AREAS,
   DEFAULT_CAL_TEMPLATES,
   DEFAULT_ROUTINES,
@@ -41,42 +47,19 @@ export function useAppData() {
     return m;
   }, [allDaysRaw]);
 
-  // --- Dexie-backed setters (same API as the old React setters) ---
-  const setSettings = (updater) => {
-    const current = settingsRecord ?? DEFAULT_SETTINGS;
-    const next = typeof updater === "function" ? updater(current) : updater;
-    db.settings.put({ id: "singleton", ...next });
-  };
-
-  const setAreas = (updater) => {
-    const next = typeof updater === "function" ? updater(areas) : updater;
-    db.blobs.put({ key: "areas", data: next });
-  };
-
-  const setRoutines = (updater) => {
-    const next = typeof updater === "function" ? updater(routines) : updater;
-    db.blobs.put({ key: "routines", data: next });
-  };
-
-  const setCalTemplates = (updater) => {
-    const next =
-      typeof updater === "function" ? updater(calTemplates) : updater;
-    db.blobs.put({ key: "calTemplates", data: next });
-  };
-
-  const setWeekScheduleTemplates = (updater) => {
-    const next =
-      typeof updater === "function" ? updater(weekScheduleTemplates) : updater;
-    db.blobs.put({ key: "weekTemplates", data: next });
-  };
-
-  const setCalEvents = (updater) => {
-    const next = typeof updater === "function" ? updater(calEvents) : updater;
-    db.transaction("rw", db.calEvents, async () => {
-      await db.calEvents.clear();
-      if (next.length) await db.calEvents.bulkPut(next);
-    });
-  };
+  // --- Setters met dezelfde vorm als React-setters (waarde of updater).
+  // De updater krijgt de verse stand uit Dexie, niet die van deze render.
+  const setSettings = (updater) =>
+    report(updateSettings(DEFAULT_SETTINGS, updater));
+  const setAreas = (updater) =>
+    report(updateBlob("areas", DEFAULT_AREAS, updater));
+  const setRoutines = (updater) =>
+    report(updateBlob("routines", DEFAULT_ROUTINES, updater));
+  const setCalTemplates = (updater) =>
+    report(updateBlob("calTemplates", DEFAULT_CAL_TEMPLATES, updater));
+  const setWeekScheduleTemplates = (updater) =>
+    report(updateBlob("weekTemplates", [], updater));
+  const setCalEvents = (updater) => report(updateCalEvents(updater));
 
   return {
     settings,
