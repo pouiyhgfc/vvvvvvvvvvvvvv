@@ -1,4 +1,4 @@
-import { useRef, useState, lazy, Suspense } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { dk } from "../../lib/date.js";
@@ -18,6 +18,7 @@ import { tagStats } from "../../lib/tags.js";
 import { useEntrySave } from "./useEntrySave.js";
 import { useBackHandler } from "../../hooks/useBackHandler.js";
 import { headingsOf, isActive } from "../../lib/notes.js";
+import { rememberResume } from "../../lib/resume.js";
 import { TextInput } from "../../ui/Field.jsx";
 
 const RichEditor = lazy(() => import("./RichEditor.jsx"));
@@ -99,6 +100,13 @@ function NotePage({
     notebookId: currentNb,
     editorRef,
   });
+  // Open notitie onthouden, zodat je na een herstart door Android hier terug
+  // bent (zie resume.js).
+  useEffect(() => {
+    if (!created) return undefined;
+    rememberResume({ note: idRef.current });
+    return () => rememberResume({ note: null });
+  }, [created, idRef]);
 
   const initialContent =
     entry?.doc ?? entry?.body ?? draft?.doc ?? draft?.body ?? undefined;

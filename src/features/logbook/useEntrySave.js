@@ -137,6 +137,20 @@ export function useEntrySave({
     await persist();
   };
 
+  // Wegklikken (app naar achtergrond): meteen opslaan. Android kan de app
+  // daarna afsluiten, en dan haalt het automatisch opslaan het niet meer.
+  const latestFlush = useRef(flush);
+  useEffect(() => {
+    latestFlush.current = flush;
+  });
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden") latestFlush.current();
+    };
+    document.addEventListener("visibilitychange", onHide);
+    return () => document.removeEventListener("visibilitychange", onHide);
+  }, []);
+
   return {
     idRef,
     contentRef,

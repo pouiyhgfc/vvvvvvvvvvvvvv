@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { buildAreaStyles } from "./lib/constants.js";
 import { dk, periodForHour } from "./lib/date.js";
@@ -39,6 +39,10 @@ import { useTrackerDay } from "./hooks/useTrackerDay.js";
 import { useDayRollover } from "./hooks/useDayRollover.js";
 import { useTheme } from "./hooks/useTheme.js";
 import { useBackHandler } from "./hooks/useBackHandler.js";
+import { loadResume, rememberResume } from "./lib/resume.js";
+
+// Eén keer bij het opstarten: verder waar je was (zie resume.js).
+const resumed = loadResume();
 
 // Vaste plekken in de tabbalk. "stats" is een subpagina van Meer.
 const TABS = [
@@ -70,7 +74,10 @@ export default function App({ startupErrors = [] }) {
   // --- UI state ---
   const [date, setDate] = useState(new Date());
   const [tab, setTab] = useState(() => periodForHour(new Date().getHours()));
-  const [view, setView] = useState("tracker");
+  const [view, setView] = useState(
+    resumed.note ? "logbook" : (resumed.view ?? "tracker"),
+  );
+  useEffect(() => rememberResume({ view }), [view]);
   const [statsPeriod, setStatsPeriod] = useState("week");
   const [pendingImport, setPendingImport] = useState(null);
   const [launchDraft, setLaunchDraft] = useLaunchDraft();

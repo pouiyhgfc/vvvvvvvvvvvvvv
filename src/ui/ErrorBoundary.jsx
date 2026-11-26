@@ -1,5 +1,6 @@
 import { Component } from "react";
 import Button from "./Button.jsx";
+import { forgetResume } from "../lib/resume.js";
 
 // Vangnet: een fout in een scherm (of een stuk app dat na een update niet
 // meer te laden is) geeft een melding in plaats van een wit scherm. Je data
@@ -34,7 +35,14 @@ export default class ErrorBoundary extends Component {
           Je gegevens zijn veilig. Opnieuw laden lost dit meestal op, ook na een
           update van de app.
         </p>
-        <Button onClick={() => location.reload()}>Opnieuw laden</Button>
+        <Button
+          onClick={() => {
+            forgetResume(); // niet terug naar het scherm dat crashte
+            location.reload();
+          }}
+        >
+          Opnieuw laden
+        </Button>
       </div>
     );
   }

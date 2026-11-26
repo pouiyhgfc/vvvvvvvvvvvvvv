@@ -1,9 +1,11 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../lib/db.js";
 import { uid } from "../../lib/date.js";
 import { MOODS, DEFAULT_NOTEBOOKS } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
+import { isActive } from "../../lib/notes.js";
+import { loadResume, rememberResume } from "../../lib/resume.js";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
 import ArchiveSheet from "./ArchiveSheet.jsx";
 import NoteCard from "./NoteCard.jsx";
@@ -41,10 +43,17 @@ export default function LogbookView() {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState(null);
   // null → valt terug op het eerste notitieboek in de (sorteerbare) volgorde.
-  const [activeNb, setActiveNb] = useState(null);
+  const [activeNb, setActiveNb] = useState(() => loadResume().notebook ?? null);
   const [sheet, setSheet] = useState(null); // dag-notitie (plat tekstveld)
   const [nbSheet, setNbSheet] = useState(null); // "new" | notebook
   const [pageEntry, setPageEntry] = useState(null); // "new" | { _draft } | log-entry
+  useEffect(() => rememberResume({ notebook: activeNb }), [activeNb]);
+  // Na een herstart door Android: de notitie die open stond weer openen.
+  useEffect(() => {
+    const id = loadResume().note;
+    if (id)
+      db.logEntries.get(id).then((e) => e && isActive(e) && setPageEntry(e));
+  }, []);
   const [sortNbSheet, setSortNbSheet] = useState(false);
   const [menuSheet, setMenuSheet] = useState(false);
   const [templatePicker, setTemplatePicker] = useState(false);

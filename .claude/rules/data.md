@@ -17,4 +17,4 @@ Mijn data bestaat alleen lokaal op mijn telefoon. Een fout hier is niet terug te
 - **Nieuwe velden naast oude** ("dual-write") tot ik akkoord geef; oude velden pas later opruimen.
 - **Backup-formaat:** wijzigt de data, dan gaat `version` in `exportData` omhoog en moeten oude backups nog steeds importeren.
 - Bestaande Hifd-voortgang (status, `nextDue`, interval, ease) gaat bij een algoritmewissel **nooit** terug naar "nieuw".
-- `localStorage` wordt alleen nog gebruikt voor `rt_notified_*` (meldingen), als bron voor de eenmalige migratie en bij het wissen van alle data (`App.jsx`). Nieuwe data hoort in Dexie.
+- `localStorage` wordt alleen nog gebruikt voor `rt_notified_*` (meldingen), `rt_resume` (waar je was, alleen weergave; `lib/resume.js`), als bron voor de eenmalige migratie en bij het wissen van alle data (`App.jsx`). Nieuwe data hoort in Dexie.
