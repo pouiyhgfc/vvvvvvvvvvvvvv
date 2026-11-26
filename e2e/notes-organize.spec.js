@@ -92,6 +92,26 @@ test("multi-select en bulk archiveren via de actiebalk", async ({ page }) => {
   await expect(page.getByText("Bulk-B", { exact: true })).toBeVisible();
 });
 
+// Alles selecteren en Annuleren staan in de balk onderin, zodat je ze ook
+// na scrollen kunt bereiken (verzoek eigenaar 26-11).
+test("alles selecteren en annuleren zitten in de balk onderin", async ({
+  page,
+}) => {
+  await openLogbook(page);
+  await createNote(page, "Balk-A");
+  await createNote(page, "Balk-B");
+
+  await page.click('button[aria-label="Meer opties"]');
+  await page.click('button[aria-label="Selecteren"]');
+  const bar = page.getByRole("toolbar", { name: "Selectie" });
+  await expect(bar.getByText("0 geselecteerd")).toBeVisible();
+  await bar.getByRole("button", { name: "Alles selecteren" }).click();
+  await expect(bar.getByText("2 geselecteerd")).toBeVisible();
+  await bar.getByRole("button", { name: "Annuleren" }).click();
+  await expect(bar).toBeHidden();
+  await expect(page.getByText(/geselecteerd/)).toHaveCount(0);
+});
+
 test("multi-select en bulk verplaatsen naar een ander notitieboek", async ({
   page,
 }) => {

@@ -1,4 +1,3 @@
-import Button from "../../ui/Button.jsx";
 import Icon from "../../ui/Icon.jsx";
 
 const squareBtn = {
@@ -12,46 +11,9 @@ const squareBtn = {
   flexShrink: 0,
 };
 
-// Kop van Notities: titel met menu en "nieuwe notitie", of tijdens
-// selecteren het aantal geselecteerd met Alles/Annuleren.
-export default function NotesHeader({
-  selectMode,
-  selectedCount,
-  onSelectAll,
-  onCancelSelect,
-  onMenu,
-  onNew,
-}) {
-  if (selectMode)
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--sp-2)",
-          minHeight: 48,
-          marginBottom: "var(--sp-4)",
-          padding: "0 var(--sp-1)",
-        }}
-      >
-        <span
-          style={{
-            flex: 1,
-            fontFamily: "var(--ff-head)",
-            fontSize: "var(--fs-xl)",
-            fontWeight: 600,
-          }}
-        >
-          {selectedCount} geselecteerd
-        </span>
-        <Button variant="secondary" size="sm" onClick={onSelectAll}>
-          Alles
-        </Button>
-        <Button variant="secondary" size="sm" onClick={onCancelSelect}>
-          Annuleren
-        </Button>
-      </div>
-    );
+// Kop van Notities: titel met menu en "nieuwe notitie". Selecteren gebeurt
+// in de balk onderin (SelectionBar).
+export default function NotesHeader({ onMenu, onNew }) {
   return (
     <div
       style={{

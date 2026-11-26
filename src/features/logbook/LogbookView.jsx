@@ -211,14 +211,7 @@ export default function LogbookView() {
         animation: "fadeUp .3s ease",
       }}
     >
-      <NotesHeader
-        selectMode={selectMode}
-        selectedCount={selectedIds.size}
-        onSelectAll={selectAllVisible}
-        onCancelSelect={exitSelectMode}
-        onMenu={() => setMenuSheet(true)}
-        onNew={newNote}
-      />
+      <NotesHeader onMenu={() => setMenuSheet(true)} onNew={newNote} />
 
       <NoteSearch value={search} onChange={setSearch} />
 
@@ -344,8 +337,11 @@ export default function LogbookView() {
           onConfirm={bulk(trashEntries)}
         />
       )}
-      {selectMode && selectedIds.size > 0 && (
+      {selectMode && (
         <SelectionBar
+          count={selectedIds.size}
+          onSelectAll={selectAllVisible}
+          onCancel={exitSelectMode}
           onPin={bulk(pinEntries)}
           onArchive={bulk(archiveEntries)}
           onMove={() => setMoveSheet(true)}
