@@ -12,6 +12,12 @@ export default function SelectionBar({
   onMove,
   onTrash,
 }) {
+  const actions = [
+    ["Vastzetten", "push-pin", onPin],
+    ["Archiveren", "archive", onArchive],
+    ["Verplaatsen naar…", "folder-open", onMove],
+    ["Naar prullenbak", "trash", onTrash],
+  ];
   return (
     <div
       role="toolbar"
@@ -46,38 +52,17 @@ export default function SelectionBar({
             marginTop: 6,
           }}
         >
-          <button
-            onClick={onPin}
-            aria-label="Vastzetten"
-            title="Vastzetten"
-            style={metaBtn}
-          >
-            <Icon name="push-pin" size={22} />
-          </button>
-          <button
-            onClick={onArchive}
-            aria-label="Archiveren"
-            title="Archiveren"
-            style={metaBtn}
-          >
-            <Icon name="archive" size={22} />
-          </button>
-          <button
-            onClick={onMove}
-            aria-label="Verplaatsen naar…"
-            title="Verplaatsen naar…"
-            style={metaBtn}
-          >
-            <Icon name="folder-open" size={22} />
-          </button>
-          <button
-            onClick={onTrash}
-            aria-label="Naar prullenbak"
-            title="Naar prullenbak"
-            style={metaBtn}
-          >
-            <Icon name="trash" size={22} />
-          </button>
+          {actions.map(([label, icon, onClick]) => (
+            <button
+              key={label}
+              onClick={onClick}
+              aria-label={label}
+              title={label}
+              style={metaBtn}
+            >
+              <Icon name={icon} size={22} />
+            </button>
+          ))}
         </div>
       )}
     </div>
