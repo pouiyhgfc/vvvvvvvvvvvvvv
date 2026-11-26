@@ -11,11 +11,15 @@ export default function SelectionBar({
   onArchive,
   onMove,
   onTrash,
+  onCopy,
+  onDownload,
 }) {
   const actions = [
     ["Vastzetten", "push-pin", onPin],
     ["Archiveren", "archive", onArchive],
     ["Verplaatsen naar…", "folder-open", onMove],
+    ["Kopiëren", "copy", onCopy],
+    ["Downloaden", "download-simple", onDownload],
     ["Naar prullenbak", "trash", onTrash],
   ];
   return (
@@ -35,11 +39,28 @@ export default function SelectionBar({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ flex: 1, fontWeight: 600 }}>{count} geselecteerd</span>
-        <Button variant="secondary" size="sm" onClick={onSelectAll}>
+        <span
+          style={{
+            flex: 1,
+            minWidth: 0,
+            fontWeight: 600,
+            fontSize: "var(--fs-sm)",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {count} geselecteerd
+        </span>
+        <Button
+          variant="secondary"
+          size="sm"
+          style={noWrap}
+          onClick={onSelectAll}
+        >
           Alles selecteren
         </Button>
-        <Button variant="secondary" size="sm" onClick={onCancel}>
+        <Button variant="secondary" size="sm" style={noWrap} onClick={onCancel}>
           Annuleren
         </Button>
       </div>
@@ -68,6 +89,8 @@ export default function SelectionBar({
     </div>
   );
 }
+
+const noWrap = { whiteSpace: "nowrap", flexShrink: 0 };
 
 const metaBtn = {
   width: 44,

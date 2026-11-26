@@ -8,6 +8,17 @@ export function fmtDay(str) {
   return `${DAYS_NL[d.getDay()]} ${d.getDate()} ${MONTHS_NL[d.getMonth()].toLowerCase()}`;
 }
 
+// Geselecteerde notities als één markdown-tekst (kopiëren of downloaden).
+export function notesAsMarkdown(entries) {
+  return entries
+    .map((e) => {
+      const day = `${fmtDay(e.date)} ${e.date.slice(0, 4)}`;
+      const head = e.title ? `# ${e.title}\n_${day}_` : `# ${day}`;
+      return `${head}\n\n${(e.body || "").trim()}\n`;
+    })
+    .join("\n---\n\n");
+}
+
 // Vormen waarop je een entry op datum kunt vinden: ISO, "25 juni",
 // "25 juni 2026" en de weekdag.
 function dateSearchString(str) {

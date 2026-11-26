@@ -112,6 +112,31 @@ test("alles selecteren en annuleren zitten in de balk onderin", async ({
   await expect(page.getByText(/geselecteerd/)).toHaveCount(0);
 });
 
+test("geselecteerde notities kopiëren en downloaden", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await openLogbook(page);
+  await createNote(page, "Mee-A");
+  await createNote(page, "Mee-B");
+  await page.click('button[aria-label="Meer opties"]');
+  await page.click('button[aria-label="Selecteren"]');
+  const bar = page.getByRole("toolbar", { name: "Selectie" });
+  await bar.getByRole("button", { name: "Alles selecteren" }).click();
+
+  await bar.getByRole("button", { name: "Kopiëren" }).click();
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copied).toContain("# Mee-A");
+  expect(copied).toContain("# Mee-B");
+
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    bar.getByRole("button", { name: "Downloaden" }).click(),
+  ]);
+  expect(download.suggestedFilename()).toMatch(/^notities-.*\.md$/);
+});
+
 test("multi-select en bulk verplaatsen naar een ander notitieboek", async ({
   page,
 }) => {

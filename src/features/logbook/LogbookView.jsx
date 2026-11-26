@@ -4,6 +4,9 @@ import { db } from "../../lib/db.js";
 import { uid } from "../../lib/date.js";
 import { MOODS, DEFAULT_NOTEBOOKS } from "../../lib/constants.js";
 import { showToast } from "../../lib/toast.js";
+import { copyText } from "../../lib/share.js";
+import { downloadText } from "../../lib/download.js";
+import { stamp } from "../../lib/date.js";
 import { isActive } from "../../lib/notes.js";
 import { loadResume, rememberResume } from "../../lib/resume.js";
 import ConfirmDialog from "../../ui/ConfirmDialog.jsx";
@@ -14,7 +17,12 @@ import NotesMenuSheet from "./NotesMenuSheet.jsx";
 import SelectionBar from "./SelectionBar.jsx";
 import TemplatePickerSheet from "./TemplatePickerSheet.jsx";
 import TrashSheet from "./TrashSheet.jsx";
-import { filterNotes, nbOf, stripBlockIds } from "./noteHelpers.js";
+import {
+  filterNotes,
+  nbOf,
+  notesAsMarkdown,
+  stripBlockIds,
+} from "./noteHelpers.js";
 import LogEntrySheet from "./LogEntrySheet.jsx";
 import MoveSheet from "./MoveSheet.jsx";
 import NoteList from "./NoteList.jsx";
@@ -162,6 +170,9 @@ export default function LogbookView() {
 
   // Bulkacties op de huidige selectie. `logEntriesRaw` (niet `filtered`) is
   // de bron: die bevat de volledige records, `filtered` alleen de weergave.
+  // In de volgorde van de lijst, zoals je ze ziet.
+  const selectedText = () =>
+    notesAsMarkdown(filtered.filter((e) => selectedIds.has(e.id)));
   const selectedEntries = () =>
     (logEntriesRaw ?? []).filter((e) => selectedIds.has(e.id));
 
@@ -355,6 +366,14 @@ export default function LogbookView() {
           onArchive={bulk(archiveEntries)}
           onMove={() => setMoveSheet(true)}
           onTrash={() => setConfirmBulkTrash(true)}
+          onCopy={() => copyText(selectedText())}
+          onDownload={() =>
+            downloadText(
+              `notities-${stamp()}.md`,
+              selectedText(),
+              "text/markdown",
+            )
+          }
         />
       )}
     </div>
