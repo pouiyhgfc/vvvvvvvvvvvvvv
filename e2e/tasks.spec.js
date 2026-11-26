@@ -194,7 +194,6 @@ test("een taak naar boven slepen blijft daar staan", async ({ page }) => {
 
   const titles = page.locator('[data-srow="1"]').filter({ hasText: /^Sleep-/ });
   await expect(titles).toHaveText([/^Sleep-C/, /^Sleep-A/, /^Sleep-B/]);
-  await page.reload();
-  await openList(page);
+  await page.reload(); // je komt terug op Taken (zie resume.js)
   await expect(titles).toHaveText([/^Sleep-C/, /^Sleep-A/, /^Sleep-B/]);
 });
