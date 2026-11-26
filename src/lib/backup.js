@@ -1,5 +1,5 @@
 import { db, fillSearchText, seedHifd } from "./db.js";
-import { dk } from "./date.js";
+import { stamp } from "./date.js";
 import { DEFAULT_NOTEBOOKS, DEFAULT_SETTINGS } from "./constants.js";
 import { showToast } from "./toast.js";
 import { BACKUP_VERSION, validateBackup } from "./validateBackup.js";
@@ -12,14 +12,6 @@ import { downloadText } from "./download.js";
 // niet (de WebView negeert hem): daar komt het in Documenten/Routine.
 const downloadJSON = (filename, payload) =>
   downloadText(filename, JSON.stringify(payload, null, 2), "application/json");
-
-// Datum én tijd in de naam: een tweede backup op dezelfde dag (zoals de
-// veiligheidsbackup vóór "vervangen") overschrijft de eerste niet.
-function stamp() {
-  const d = new Date();
-  const two = (n) => String(n).padStart(2, "0");
-  return `${dk(d)}-${two(d.getHours())}${two(d.getMinutes())}${two(d.getSeconds())}`;
-}
 
 export async function exportData({
   routines,

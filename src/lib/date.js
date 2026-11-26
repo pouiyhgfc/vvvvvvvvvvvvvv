@@ -95,3 +95,11 @@ export function fmtShortDay(str) {
   const d = new Date(str + "T12:00");
   return `${DAYS_NL[d.getDay()].slice(0, 2).toLowerCase()} ${d.getDate()} ${MONTHS_NL[d.getMonth()].slice(0, 3).toLowerCase()}`;
 }
+
+// Datum én tijd voor een bestandsnaam: een tweede bestand op dezelfde dag
+// (zoals de veiligheidsbackup vóór "vervangen") overschrijft het eerste niet.
+export function stamp() {
+  const d = new Date();
+  const two = (n) => String(n).padStart(2, "0");
+  return `${dk(d)}-${two(d.getHours())}${two(d.getMinutes())}${two(d.getSeconds())}`;
+}
