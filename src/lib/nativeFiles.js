@@ -8,8 +8,7 @@ const FOLDER = "Routine";
 // we het bestand zelf naar de openbare map Documenten/Routine, waar je het
 // met Bestanden terugvindt en bij importeren kiest. Lukt dat niet (oude
 // Android zonder toegang), dan via het deel-menu.
-export async function saveJSON(filename, payload) {
-  const data = JSON.stringify(payload, null, 2);
+export async function saveText(filename, data) {
   try {
     await Filesystem.writeFile({
       path: `${FOLDER}/${filename}`,

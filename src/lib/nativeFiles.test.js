@@ -9,9 +9,9 @@ vi.mock("@capacitor/filesystem", () => ({
 }));
 vi.mock("@capacitor/share", () => ({ Share: { share: (o) => share(o) } }));
 
-const { saveJSON } = await import("./nativeFiles.js");
+const { saveText } = await import("./nativeFiles.js");
 
-describe("saveJSON (Android-app)", () => {
+describe("saveText (Android-app)", () => {
   beforeEach(() => {
     writeFile.mockReset();
     share.mockReset();
@@ -19,7 +19,7 @@ describe("saveJSON (Android-app)", () => {
 
   test("slaat op in Documenten/Routine, zonder deel-menu", async () => {
     writeFile.mockResolvedValue({ uri: "file://x" });
-    await saveJSON("backup.json", { a: 1 });
+    await saveText("backup.json", "{}");
     expect(writeFile).toHaveBeenCalledWith(
       expect.objectContaining({
         path: "Routine/backup.json",
@@ -34,7 +34,7 @@ describe("saveJSON (Android-app)", () => {
     writeFile
       .mockRejectedValueOnce(new Error("geen toegang"))
       .mockResolvedValueOnce({ uri: "file://cache/backup.json" });
-    await saveJSON("backup.json", { a: 1 });
+    await saveText("backup.json", "{}");
     expect(share).toHaveBeenCalledWith({
       title: "backup.json",
       files: ["file://cache/backup.json"],

@@ -5,26 +5,13 @@ import { showToast } from "./toast.js";
 import { BACKUP_VERSION, validateBackup } from "./validateBackup.js";
 import { filesForBackup, filesFromBackup } from "./files.js";
 import { addMissingBlob, addMissingRows } from "./backupMerge.js";
-import { saveJSON } from "./nativeFiles.js";
-import { isNativeApp } from "./platform.js";
+import { downloadText } from "./download.js";
 
 // Genereert en downloadt een JSON-bestand — gedeelde Blob/anchor-boilerplate
 // voor alle export-functies hieronder. In de Android-app werkt een download
 // niet (de WebView negeert hem): daar komt het in Documenten/Routine.
-function downloadJSON(filename, payload) {
-  if (isNativeApp) return saveJSON(filename, payload);
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+const downloadJSON = (filename, payload) =>
+  downloadText(filename, JSON.stringify(payload, null, 2), "application/json");
 
 // Datum én tijd in de naam: een tweede backup op dezelfde dag (zoals de
 // veiligheidsbackup vóór "vervangen") overschrijft de eerste niet.
