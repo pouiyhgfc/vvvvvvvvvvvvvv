@@ -18,6 +18,7 @@ import {
 } from "./lib/db.js";
 import { runStartup } from "./lib/startup.js";
 import { setupNativeBack } from "./lib/nativeBack.js";
+import { setupServiceWorker } from "./lib/serviceWorker.js";
 
 // Volgorde is belangrijk: elke stap bouwt voort op de vorige.
 const STARTUP_STEPS = [
@@ -32,6 +33,7 @@ const STARTUP_STEPS = [
 ];
 
 setupNativeBack();
+setupServiceWorker().catch(() => {});
 
 (async () => {
   const startupErrors = await runStartup(STARTUP_STEPS);

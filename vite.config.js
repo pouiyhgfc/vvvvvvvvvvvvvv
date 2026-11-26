@@ -10,7 +10,8 @@ export default defineConfig({
       srcDir: "src",
       filename: "sw.js",
       registerType: "autoUpdate",
-      injectRegister: "auto",
+      // Registratie in main.jsx (serviceWorker.js): niet in de Android-app.
+      injectRegister: false,
       manifest: {
         name: "Routine Tracker",
         short_name: "Routine",
